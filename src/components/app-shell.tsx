@@ -24,7 +24,7 @@ export function AppShell() {
 
   return (
     <main className="app-frame">
-      <aside className={`sidebar ${menuOpen ? "sidebar-open" : ""}`} aria-label="Main navigation">
+      <aside id="primary-sidebar" className={`sidebar ${menuOpen ? "sidebar-open" : ""}`} aria-label="Primary menu" aria-hidden={!menuOpen && typeof window !== "undefined" && window.matchMedia("(max-width: 680px)").matches}>
         <a className="brand" href="/" aria-label="DEENVERSE home">
           <span className="brand-mark">D<span>·</span></span>
           <span className="brand-copy"><strong>DEENVERSE</strong><small>One universe. Infinite knowledge.</small></span>
@@ -52,7 +52,7 @@ export function AppShell() {
 
       <section className="main-panel">
         <header className="topbar">
-          <button className="mobile-menu" onClick={() => setMenuOpen(!menuOpen)} aria-label="Toggle navigation">☰</button>
+          <button className="mobile-menu" onClick={() => setMenuOpen(!menuOpen)} aria-label="Toggle navigation" aria-controls="primary-sidebar" aria-expanded={menuOpen}>☰</button>
           <div className="breadcrumb">DEENVERSE <span>/</span> {section.label.toUpperCase()}</div>
           <div className="topbar-right"><span className="status-dot" /> CONTENT SOURCES PENDING REVIEW</div>
         </header>
