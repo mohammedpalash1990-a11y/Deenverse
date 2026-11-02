@@ -1,8 +1,8 @@
 # DEENVERSE Agent Handoff Status
 
-**Snapshot:** 2026-11-02 22:30 Asia/Riyadh  
+**Snapshot:** 2026-11-02 22:50 Asia/Riyadh  
 **Owner:** `integration/platform-foundation`  
-**Purpose:** Remove cross-branch ambiguity and define evidence required before frontend/backend integration.
+**Purpose:** Keep agent assignments, branch evidence, daily progress accounting, and integration gates in one source of truth.
 
 This document records what was actually visible in GitHub at the snapshot time. A task assignment is not an implementation, and a branch existing is not evidence that an agent is actively working.
 
@@ -11,88 +11,88 @@ This document records what was actually visible in GitHub at the snapshot time. 
 | Ref | Head SHA | Ahead / behind `main` | Files in branch diff vs `main` | Verified status |
 |---|---|---:|---|---|
 | `main` | `4d2a0a5295ad6f865026bd9c3ea9836370429fdf` | — | — | Repository bootstrap and policy docs; no app runtime |
-| `jules/backend-foundation` | `4874c59e5aea7a62bf2026b030403136631ef8dd` | 2 / 4 | `AGENT_TASK.md` only | Assignment exists; no backend source, manifest, migration, tests or backend PR observed |
-| `queen/frontend-foundation` | `9ef788c81de85e9ebfa139b35c42d606c38f2010` | 2 / 4 | `AGENT_TASK.md` only | Assignment exists; no frontend source, manifest, UI, tests or frontend PR observed |
-| `integration/platform-foundation` | latest compare rechecked 2026-11-02 22:29 | 14 / 4 | Eight documentation files | Integration planning/contracts only; no runtime implementation |
+| `jules/backend-foundation` | `4874c59e5aea7a62bf2026b030403136631ef8dd` | 2 / 4 | `AGENT_TASK.md` only | Assignment exists; no backend source, manifest, migration, tests or backend PR observed in last inspected snapshot |
+| `queen/frontend-foundation` | `9ef788c81de85e9ebfa139b35c42d606c38f2010` | 2 / 4 | `AGENT_TASK.md` only | Assignment exists; no frontend source, manifest, UI, tests or frontend PR observed in last inspected snapshot |
+| `integration/platform-foundation` | latest compare rechecked 2026-11-02 22:49 | 16 / 4 | Eight documentation files | Integration planning/contracts only; no runtime implementation |
 
-Comparison was performed against `main` using GitHub compare metadata. Jules and Queen each have a distinct task file commit, but neither branch has a runnable implementation in its diff.
+Comparison against `main` used GitHub compare metadata. The agent branch figures are from the last inspected snapshot and must be rechecked before relying on them.
 
-PR #1:
+## 2. Active agent assignments
+
+Two implementation issues were opened on 2026-11-02:
+
+- **Jules backend implementation:** https://github.com/mohammedpalash1990-a11y/Deenverse/issues/3
+- **Queen frontend implementation:** https://github.com/mohammedpalash1990-a11y/Deenverse/issues/4
+
+These issues contain separate deliverables, acceptance criteria, branch/PR rules, religious-content integrity gates, and the mandatory daily progress reporting policy. The issues are assignments only; do not mark implementation started or completed until commits and artifacts are verified.
+
+PR #1 remains the existing integration documentation PR:
 - URL: https://github.com/mohammedpalash1990-a11y/Deenverse/pull/1
-- State: open, not merged
-- Base: `main`
-- Head: `integration/platform-foundation`
-- Head SHA at snapshot: `50795a74051916b94f1bdb44ad1ff1bb1082fc94`
-- Scope: seven documentation files only
-- GitHub metadata reported mergeable, but branch is four commits behind `main`; this is not approval to merge.
+- Previously observed state: open, not merged; documentation-only.
+- Recheck current state and branch synchronization before any merge decision.
 
-## 2. Cross-branch document dependency
+## 3. Daily target accounting (mandatory for all contributors)
 
-Both agent task files instruct the agent to inspect `docs/PHASE-1-MVP.md`. That file currently exists only on `integration/platform-foundation` and is not present in `main`, `jules/backend-foundation`, or `queen/frontend-foundation`.
+Every daily target must first be decomposed into weighted, verifiable deliverables. Report:
 
-Until PR #1 is merged or the task branches are deliberately synchronized, agents must read the Phase 1 brief from this branch:
+- **Done %** — only deliverables implemented and verified against their acceptance criteria.
+- **Hold %** — deliverables blocked by a named dependency, decision, or unavailable input; identify blocker and owner.
+- **Remaining %** — scoped work not done and not currently blocked.
 
-https://github.com/mohammedpalash1990-a11y/Deenverse/blob/integration/platform-foundation/docs/PHASE-1-MVP.md
+The three percentages must total exactly 100% of that day's agreed scope. Never invent percentages before defining scope and weights. Keep evidence beside each item: commit SHA, changed file, test command/result, and PR or issue URL. Documentation-only work must not be counted as application implementation. Carry all unfinished and held items into the next day's target; do not discard them or silently reset the denominator. Report Jules, Queen, and integration/QA work separately to prevent double-counting, then provide a combined view only where task scopes do not overlap.
 
-Do not copy the integration branch wholesale into Jules or Queen branches. Each agent should synchronize its own branch with the agreed base using a normal merge/rebase workflow and resolve its own conflicts.
+Suggested report format:
 
-## 3. Required handoff from Jules — backend
+| Workstream | Done % | Hold % | Remaining % | Evidence / blocker |
+|---|---:|---:|---:|---|
+| Jules — backend | Not yet measured | Not yet measured | Not yet measured | Define weighted daily scope first; issue #3 |
+| Queen — frontend | Not yet measured | Not yet measured | Not yet measured | Define weighted daily scope first; issue #4 |
+| Integration / QA | Not yet measured | Not yet measured | Not yet measured | Define weighted daily scope first |
 
-1. Reply in PR #1 or the backend PR with the proposed backend runtime/framework, package manager, database and migration tool.
-2. Add the stack decision as a short ADR before introducing framework-specific code.
-3. Provide a lockfile and reproducible local setup.
-4. Review `docs/API-CONTRACT.md` and `docs/OPENAPI-DRAFT.yaml`; accept them or submit concrete schema/route changes.
-5. Implement only the agreed Phase 1 read boundary first: editions, Surah metadata, Ayah records by explicit edition, and approved reciter metadata.
-6. Add provenance/permission enforcement and tests. An empty approved catalogue must be a valid response.
-7. Report exact commands, test output, commit SHAs and known failures in the PR.
+No numerical progress is claimed in this snapshot because no agreed weighted daily target has yet been submitted by the agents.
 
-## 4. Required handoff from Queen — frontend
+## 4. Required handoff from Jules — backend
 
-1. Reply in PR #1 or the frontend PR with the proposed framework, build tool, package manager and routing strategy.
-2. Add the stack decision and lockfile before CI is selected.
-3. Review `docs/API-CONTRACT.md` and `docs/OPENAPI-DRAFT.yaml`; identify the exact fields required by the reader UI.
-4. Build the responsive app shell and Quran reader states using clearly labelled non-religious placeholders or empty states until approved content exists.
-5. Keep mock and production API adapters separate; do not scatter endpoint URLs across components.
-6. Provide Arabic RTL, keyboard/focus, mobile viewport and loading/empty/error/offline evidence.
-7. Report exact commands, test output, screenshots, commit SHAs and known failures in the PR.
+1. Confirm the backend runtime/framework, package manager, database and migration tool; add a short ADR before framework-specific implementation.
+2. Provide a lockfile and reproducible local setup.
+3. Review `docs/API-CONTRACT.md` and `docs/OPENAPI-DRAFT.yaml`; accept them or submit concrete schema/route changes.
+4. Implement the agreed Phase 1 read boundary first: editions, Surah metadata, Ayah records by explicit edition, and approved reciter metadata.
+5. Add provenance/permission enforcement and tests. An empty approved catalogue must be a valid response.
+6. Report exact commands, test output, commit SHAs and known failures in the PR.
 
-## 5. Contract alignment rules
+## 5. Required handoff from Queen — frontend
 
-The current REST/JSON + OpenAPI 3.1 contract is provisional, not an accepted implementation requirement. Before coupling the clients and server, Jules and Queen must explicitly agree on:
+1. Confirm the frontend framework, build tool, package manager and routing strategy; record the stack decision and lockfile.
+2. Review `docs/API-CONTRACT.md` and `docs/OPENAPI-DRAFT.yaml`; identify exact fields required by the reader UI.
+3. Build the responsive app shell and Quran reader states using clearly labelled non-religious placeholders or empty states until approved content exists.
+4. Keep mock and production API adapters separate; do not scatter endpoint URLs across components.
+5. Provide Arabic RTL, keyboard/focus, mobile viewport and loading/empty/error/offline evidence.
+6. Report exact commands, test output, screenshots, commit SHAs and known failures in the PR.
 
-- edition, Surah, Ayah and reciter field names/types;
-- request ID propagation and error envelope;
-- validation response convention (the current OpenAPI draft uses HTTP 400);
-- pagination cursor semantics and maximum page size;
-- source provenance, attribution and redistribution/caching permissions;
-- empty/unavailable catalogue behavior.
+## 6. Contract alignment rules
 
-If either agent proposes a different transport or schema, update the contract through a reviewed integration change and record compatibility implications. Do not silently fork API shapes.
+The current REST/JSON + OpenAPI 3.1 contract is provisional. Before coupling clients and server, Jules and Queen must explicitly agree on edition, Surah, Ayah and reciter field names/types; request ID propagation and error envelope; validation response convention; pagination semantics; provenance and redistribution/caching permissions; and empty/unavailable catalogue behavior.
 
-## 6. CI/build decision gate
+Any proposed transport/schema change must be reviewed and recorded in integration docs. Do not silently fork API shapes.
 
-No framework, runtime, package manager, database, test runner or application manifest is selected in the inspected `main` tree. Therefore no stack-specific CI workflow or build command is added by integration yet.
+## 7. CI/build decision gate
 
-Once each stack proposal and lockfile exists:
-- add backend and frontend CI jobs using the exact lockfile-based install/build/lint/typecheck/test commands;
-- validate OpenAPI with a pinned validator version;
-- keep secret scanning and dependency auditing as explicit checks;
-- retain test logs and commit/check-run references in the PR.
+No framework, runtime, package manager, database, test runner or application manifest was selected in the last inspected `main` tree. Once stack proposals and lockfiles exist, add backend/frontend CI using exact lockfile-based install/build/lint/typecheck/test commands; validate OpenAPI with a pinned validator; retain secret scanning and dependency auditing as explicit checks.
 
 Do not report a green build while no build has run. No runtime tests are claimed in this handoff.
 
-## 7. Religious content safety gate
+## 8. Religious content safety gate
 
-No Quran Arabic, translation, tafsir, Hadith, dua or recitation corpus is approved or imported in this snapshot. Do not create sample religious text to populate screens, fixtures or API responses. Before import or public display, record authenticity/source identity, edition/version, attribution, redistribution rights, caching/offline rights where applicable, immutable snapshot/checksum, and review approval in `docs/SOURCE-REGISTER.md`.
+No Quran Arabic, translation, tafsir, Hadith, dua or recitation corpus was approved or imported in the last inspected snapshot. Do not create sample religious text to populate screens, fixtures or API responses. Before import or public display, record authenticity/source identity, edition/version, attribution, redistribution rights, caching/offline rights where applicable, immutable snapshot/checksum, and review approval in `docs/SOURCE-REGISTER.md`.
 
-## 8. Next integration exit criteria
+## 9. Integration exit criteria
 
 - [ ] Jules posts a stack/ADR and backend PR with runnable code and tests.
 - [ ] Queen posts a stack/ADR and frontend PR with runnable UI and RTL/accessibility evidence.
 - [ ] Both explicitly acknowledge or revise the same API contract revision.
 - [ ] Each implementation branch is synchronized by its owner; no blind force-push or cross-branch overwrite.
 - [ ] Contract adapters are integrated against actual backend responses.
-- [ ] CI runs on the implementation PRs and records real pass/fail results.
+- [ ] CI runs on implementation PRs and records real pass/fail results.
 - [ ] Content licensing/authenticity review is complete before any religious corpus is enabled.
 
-**Current verdict: blocked on agent implementation and stack decisions.** Integration work will continue on this branch only; no agent branch or `main` is modified by this handoff.
+**Current verdict: blocked on verified agent implementation and stack decisions.** Integration/QA work continues on this branch only; no agent branch or `main` is modified by this handoff.
