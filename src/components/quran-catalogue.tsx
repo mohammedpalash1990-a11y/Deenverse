@@ -28,7 +28,8 @@ export function QuranCatalogue({ source = unavailableContentSource }: QuranCatal
     setState({ status: "loading" });
     setSelectedIndex(null);
 
-    source.list({ type: "quran", locale: "ar", limit: 114 })
+    Promise.resolve()
+      .then(() => source.list({ type: "quran", locale: "ar", limit: 114 }))
       .then((result) => {
         if (cancelled) return;
         if (!result.ok) {
@@ -46,7 +47,7 @@ export function QuranCatalogue({ source = unavailableContentSource }: QuranCatal
           return;
         }
 
-        const invalid = items.some((item) => item.type !== "quran" || !validateContentRecord(item).valid);
+        const invalid = items.some((item) => !validateContentRecord(item).valid || item.type !== "quran");
         if (invalid) {
           setState({
             status: "error",
