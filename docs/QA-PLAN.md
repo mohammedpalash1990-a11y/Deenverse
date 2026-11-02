@@ -256,7 +256,7 @@ PR #2 is a substantive frontend foundation, but it is not a complete frontend re
 - [ ] Replace `npm install` with `npm ci` after the lockfile is committed.
 - [ ] Run and capture green GitHub Actions results for typecheck, unit tests, and production build.
 - [ ] Strengthen or explicitly quarantine `evaluatePublication`: current behavior validates metadata shape only and is not an authenticity, checksum, legal-rights, or publication approval gate.
-- [ ] Reconcile feature branch divergence (50 ahead / 23 behind integration at the checkpoint) with a reviewed plan before merge.
+- [ ] Reconcile feature branch divergence (50 ahead / 25 behind integration at the refreshed compare) with a reviewed plan before merge.
 
 ### Quran source gate
 - [x] Added the source ingestion/release-gate specification in PR #5.
