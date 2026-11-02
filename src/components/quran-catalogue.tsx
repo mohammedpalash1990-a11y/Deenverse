@@ -37,7 +37,6 @@ export function QuranCatalogue({ source = unavailableContentSource }: QuranCatal
           setState({ status: "error", message: result.error.message, retryable: result.error.retryable });
           return;
         }
-
         const items = result.data.items;
         if (!Array.isArray(items)) {
           setState({ status: "error", message: "Catalogue response is invalid.", retryable: false });
@@ -47,7 +46,6 @@ export function QuranCatalogue({ source = unavailableContentSource }: QuranCatal
           setState({ status: "empty" });
           return;
         }
-
         const invalid = items.some((item) => !validateContentRecord(item).valid || item.type !== "quran");
         if (invalid) {
           setState({
@@ -67,6 +65,13 @@ export function QuranCatalogue({ source = unavailableContentSource }: QuranCatal
 
     return () => { cancelled = true; };
   }, [source, retryKey]);
+
+  const items = state.status === "ready" ? state.items : [];
+  const filteredItems = useMemo(() => items
+    .map((item, index) => ({ item, index }))
+    .filter(({ item }) => `${item.title} ${item.id}`.toLowerCase().includes(search.trim().toLowerCase())),
+  [items, search]);
+  const selected = selectedIndex === null ? null : items[selectedIndex];
 
   if (state.status === "loading") {
     return <section className="catalogue-state" aria-label="Quran catalogue" aria-busy="true">
@@ -95,30 +100,30 @@ export function QuranCatalogue({ source = unavailableContentSource }: QuranCatal
     </section>;
   }
 
-  const selected = selectedIndex === null ? null : state.items[selectedIndex];
-  const filteredItems = useMemo(() => state.items
-    .map((item, index) => ({ item, index }))
-    .filter(({ item }) => `${item.title} ${item.id}`.toLowerCase().includes(search.trim().toLowerCase())),
-  [state.items, search]);
   return <section className="catalogue-results" aria-label="Verified Quran catalogue">
     <div className="catalogue-results-heading">
-      <div><h3>Surah catalogue</h3><p>{state.items.length} source-verified catalogue records</p></div>
+      <div><h3>Surah catalogue</h3><p>{items.length} source-verified catalogue records</p></div>
       <span className="source-tag">METADATA VERIFIED</span>
     </div>
+    <label className="catalogue-search">
+      <span className="sr-only">Search Surah catalogue</span>
+      <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search Surah name or ID…" aria-label="Search Surah catalogue" />
+    </label>
     <ol className="surah-list">
-      {state.items.map((item, index) => <li key={item.id}>
+      {filteredItems.map(({ item, index }) => <li key={item.id}>
         <button className={selectedIndex === index ? "surah-item selected" : "surah-item"} onClick={() => setSelectedIndex(index)} aria-pressed={selectedIndex === index}>
           <span className="surah-number">{index + 1}</span>
           <span className="surah-title">{item.title}<small>{item.locale.toUpperCase()} · APPROVED EDITION METADATA</small></span>
           <span aria-hidden="true">↗</span>
         </button>
       </li>)}
+      {filteredItems.length === 0 && <li className="no-results">No matching Surah metadata.</li>}
     </ol>
     {selected && <div className="reader-navigation" aria-label="Reader navigation">
       <div><span className="source-tag">SELECTED CATALOGUE ENTRY</span><strong>{selected.title}</strong><small>Religious text will load only through a separately approved reader endpoint.</small></div>
       <div className="reader-navigation-actions">
         <button className="catalogue-action" disabled={selectedIndex === 0} onClick={() => setSelectedIndex((value) => value === null ? null : value - 1)}>Previous</button>
-        <button className="catalogue-action" disabled={selectedIndex === state.items.length - 1} onClick={() => setSelectedIndex((value) => value === null ? null : value + 1)}>Next</button>
+        <button className="catalogue-action" disabled={selectedIndex === items.length - 1} onClick={() => setSelectedIndex((value) => value === null ? null : value + 1)}>Next</button>
       </div>
     </div>}
   </section>;
