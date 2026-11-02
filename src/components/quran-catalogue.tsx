@@ -105,7 +105,7 @@ export function QuranCatalogue({ source = unavailableContentSource }: QuranCatal
       <div><h3>Surah catalogue</h3><p>{items.length} source-verified catalogue records</p></div>
       <span className="source-tag">METADATA VERIFIED</span>
     </div>
-    <label className="catalogue-search">
+    <label className="surah-search">
       <span className="sr-only">Search Surah catalogue</span>
       <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search Surah name or ID…" aria-label="Search Surah catalogue" />
     </label>
