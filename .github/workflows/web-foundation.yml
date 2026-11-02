@@ -7,6 +7,7 @@ on:
   pull_request:
     branches:
       - main
+      - integration/platform-foundation
 
 jobs:
   verify:
@@ -16,6 +17,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+      # npm ci is intentionally blocked until a reviewed package-lock.json is committed.
       - run: npm install
       - run: npm run typecheck
       - run: npm test
