@@ -65,3 +65,8 @@ npm run build
 ```
 
 The web shell intentionally contains no Quranic Arabic, hadith, dua, translation, tafsir, or reciter data. A provider-neutral `ContentSource` boundary and runtime provenance validator now define how an approved API may be integrated; the default source remains unavailable and fails closed. It is not connected to a backend, does not sync bookmarks, and does not claim audio playback or offline religious-content availability. See `docs/PHASE-1-MVP.md` and `docs/VERIFIED-CONTENT-DELIVERY.md` for the release gates.
+
+
+## Quran catalogue integration
+
+See [docs/QURAN-CATALOGUE.md](docs/QURAN-CATALOGUE.md) for the loading, unavailable, empty, integrity-rejected, and verified-metadata states and the remaining backend integration gates.
