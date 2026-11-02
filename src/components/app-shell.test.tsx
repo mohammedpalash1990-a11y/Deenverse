@@ -7,7 +7,7 @@ describe("DEENVERSE app shell", () => {
     render(<AppShell />);
     expect(screen.getByRole("navigation", { name: "Main navigation" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Return to the words." })).toBeInTheDocument();
-    expect(screen.getByText("Verified content is on its way")).toBeInTheDocument();
+    expect(screen.getByText(/Verified Quran text and approved editions/)).toBeInTheDocument();
     expect(screen.getByRole("region", { name: "Reserved Arabic Quran text area" })).toHaveAttribute("dir", "rtl");
     expect(screen.getByRole("region", { name: "Reserved Arabic Quran text area" })).toHaveAttribute("lang", "ar");
   });
