@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { getSection, sections, type SectionId } from "@/lib/navigation";
+import { QuranCatalogue } from "@/components/quran-catalogue";
 
 const symbols: Record<SectionId, string> = {
   quran: "۞",
@@ -93,12 +94,7 @@ export function AppShell() {
                     <div className="reader-preview-lines" aria-hidden="true"><span /><span /><span /></div>
                   </div>
                 </section>
-                <div className="catalogue-empty">
-                  <div className="empty-symbol">۞</div>
-                  <h3>Verified content is on its way</h3>
-                  <p>The reader interface is ready for integration. No Quranic text has been fabricated or imported into this preview.</p>
-                  <span className="source-tag">CONTENT INTEGRITY GATE · PENDING</span>
-                </div>
+                <QuranCatalogue />
                 <div className="quick-links" role="group" aria-label="Explore sections">
                   {filtered.map((item) => <button key={item.id} onClick={() => setActive(item.id)}><span>{symbols[item.id]}</span>{item.label}<b>↗</b></button>)}
                   {filtered.length === 0 && <p className="no-results">No matching sections.</p>}
