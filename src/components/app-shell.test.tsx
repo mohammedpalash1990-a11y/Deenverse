@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { AppShell } from "./app-shell";
 
@@ -20,7 +20,8 @@ describe("DEENVERSE app shell", () => {
   it("filters the section shortcuts", () => {
     render(<AppShell />);
     fireEvent.change(screen.getByRole("textbox", { name: "Find a section" }), { target: { value: "duas" } });
-    expect(screen.getByRole("button", { name: /Duas & Adhkar/ })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /Hadith/ })).not.toBeInTheDocument();
+    const shortcuts = within(screen.getByRole("group", { name: "Explore sections" }));
+    expect(shortcuts.getByRole("button", { name: /Duas & Adhkar/ })).toBeInTheDocument();
+    expect(shortcuts.queryByRole("button", { name: /Hadith/ })).not.toBeInTheDocument();
   });
 });
