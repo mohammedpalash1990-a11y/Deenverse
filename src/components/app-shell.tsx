@@ -83,6 +83,16 @@ export function AppShell() {
               <section className="catalogue-section" id="catalogue">
                 <div className="section-heading"><div><p className="eyebrow">EXPLORE</p><h2>Quran library</h2></div><span className="count-label">CATALOGUE NOT YET CONNECTED</span></div>
                 <div className="search-box"><span aria-hidden="true">⌕</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Find a section..." aria-label="Find a section" /></div>
+                <section className="reader-preview" aria-labelledby="reader-preview-title">
+                  <div className="reader-preview-heading">
+                    <span className="source-tag">RTL READER FOUNDATION</span>
+                    <span className="count-label">ARABIC · DIR=RTL</span>
+                  </div>
+                  <div className="reader-preview-page" dir="rtl" lang="ar" aria-label="Reserved Arabic Quran text area">
+                    <p id="reader-preview-title" dir="ltr">Arabic reader area — awaiting an approved source edition</p>
+                    <div className="reader-preview-lines" aria-hidden="true"><span /><span /><span /></div>
+                  </div>
+                </section>
                 <div className="catalogue-empty">
                   <div className="empty-symbol">۞</div>
                   <h3>Verified content is on its way</h3>
