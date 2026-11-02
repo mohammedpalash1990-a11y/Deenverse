@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   unavailableContentSource,
   validateContentRecord,
@@ -22,6 +22,7 @@ export function QuranCatalogue({ source = unavailableContentSource }: QuranCatal
   const [state, setState] = useState<CatalogueState>({ status: "loading" });
   const [retryKey, setRetryKey] = useState(0);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -95,6 +96,10 @@ export function QuranCatalogue({ source = unavailableContentSource }: QuranCatal
   }
 
   const selected = selectedIndex === null ? null : state.items[selectedIndex];
+  const filteredItems = useMemo(() => state.items
+    .map((item, index) => ({ item, index }))
+    .filter(({ item }) => `${item.title} ${item.id}`.toLowerCase().includes(search.trim().toLowerCase())),
+  [state.items, search]);
   return <section className="catalogue-results" aria-label="Verified Quran catalogue">
     <div className="catalogue-results-heading">
       <div><h3>Surah catalogue</h3><p>{state.items.length} source-verified catalogue records</p></div>
