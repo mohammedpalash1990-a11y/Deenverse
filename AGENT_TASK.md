@@ -9,7 +9,7 @@ Submit a PR; do not merge it yourself.
 Own backend architecture discovery and the first secure, testable backend foundation for DEENVERSE. This is a fresh repository: first propose the stack and justify it before adding substantial framework code. Coordinate API contracts with Queen through documented interfaces.
 
 ## Required work
-1. Inspect the current repository docs before coding.
+1. Inspect the current repository docs, especially `docs/PHASE-1-MVP.md`, before coding.
 2. Propose a maintainable stack for Web, Android, and iOS clients; explain trade-offs. Do not assume a stack is already selected.
 3. Define initial domain model and migrations for users, Quran catalogue metadata, content editions/provenance, bookmarks, reading progress, audio metadata, hadith/dua catalogue metadata, and admin audit records. Do not invent Quran/hadith corpus content.
 4. Define versioned API contracts, validation, error format, pagination, auth/session strategy, role/permission model, and rate limits.
@@ -18,6 +18,9 @@ Own backend architecture discovery and the first secure, testable backend founda
 7. Add .env.example containing placeholders only. Never add real secrets, credentials, private keys, or production data.
 8. Document local setup, migrations, tests, architecture decisions, and API contracts.
 
+## Phase 1 priority
+Deliver the backend half of the first vertical slice in `docs/PHASE-1-MVP.md`: stable public read contracts for Surah metadata, approved editions, ayah records, and licensed audio metadata; typed response/error schemas; source-provenance model; and testable repository/service boundaries. If no verified corpus is approved, return an explicit empty/unavailable state—never seed fabricated scripture.
+
 ## Content integrity
 - Never generate, paraphrase, repair, or modify Quranic Arabic.
 - Do not import religious corpora until source authenticity, edition, attribution, and licensing/redistribution rights are verified.
@@ -25,7 +28,7 @@ Own backend architecture discovery and the first secure, testable backend founda
 - AI Hifz/Tajweed is practice assistance, never authoritative correction or fatwa.
 
 ## Collaboration
-- Coordinate API shapes with queen/frontend-foundation.
+- Coordinate API shapes with queen/frontend-foundation and update `docs/API-CONTRACT.md` after agreement.
 - Do not modify Queen's frontend scope or commit to main.
 - Keep commits small and descriptive.
 - Open a PR against main with changed-file summary, tests run, known gaps, and evidence.
