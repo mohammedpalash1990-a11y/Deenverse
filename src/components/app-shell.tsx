@@ -30,7 +30,7 @@ export function AppShell() {
           <span className="brand-copy"><strong>DEENVERSE</strong><small>One universe. Infinite knowledge.</small></span>
         </a>
         <div className="nav-caption">YOUR SPACE</div>
-        <nav className="nav-list">
+        <nav className="nav-list" aria-label="Main navigation">
           {sections.map((item) => (
             <button
               className={`nav-item ${active === item.id ? "active" : ""}`}
