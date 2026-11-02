@@ -28,14 +28,20 @@ export interface ContentQuery {
 
 export interface ContentPage {
   items: ContentRecord[];
-  nextCursor?: string;
+  nextCursor?: string | null;
 }
 
 export type ContentSourceErrorCode =
   | "UNAVAILABLE"
   | "UNAUTHORIZED"
+  | "UNAUTHENTICATED"
+  | "FORBIDDEN"
   | "INVALID_QUERY"
-  | "INTEGRITY_REJECTED";
+  | "NOT_FOUND"
+  | "RATE_LIMITED"
+  | "CONTENT_UNAVAILABLE"
+  | "INTEGRITY_REJECTED"
+  | "INTERNAL_ERROR";
 
 export interface ContentSourceError {
   code: ContentSourceErrorCode;
@@ -79,7 +85,6 @@ export const unavailableContentSource: ContentSource = {
     };
   }
 };
-
 
 export interface ContentRecordValidation {
   valid: boolean;
