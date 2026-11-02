@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { unavailableContentSource } from "./content-source";
+import { unavailableContentSource, validateContentRecord } from "./content-source";
 
 describe("unavailableContentSource", () => {
   it("fails closed when listing verified content without a provider", async () => {
