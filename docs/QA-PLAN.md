@@ -180,3 +180,35 @@ Use approved source snapshots only. Until content is approved, use empty states 
 - Release notes clearly separate implemented, unavailable and deferred features.
 
 A green software build is not proof of religious-content authenticity or license permission. Content approval remains a separate release gate.
+
+
+## 5. Follow-up review: PR #2 web foundation
+
+**Review timestamp:** 2026-11-02 22:55 Asia/Riyadh  
+**PR:** https://github.com/mohammedpalash1990-a11y/Deenverse/pull/2  
+**Head:** `assistant/phase1-web-foundation`  
+**Compared with main:** 26 ahead / 0 behind  
+**Changed files:** 18 (web shell, tests, config, manifest, CI workflow, README)
+
+### Scope now present
+
+The PR introduces a Next.js 15 / React 19 / TypeScript web shell, responsive navigation and Quran entry placeholder, PWA manifest metadata, Vitest/Testing Library configuration, initial component/content-safety tests, and a GitHub Actions workflow. It does not implement backend/API integration, authentication, religious content corpus, audio, service-worker offline behavior, synced bookmarks, or native mobile apps.
+
+### Static review findings — not runtime test results
+
+1. **Likely failing accessible-name assertion:** the test queries a navigation landmark named "Main navigation", but the accessible label is on the surrounding `aside`, not the nested `nav`. Put the label on the actual `nav` or revise the assertion to match the intended landmark semantics.
+2. **Reproducibility gap:** no package lockfile is included, while CI runs `npm install`. Add the lockfile and use `npm ci`.
+3. **Content gate limitation:** `evaluatePublication` checks metadata presence/format only. It does not cryptographically verify the content against an immutable approved source, establish the authority of the reviewer, validate license scope, or prove authenticity. Its passing fixture uses an example URL and illustrative checksum. Treat this as metadata preflight only; it must not be represented as religious authenticity verification or a complete publication authorization control.
+4. **Workflow trigger gap:** the workflow currently runs for pull requests targeting `main` only. Ensure it also covers the selected integration PR path, or explicitly document why integration uses a separate route.
+
+These findings were posted as a PR #2 conversation comment (comment ID 6586945957). A formal `REQUEST_CHANGES` review could not be submitted because the connected GitHub identity is the PR author; no review approval was recorded.
+
+### Verification status
+
+- The PR description says tests/build were not executed in its authoring environment.
+- This reviewer inspected source and metadata only; no local shell, dependency installation, browser, or CI execution was available.
+- Therefore no build/test pass is claimed. Recheck GitHub Actions after the author addresses the findings.
+
+### Current release posture
+
+PR #2 is a substantive frontend foundation, but it is not a complete frontend release and is not ready to merge until the above issues are fixed and CI evidence is green. The backend, content authenticity/licensing, API integration, offline, and device/accessibility gates remain open.
