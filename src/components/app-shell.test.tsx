@@ -14,7 +14,7 @@ describe("DEENVERSE app shell", () => {
 
   it("switches sections without inventing religious content", () => {
     render(<AppShell />);
-    fireEvent.click(screen.getByRole("button", { name: /Hadith/ }));
+    fireEvent.click(within(screen.getByRole("navigation", { name: "Main navigation" })).getByRole("button", { name: "Hadith" }));
     expect(screen.getByRole("heading", { name: "Hadith, thoughtfully." })).toBeInTheDocument();
     expect(screen.getByText(/reviewed, source-attributed content/)).toBeInTheDocument();
   });
