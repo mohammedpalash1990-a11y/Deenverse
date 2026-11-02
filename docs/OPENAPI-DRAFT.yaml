@@ -1,0 +1,333 @@
+openapi: 3.1.0
+info:
+  title: DEENVERSE Public Content API
+  version: 0.2.0-draft
+  description: >
+    Provisional Phase 1 read contract. Not an implemented service. Only
+    approved, traceable, distributable content may be returned. No religious
+    text examples or seed records are included in this specification.
+paths:
+  /api/v1/quran/editions:
+    get:
+      operationId: listQuranEditions
+      summary: List approved and distributable Quran editions
+      parameters:
+        - name: contentType
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [arabic, translation]
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Approved edition catalogue; may be empty.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EditionListResponse'
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/ErrorResponse'
+  /api/v1/quran/surahs:
+    get:
+      operationId: listSurahs
+      summary: List verified Surah catalogue metadata
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Verified catalogue metadata; may be empty.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SurahListResponse'
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/ErrorResponse'
+  /api/v1/quran/surahs/{surahNumber}/ayahs:
+    get:
+      operationId: listSurahAyahs
+      summary: List ayah records for a Surah in one approved edition
+      parameters:
+        - name: surahNumber
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 114
+        - name: editionId
+          in: query
+          required: true
+          description: Explicit approved edition identifier; never infer an edition.
+          schema:
+            type: string
+            minLength: 1
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Ayah records from the specified approved edition.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AyahListResponse'
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '403':
+          $ref: '#/components/responses/ErrorResponse'
+        '404':
+          $ref: '#/components/responses/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/ErrorResponse'
+        '503':
+          $ref: '#/components/responses/ErrorResponse'
+  /api/v1/audio/reciters:
+    get:
+      operationId: listApprovedReciters
+      summary: List reciter catalogue metadata approved for public display
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Approved reciter catalogue; may be empty.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReciterListResponse'
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/ErrorResponse'
+components:
+  parameters:
+    Limit:
+      name: limit
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 50
+    Cursor:
+      name: cursor
+      in: query
+      required: false
+      schema:
+        type: string
+        minLength: 1
+  schemas:
+    Meta:
+      type: object
+      required: [requestId]
+      properties:
+        requestId:
+          type: string
+          minLength: 1
+        nextCursor:
+          type: [string, 'null']
+    EditionListResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Edition'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    SurahListResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Surah'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    AyahListResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Ayah'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    ReciterListResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Reciter'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    Edition:
+      type: object
+      required:
+        - id
+        - contentType
+        - language
+        - title
+        - publisher
+        - version
+        - license
+        - sourceRecordId
+        - sourceChecksum
+      properties:
+        id:
+          type: string
+        contentType:
+          type: string
+          enum: [arabic, translation]
+        language:
+          type: string
+          description: BCP 47 language tag.
+        title:
+          type: string
+        publisher:
+          type: string
+        version:
+          type: string
+        license:
+          $ref: '#/components/schemas/License'
+        sourceRecordId:
+          type: string
+        sourceChecksum:
+          type: string
+          description: Checksum of the immutable approved source snapshot.
+    Surah:
+      type: object
+      required:
+        - number
+        - nameArabic
+        - nameTransliteration
+        - ayahCount
+        - sourceRecordId
+      properties:
+        number:
+          type: integer
+          minimum: 1
+          maximum: 114
+        nameArabic:
+          type: string
+          description: Must be sourced and verified; do not synthesize.
+        nameTransliteration:
+          type: string
+        nameTranslation:
+          type: [string, 'null']
+        ayahCount:
+          type: integer
+          minimum: 1
+        revelationPlace:
+          type: [string, 'null']
+          enum: [meccan, medinan, null]
+        sourceRecordId:
+          type: string
+    Ayah:
+      type: object
+      required:
+        - surahNumber
+        - ayahNumber
+        - editionId
+        - text
+        - sourceRecordId
+        - sourceChecksum
+      properties:
+        surahNumber:
+          type: integer
+          minimum: 1
+          maximum: 114
+        ayahNumber:
+          type: integer
+          minimum: 1
+        editionId:
+          type: string
+        text:
+          type: string
+          description: Exact text from the specified approved edition. Never generate or silently normalize.
+        sourceRecordId:
+          type: string
+        sourceChecksum:
+          type: string
+    Reciter:
+      type: object
+      required: [id, displayName, sourceRecordId, license]
+      properties:
+        id:
+          type: string
+        displayName:
+          type: string
+          description: Verified catalogue display name.
+        sourceRecordId:
+          type: string
+        license:
+          $ref: '#/components/schemas/License'
+    License:
+      type: object
+      required: [identifier, attribution, redistributionAllowed, cachingAllowed]
+      properties:
+        identifier:
+          type: string
+        attribution:
+          type: string
+        redistributionAllowed:
+          type: boolean
+        cachingAllowed:
+          type: boolean
+        termsUrl:
+          type: [string, 'null']
+          format: uri
+    Error:
+      type: object
+      required: [code, message, details, requestId]
+      properties:
+        code:
+          type: string
+          enum:
+            - VALIDATION_ERROR
+            - UNAUTHENTICATED
+            - FORBIDDEN
+            - NOT_FOUND
+            - CONTENT_UNAVAILABLE
+            - RATE_LIMITED
+            - INTERNAL_ERROR
+        message:
+          type: string
+        details:
+          type: array
+          items: {}
+        requestId:
+          type: string
+    ErrorEnvelope:
+      type: object
+      required: [error]
+      properties:
+        error:
+          $ref: '#/components/schemas/Error'
+  responses:
+    ErrorResponse:
+      description: Stable error envelope; no internal stack or provider details.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
