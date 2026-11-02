@@ -89,7 +89,7 @@ export function AppShell() {
                   <p>The reader interface is ready for integration. No Quranic text has been fabricated or imported into this preview.</p>
                   <span className="source-tag">CONTENT INTEGRITY GATE · PENDING</span>
                 </div>
-                <div className="quick-links">
+                <div className="quick-links" role="group" aria-label="Explore sections">
                   {filtered.map((item) => <button key={item.id} onClick={() => setActive(item.id)}><span>{symbols[item.id]}</span>{item.label}<b>↗</b></button>)}
                   {filtered.length === 0 && <p className="no-results">No matching sections.</p>}
                 </div>
