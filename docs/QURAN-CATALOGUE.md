@@ -9,7 +9,7 @@ The Quran library uses the provider-neutral `ContentSource` interface. The UI re
 - **Empty:** a valid empty catalogue is shown as empty, never populated with sample Surahs.
 - **Verified metadata:** records are rendered only after runtime shape and provenance checks pass.
 
-A selected catalogue entry supports previous/next metadata navigation. This is not yet the ayah reader: the selected entry explicitly states that religious text must come from a separately approved reader endpoint.
+The catalogue also supports local search by approved Surah title or stable record ID. A selected catalogue entry supports previous/next metadata navigation. This is not yet the ayah reader: the selected entry explicitly states that religious text must come from a separately approved reader endpoint.
 
 ## Integrity boundary
 
