@@ -15,17 +15,17 @@ This is an evidence log. A proposal is not an accepted decision, and an assigned
 - No framework, runtime, package manager, database, authentication provider, or test runner is selected.
 - No religious corpus is approved or imported. The source register remains pending/TBD.
 
-## Branch relationship at QA review
+## Branch relationship at start of QA review
 
-GitHub compare results against `main`:
+GitHub compare results against `main` at the start of this QA pass:
 
 | Branch | Ahead | Behind | Files reported in branch diff |
 |---|---:|---:|---|
 | `jules/backend-foundation` | 2 | 4 | `AGENT_TASK.md` only |
 | `queen/frontend-foundation` | 2 | 4 | `AGENT_TASK.md` only |
-| `integration/platform-foundation` | 10 | 4 | Seven documentation files only |
+| `integration/platform-foundation` | 9 | 4 | Seven documentation files only |
 
-The branch heads are diverged from current main. The integration branch's pre-QA snapshot was 9 ahead/4 behind; the QA-plan update adds one integration commit, so the latest comparison is 10 ahead/4 behind. Re-check these counts immediately before any merge. Do not merge based only on ahead/behind counts or GitHub's `mergeable` metadata. Do not force-push or rewrite another workstream's history from the integration branch.
+The QA pass added two documentation commits to the integration branch (the expanded QA plan and this refreshed blocker log). Therefore, the table above is a historical baseline, not the post-update branch count. Re-run the GitHub compare immediately before any merge. Do not merge based only on ahead/behind counts or GitHub's `mergeable` metadata. Do not force-push or rewrite another workstream's history from the integration branch.
 
 ## PR and CI evidence
 
@@ -33,8 +33,8 @@ The branch heads are diverged from current main. The integration branch's pre-QA
 - PR #1 contains documentation changes only; it does not add application code, adapters, migrations, tests or CI.
 - No review submissions were recorded at the QA review.
 - GitHub Actions reported zero workflow runs. The reviewed main and PR-head commits returned zero check-runs; main had zero commit status contexts.
-- PR metadata returned `mergeable: true` at inspection, but the PR is four commits behind main and has no checks or review. This is not a release or merge approval.
-- `docs/QA-PLAN.md` now contains the evidence-based repository snapshot, actual QA execution limitations, test matrix and release blockers. No runtime test result is claimed.
+- PR metadata returned `mergeable: true` at inspection, but the PR is behind main and has no checks or review. This is not a release or merge approval.
+- `docs/QA-PLAN.md` contains the repository snapshot, actual QA execution limitations, test matrix and release blockers. No runtime test result is claimed.
 
 ## Proposals recorded in this integration branch
 
@@ -65,7 +65,7 @@ The branch heads are diverged from current main. The integration branch's pre-QA
 - Do not claim a build, unit test, accessibility audit, RTL verification, security scan or OpenAPI validation passed without an executed command and retained output.
 - Do not enable public content or audio until authenticity, attribution, redistribution and caching rights are documented and approved.
 - Keep cross-cutting changes on `integration/platform-foundation`; workstream implementation remains on the Jules/Queen branches.
-- Keep PR #1 open until the branch is synchronized with main and reviewed. Do not merge it as a substitute for implementation or QA.
+- Keep PR #1 open until the branch is synchronized with current main and reviewed. Do not merge it as a substitute for implementation or QA.
 
 ## Next integration sequence
 
@@ -75,4 +75,4 @@ The branch heads are diverged from current main. The integration branch's pre-QA
 4. Add CI with lockfile-based install, lint, typecheck, tests and build.
 5. Integrate the shell with empty/verified-content states; test RTL and responsive layouts against the declared browser/device matrix.
 6. Review content-source authenticity, attribution and license evidence independently of software test status.
-7. Re-run the QA plan, resolve branch divergence and inspect all checks before merge/release.
+7. Re-run the QA plan, resolve branch divergence and inspect all checks before merge.
