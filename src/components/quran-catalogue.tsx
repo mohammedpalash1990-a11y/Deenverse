@@ -1,0 +1,119 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import {
+  unavailableContentSource,
+  validateContentRecord,
+  type ContentRecord,
+  type ContentSource
+} from "@/lib/content-source";
+
+type CatalogueState =
+  | { status: "loading" }
+  | { status: "error"; message: string; retryable: boolean }
+  | { status: "empty" }
+  | { status: "ready"; items: ContentRecord[] };
+
+interface QuranCatalogueProps {
+  source?: ContentSource;
+}
+
+export function QuranCatalogue({ source = unavailableContentSource }: QuranCatalogueProps) {
+  const [state, setState] = useState<CatalogueState>({ status: "loading" });
+  const [retryKey, setRetryKey] = useState(0);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setState({ status: "loading" });
+    setSelectedIndex(null);
+
+    source.list({ type: "quran", locale: "ar", limit: 114 })
+      .then((result) => {
+        if (cancelled) return;
+        if (!result.ok) {
+          setState({ status: "error", message: result.error.message, retryable: result.error.retryable });
+          return;
+        }
+
+        const items = result.data.items;
+        if (!Array.isArray(items)) {
+          setState({ status: "error", message: "Catalogue response is invalid.", retryable: false });
+          return;
+        }
+        if (items.length === 0) {
+          setState({ status: "empty" });
+          return;
+        }
+
+        const invalid = items.some((item) => item.type !== "quran" || !validateContentRecord(item).valid);
+        if (invalid) {
+          setState({
+            status: "error",
+            message: "Some catalogue records failed the content-integrity checks. Nothing was displayed.",
+            retryable: false
+          });
+          return;
+        }
+        setState({ status: "ready", items });
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setState({ status: "error", message: "The Quran catalogue could not be reached. Please try again.", retryable: true });
+        }
+      });
+
+    return () => { cancelled = true; };
+  }, [source, retryKey]);
+
+  if (state.status === "loading") {
+    return <section className="catalogue-state" aria-label="Quran catalogue" aria-busy="true">
+      <span className="catalogue-state-symbol" aria-hidden="true">◌</span>
+      <h3>Loading verified catalogue</h3>
+      <p>Checking the approved content source…</p>
+    </section>;
+  }
+
+  if (state.status === "error") {
+    return <section className="catalogue-state" aria-label="Quran catalogue">
+      <span className="catalogue-state-symbol" aria-hidden="true">!</span>
+      <h3>Catalogue unavailable</h3>
+      <p role="alert">{state.message}</p>
+      {state.retryable && <button className="catalogue-action" onClick={() => setRetryKey((value) => value + 1)}>Try again</button>}
+      <span className="source-tag">NO UNVERIFIED CONTENT DISPLAYED</span>
+    </section>;
+  }
+
+  if (state.status === "empty") {
+    return <section className="catalogue-state" aria-label="Quran catalogue">
+      <span className="catalogue-state-symbol" aria-hidden="true">۞</span>
+      <h3>No approved Surah records yet</h3>
+      <p>The connected source returned an empty catalogue. Please check again later.</p>
+      <span className="source-tag">VERIFIED SOURCE · EMPTY</span>
+    </section>;
+  }
+
+  const selected = selectedIndex === null ? null : state.items[selectedIndex];
+  return <section className="catalogue-results" aria-label="Verified Quran catalogue">
+    <div className="catalogue-results-heading">
+      <div><h3>Surah catalogue</h3><p>{state.items.length} source-verified catalogue records</p></div>
+      <span className="source-tag">METADATA VERIFIED</span>
+    </div>
+    <ol className="surah-list">
+      {state.items.map((item, index) => <li key={item.id}>
+        <button className={selectedIndex === index ? "surah-item selected" : "surah-item"} onClick={() => setSelectedIndex(index)} aria-pressed={selectedIndex === index}>
+          <span className="surah-number">{index + 1}</span>
+          <span className="surah-title">{item.title}<small>{item.locale.toUpperCase()} · APPROVED EDITION METADATA</small></span>
+          <span aria-hidden="true">↗</span>
+        </button>
+      </li>)}
+    </ol>
+    {selected && <div className="reader-navigation" aria-label="Reader navigation">
+      <div><span className="source-tag">SELECTED CATALOGUE ENTRY</span><strong>{selected.title}</strong><small>Religious text will load only through a separately approved reader endpoint.</small></div>
+      <div className="reader-navigation-actions">
+        <button className="catalogue-action" disabled={selectedIndex === 0} onClick={() => setSelectedIndex((value) => value === null ? null : value - 1)}>Previous</button>
+        <button className="catalogue-action" disabled={selectedIndex === state.items.length - 1} onClick={() => setSelectedIndex((value) => value === null ? null : value + 1)}>Next</button>
+      </div>
+    </div>}
+  </section>;
+}
