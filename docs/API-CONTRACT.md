@@ -1,19 +1,38 @@
-# DEENVERSE API Contract — Draft 0.1
+# DEENVERSE API Contract — Draft 0.2
 
-Status: proposal for Jules/Queen review. This is not an implemented API.
+**Status:** cross-team proposal; not implemented and not yet accepted by Jules/Queen.  
+**Transport recommendation:** versioned REST/JSON over HTTPS, described with OpenAPI 3.1. The recommendation is pending explicit agreement in both workstream PRs.
 
 ## Contract principles
-- Version public APIs from the beginning (suggested prefix: `/api/v1`).
-- Use JSON over HTTPS; validate request and response schemas.
-- Return stable machine-readable error codes and safe human-readable messages.
-- Use cursor pagination for potentially large collections.
-- Enforce authorization on the server for every private resource.
-- Never expose secrets or private provider credentials to clients.
-- Treat religious content as versioned, sourced records, not free-form generated text.
 
-## Proposed response envelope
+- Public routes use the `/api/v1` prefix.
+- Validate request parameters and response payloads against shared schemas.
+- Return stable machine-readable error codes; never expose stack traces, SQL, tokens, or provider internals.
+- Use cursor pagination for collections that may grow.
+- Enforce private-resource authorization on the server. A client-supplied user ID is never an authorization control.
+- Public religious-content endpoints return only approved records whose source and redistribution terms permit the requested use.
+- Treat religious content as immutable, versioned source records—not free-form generated text.
+- Do not silently normalize, rewrite, transliterate, repair, or reconstruct Quranic Arabic.
 
-Success:
+## Canonical Phase 1 read surface
+
+The machine-readable proposal is `docs/OPENAPI-DRAFT.yaml`.
+
+| Method and route | Purpose | Access |
+|---|---|---|
+| `GET /api/v1/quran/editions` | Approved Arabic/translation editions permitted for public delivery | Public |
+| `GET /api/v1/quran/surahs` | Verified Surah catalogue metadata | Public |
+| `GET /api/v1/quran/surahs/{surahNumber}/ayahs?editionId=...` | Ayah records for one Surah and one explicit edition | Public |
+| `GET /api/v1/audio/reciters` | Approved reciter metadata for which catalogue display is permitted | Public |
+
+Audio playback/stream URL issuance is intentionally not standardized yet. It depends on provider-specific authentication, expiry, hotlinking, caching, and redistribution terms. Do not expose or cache audio URLs until those terms are verified.
+
+Hadith, tafsir, dua, user-library, authentication, and admin write APIs remain later contract increments. Do not infer their security or source rules from the Quran read routes.
+
+## Response envelope
+
+Success responses use:
+
 ```json
 {
   "data": {},
@@ -23,60 +42,84 @@ Success:
 }
 ```
 
-Error:
+Paginated responses add:
+
+```json
+{
+  "data": [],
+  "meta": {
+    "requestId": "opaque-request-id",
+    "nextCursor": null
+  }
+}
+```
+
+A `null` nextCursor means there is no next page. An empty approved catalogue is a valid empty result, not an invented fallback dataset.
+
+Errors use:
+
 ```json
 {
   "error": {
-    "code": "VALIDATION_ERROR",
-    "message": "The request is invalid.",
+    "code": "CONTENT_UNAVAILABLE",
+    "message": "The requested approved content is not available.",
     "details": [],
     "requestId": "opaque-request-id"
   }
 }
 ```
 
-Do not expose stack traces, SQL, tokens, or internal provider errors.
+## Stable error codes
 
-## Initial resource families
+- `VALIDATION_ERROR` — invalid path/query input.
+- `UNAUTHENTICATED` — a private route requires a valid session.
+- `FORBIDDEN` — authenticated caller lacks permission or a content use is not licensed.
+- `NOT_FOUND` — requested resource does not exist.
+- `CONTENT_UNAVAILABLE` — resource exists in catalogue metadata but approved distributable content is not available.
+- `RATE_LIMITED` — caller exceeded a documented limit.
+- `INTERNAL_ERROR` — unexpected server failure; response must not expose internal details.
 
-| Resource | Purpose | Access |
-|---|---|---|
-| `/quran/surahs` | Surah catalogue and metadata | Public |
-| `/quran/ayahs` | Verified ayah records by edition and surah | Public |
-| `/translations` | Approved translation editions | Public |
-| `/tafsirs` | Approved tafsir editions | Public |
-| `/audio/reciters` | Licensed reciter catalogue | Public |
-| `/audio/streams` | Playback URLs where permitted | Public/auth as required |
-| `/hadith/collections` | Collection metadata | Public |
-| `/hadith/narrations` | Sourced narration records | Public |
-| `/duas` | Dua and adhkar records with references | Public |
-| `/me/bookmarks` | User bookmarks | Authenticated |
-| `/me/progress` | Reading progress | Authenticated |
-| `/admin/content` | Controlled content review | Admin role |
+Use HTTP status codes consistently: 400/422 for invalid input (choose one convention and apply it consistently), 401, 403, 404, 429, and 500/503. Jules should record the chosen validation status convention in the implementation ADR before the first API release.
 
-## Content record provenance
+## Religious content record requirements
 
-Every religious content record should carry, as applicable:
-- stable internal ID
-- content type and language
-- source publisher/provider and source URL or identifier
-- edition/version and retrieval date
-- attribution/copyright notice
-- license identifier and redistribution permission status
-- review status and reviewer/audit reference
-- source checksum or immutable snapshot reference
+Every edition and content record must preserve, as applicable:
 
-Quran Arabic text must retain exact source text and edition metadata. Never silently normalize, rewrite, or reconstruct it.
+- stable internal ID and content type;
+- publisher/provider and canonical source identifier;
+- edition/version and language;
+- attribution/copyright notice;
+- license identifier and explicit redistribution/caching/audio permissions;
+- approval/review status and reviewer/audit reference;
+- retrieval date and immutable source snapshot/checksum.
 
-## User library
-Bookmarks and reading progress must be scoped to the authenticated user. Use idempotent writes where retries are possible. Do not trust a client-supplied user ID as authorization.
+Only approved records with the necessary distribution permission may appear in public content responses. If no qualifying source is approved, return an explicit empty or unavailable state.
 
-## Open decisions for Jules + Queen
-1. REST vs typed RPC.
-2. Authentication provider and session model.
-3. Database choice and migration tooling.
-4. Audio URL expiry and offline entitlement behavior.
-5. Search indexing strategy and supported languages.
-6. Admin roles and approval workflow.
+For Quran Arabic, preserve the exact source string and edition metadata. Integrity checks must compare imported content to an immutable approved source snapshot. Any normalization policy must be explicit, documented, and tested; it must not silently change the stored or displayed text.
 
-Resolve these in a short ADR before coupling implementations.
+## Pagination and caching
+
+- Default page size: 50; maximum: 100, unless implementation evidence requires a different documented limit.
+- Cursors are opaque and bound to the query/edition context.
+- Do not use offset pagination for ayah/content collections.
+- Use ETags or immutable version/checksum identifiers for versioned content where appropriate.
+- Cache only when the source license permits caching; cache headers must not override source restrictions.
+- Never cache private user-library responses in shared/public caches.
+
+## Client integration rules
+
+- Frontend must consume typed API adapters rather than embedding endpoint URLs in components.
+- Demo/mock adapters must be separate from production adapters and visibly labeled in the UI.
+- Do not present mock data as verified religious content.
+- Audio UI must not indicate playback until a licensed stream is configured and playback actually succeeds.
+- Bookmark UI must not claim cloud synchronization until authenticated, user-scoped persistence is implemented and tested.
+
+## Decisions requiring Jules + Queen acknowledgement
+
+1. Accept REST/JSON + OpenAPI 3.1, or propose an alternative with migration implications.
+2. Confirm the edition, Surah, ayah, and reciter schema names/types.
+3. Agree on validation status convention (400 vs 422).
+4. Agree on request ID propagation and error mapping.
+5. Confirm whether the frontend needs additional Phase 1 read fields before backend implementation.
+
+Record the agreed contract revision in both PR descriptions and update this document only through a reviewed integration change.
