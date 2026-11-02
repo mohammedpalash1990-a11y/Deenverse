@@ -212,3 +212,36 @@ These findings were posted as a PR #2 conversation comment (comment ID 658694595
 ### Current release posture
 
 PR #2 is a substantive frontend foundation, but it is not a complete frontend release and is not ready to merge until the above issues are fixed and CI evidence is green. The backend, content authenticity/licensing, API integration, offline, and device/accessibility gates remain open.
+
+
+## 6. Live follow-up audit — 2026-11-02 (after 22:55 snapshot)
+
+**Audit method:** refreshed GitHub PR/issue metadata, PR conversation comments/reviews, and branch comparisons. This is a metadata/source audit only; no shell, build, test, or CI run was available.
+
+### Fresh branch evidence
+
+| Ref | Compare result | Changed-file evidence | Interpretation |
+|---|---:|---|---|
+| `jules/backend-foundation` vs `main` | 2 ahead / 4 behind | `AGENT_TASK.md` only | No backend implementation verified |
+| `queen/frontend-foundation` vs `main` | 2 ahead / 4 behind | `AGENT_TASK.md` only | No frontend implementation verified |
+| `integration/platform-foundation` vs `main` | 18 ahead / 4 behind | Eight docs files in compare result | Documentation/integration planning only; still diverged |
+| `assistant/phase1-web-foundation` vs `integration/platform-foundation` | 33 ahead / 18 behind | Web app files plus configuration/tests/workflow | PR #2 branch is not based on the current integration head; do not merge blindly |
+
+### PR #2 follow-up
+
+- PR #2 remains **open**; the refreshed PR conversation contains the existing QA comment (ID `6586945957`) and no author response.
+- No formal review submissions are recorded.
+- The four previously identified blockers remain **unverified/unresolved**: accessible-name mismatch, missing lockfile with `npm install`, content metadata preflight being insufficient for authenticity approval, and workflow trigger coverage for the integration path.
+- PR #2's description still says tests/build were not executed in the authoring environment. No green CI evidence was obtained in this audit.
+- The PR branch comparison shows 33 commits ahead and 18 behind `integration/platform-foundation`. This is a substantial divergence; first agree the intended base/merge path and synchronize deliberately.
+
+### Agent assignment follow-up
+
+- Issue #3 (Jules backend) remains open with no comments observed.
+- Issue #4 (Queen frontend) remains open with no comments observed.
+- The two agent branches still contain only their task-instruction file in the comparison against `main`. No implementation PR was returned by the open-PR search.
+- An assignment or branch is not evidence of active work. Keep both workstreams at **not yet verified** until source commits and PRs appear.
+
+### Updated disposition
+
+**No merge approved.** PR #1 remains documentation-only and the integration branch is four commits behind `main`. PR #2 is a real web-shell increment but has unresolved static QA findings, no recorded review, no demonstrated green CI, and significant base divergence. Jules/Queen implementation is not yet evidenced. Next gate: obtain agent implementation PRs or verified code commits, decide a controlled branch synchronization strategy, then re-run source review and CI checks. No runtime test pass is claimed.
