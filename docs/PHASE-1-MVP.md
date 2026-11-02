@@ -99,3 +99,12 @@ A Phase 1 PR is reviewable only when it includes:
 - no secrets, fabricated religious data, or unsupported completion claims
 
 A green build is not evidence of religious-content authenticity. Content approval is a separate release gate.
+
+
+## Absolute Quranic text integrity rule
+
+The Quran reader must never use AI-generated, reconstructed, paraphrased, auto-corrected, OCR-repaired, transliterated, or silently normalized text as canonical ayah content. AI may not invent a verse, complete a partial verse, or guess a Surah/Ayah reference. Only exact text from a source approved in `docs/SOURCE-REGISTER.md` may be displayed, tied to an explicit edition/version and stable Surah/Ayah IDs.
+
+The Tanzil Uthmani text is a candidate because its published CC BY 3.0 terms permit verbatim website/app use with attribution and prohibit changing the text. It is not approved for production merely by being named here: capture the exact official release, preserve its license notice, record SHA-256 and per-ayah hashes, verify all Surah/Ayah records and ordering, and obtain independent human review before enabling it. If any integrity check fails or the approved source is unavailable, show an unavailable state—never AI text or an unverified fallback.
+
+Translations, tafsir, Hadith, duas, audio and other assets each need separate rights and provenance approval. Offline caching is allowed only when the specific source license/terms permit it.
