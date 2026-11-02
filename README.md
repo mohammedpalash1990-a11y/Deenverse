@@ -64,4 +64,4 @@ npm test
 npm run build
 ```
 
-The web shell intentionally contains no Quranic Arabic, hadith, dua, translation, tafsir, or reciter data. It is not connected to a backend, does not sync bookmarks, and does not claim audio playback or offline religious-content availability. See `docs/PHASE-1-MVP.md` for the release gates.
+The web shell intentionally contains no Quranic Arabic, hadith, dua, translation, tafsir, or reciter data. A provider-neutral `ContentSource` boundary and runtime provenance validator now define how an approved API may be integrated; the default source remains unavailable and fails closed. It is not connected to a backend, does not sync bookmarks, and does not claim audio playback or offline religious-content availability. See `docs/PHASE-1-MVP.md` and `docs/VERIFIED-CONTENT-DELIVERY.md` for the release gates.
