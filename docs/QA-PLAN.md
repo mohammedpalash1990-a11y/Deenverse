@@ -42,6 +42,26 @@ Snapshot reviewed before this QA update:
 - No local repository checkout, shell session, browser, mobile emulator, physical device, database, or deployed environment was used.
 - Read-only GitHub inspection covered repository metadata, recursive trees, branch heads, branch comparisons, pull requests, PR changed-file patches, workflow runs, commit check-runs/statuses, and selected documentation files.
 
+### Remote inspection requests
+
+The following were read-only GitHub API inspections, not shell/build/test commands (owner/repository: `mohammedpalash1990-a11y/Deenverse`):
+
+- `GET /repos/{owner}/{repo}`
+- `GET /repos/{owner}/{repo}/git/trees/main?recursive=1`
+- `GET /repos/{owner}/{repo}/branches/jules/backend-foundation`
+- `GET /repos/{owner}/{repo}/branches/queen/frontend-foundation`
+- `GET /repos/{owner}/{repo}/branches/integration/platform-foundation`
+- `GET /repos/{owner}/{repo}/compare/main...jules/backend-foundation`
+- `GET /repos/{owner}/{repo}/compare/main...queen/frontend-foundation`
+- `GET /repos/{owner}/{repo}/compare/main...integration/platform-foundation`
+- `GET /repos/{owner}/{repo}/pulls?state=all&per_page=100`
+- `GET /repos/{owner}/{repo}/pulls/1/files?per_page=100`
+- `GET /repos/{owner}/{repo}/actions/runs?per_page=100`
+- `GET /repos/{owner}/{repo}/commits/{sha}/check-runs`
+- `GET /repos/{owner}/{repo}/commits/{sha}/status`
+
+No `git clone`, `npm`, `pnpm`, `yarn`, `bun`, `pytest`, database migration, browser automation, or device test command was run.
+
 ### Exact commands and results
 
 **Shell/build/test commands executed: none.** No package manager, runtime, test runner, or build command can be selected from the repository because no manifest, lockfile, or application code exists.
