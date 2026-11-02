@@ -24,7 +24,7 @@ export function AppShell() {
 
   return (
     <main className="app-frame">
-      <aside id="primary-sidebar" className={`sidebar ${menuOpen ? "sidebar-open" : ""}`} aria-label="Primary menu">
+      <aside id="primary-sidebar" className={`sidebar ${menuOpen ? "sidebar-open" : ""}`}>
         <a className="brand" href="/" aria-label="DEENVERSE home">
           <span className="brand-mark">D<span>·</span></span>
           <span className="brand-copy"><strong>DEENVERSE</strong><small>One universe. Infinite knowledge.</small></span>
