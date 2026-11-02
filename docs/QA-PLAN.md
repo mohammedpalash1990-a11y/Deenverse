@@ -245,3 +245,30 @@ PR #2 is a substantive frontend foundation, but it is not a complete frontend re
 ### Updated disposition
 
 **No merge approved.** PR #1 remains documentation-only and the integration branch is four commits behind `main`. PR #2 is a real web-shell increment but has unresolved static QA findings, no recorded review, no demonstrated green CI, and significant base divergence. Jules/Queen implementation is not yet evidenced. Next gate: obtain agent implementation PRs or verified code commits, decide a controlled branch synchronization strategy, then re-run source review and CI checks. No runtime test pass is claimed.
+
+
+## 2026-11-03 follow-up QA checkpoint
+
+### PR #2 (web foundation)
+- [x] Rechecked the navigation landmark: the actual `<nav>` already has the accessible name `Main navigation`; the earlier finding that this label was missing was incorrect.
+- [x] Added `integration/platform-foundation` to the workflow's pull-request base filters.
+- [ ] Commit a genuine `package-lock.json` generated from the pinned package manifest and reviewed dependency graph.
+- [ ] Replace `npm install` with `npm ci` after the lockfile is committed.
+- [ ] Run and capture green GitHub Actions results for typecheck, unit tests, and production build.
+- [ ] Strengthen or explicitly quarantine `evaluatePublication`: current behavior validates metadata shape only and is not an authenticity, checksum, legal-rights, or publication approval gate.
+- [ ] Reconcile feature branch divergence (50 ahead / 23 behind integration at the checkpoint) with a reviewed plan before merge.
+
+### Quran source gate
+- [x] Added the source ingestion/release-gate specification in PR #5.
+- [ ] Acquire and preserve an exact licensed release artifact.
+- [ ] Verify artifact and per-record hashes, all Surah/Ayah coverage and ordering, and exact Arabic string equality.
+- [ ] Complete independent human/source review and permission review for each distribution mode.
+- [ ] Add executable negative tests for mismatch, missing/duplicate/reordered records, and forbidden offline caching.
+- [ ] No corpus publication until every release-blocking item is satisfied.
+
+### Agent implementation evidence
+- Jules issue #3: no implementation PR or agent progress comment observed at this checkpoint.
+- Queen issue #4: no implementation PR or agent progress comment observed at this checkpoint.
+- Continue to report backend/frontend implementation as unverified until code commits, tests, and PR evidence exist.
+
+No local build or test commands were run during this checkpoint. No green CI status is inferred from the workflow file existing.
