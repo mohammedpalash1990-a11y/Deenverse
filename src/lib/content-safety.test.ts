@@ -37,7 +37,17 @@ describe("religious content publication gate", () => {
     expect(decision.reasons).toContain("Review date is invalid");
   });
 
-  it("does not treat metadata validation as proof of authenticity", () => {
+  it("rejects unsupported content types", () => {
+    const decision = evaluatePublication({
+      ...approved,
+      contentType: "unknown" as ContentProvenance["contentType"]
+    });
+    expect(decision.allowed).toBe(false);
+    expect(decision.reasons).toContain("Content type is not supported");
+  });
+
+  it("accepts complete metadata without claiming to verify religious authenticity", () => {
+    // Authenticity still requires a separate source-specific human review.
     expect(evaluatePublication(approved).allowed).toBe(true);
   });
 });
