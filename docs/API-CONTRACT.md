@@ -123,3 +123,16 @@ For Quran Arabic, preserve the exact source string and edition metadata. Integri
 5. Confirm whether the frontend needs additional Phase 1 read fields before backend implementation.
 
 Record the agreed contract revision in both PR descriptions and update this document only through a reviewed integration change.
+
+
+## AI and canonical scripture safety — mandatory
+
+AI is not a source of Quranic text. No LLM, generative model, embedding reconstruction, translation model, autocomplete, spell-correction, OCR correction, or AI agent may create, complete, paraphrase, normalize, repair, or substitute canonical Quran Arabic or canonical verse references. The app may use AI for non-canonical assistance only when clearly labeled and separated from scripture; AI output must never enter the canonical content store.
+
+All displayed ayahs must be retrieved by explicit edition ID and stable Surah/Ayah identifiers from an approved immutable source snapshot. Preserve the source string exactly. The ingestion/release pipeline must verify the source artifact SHA-256, per-record hashes, complete Surah/Ayah coverage and ordering, duplicate/missing records, and exact string equality against the approved snapshot. Any mismatch fails closed: return CONTENT_UNAVAILABLE and do not show a generated or alternate fallback. Checksums are integrity evidence, not a substitute for independent scholarly/source review.
+
+## Source licensing and offline rules
+
+- Tanzil's published text license states CC BY 3.0, allows verbatim use in websites/apps with Tanzil attribution, a link to tanzil.net, and inclusion of its copyright/license notice, and prohibits changing the text. Treat Tanzil as a candidate source only until the exact release artifact, checksum, license notice, and independent review are recorded in `docs/SOURCE-REGISTER.md`.
+- Quran Foundation API content is governed by its Developer Terms, not an unrestricted open-data grant. Display, attribution, no-modification, no-redistribution, cache-duration and Content Sync obligations must be followed; separate redistribution requires a signed commercial license. Do not download/scrape or bundle API content outside the documented permitted route.
+- Rights are asset-specific. No permission for a translation, tafsir, Hadith, dua, recitation, font, or image is inferred from the Quran Arabic text license.
