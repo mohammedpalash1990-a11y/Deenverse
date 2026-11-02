@@ -90,3 +90,14 @@ h1{font-size:clamp(31px,4vw,47px);letter-spacing:-1.2px;margin-bottom:10px;color
 @media(max-width:900px){.app-frame{grid-template-columns:220px minmax(0,1fr)}.sidebar{padding-inline:14px}.content-wrap{padding-inline:5%}.ornament{right:7%;opacity:.45}}
 @media(max-width:680px){.app-frame{display:block}.sidebar{position:fixed;left:0;top:0;width:265px;transform:translateX(-105%);transition:transform .25s;box-shadow:12px 0 30px #0002}.sidebar.sidebar-open{transform:translateX(0)}.mobile-menu{display:block}.topbar{height:60px;padding:0 18px;justify-content:flex-start;gap:14px}.topbar-right{margin-left:auto;font-size:7px}.breadcrumb{font-size:8px}.content-wrap{padding:38px 20px 20px}.welcome-row{align-items:flex-start;gap:15px;flex-direction:column;margin-bottom:24px}.date-chip{display:none}.continue-card{padding:30px 24px;min-height:285px}.continue-card h2{font-size:29px}.continue-card p{max-width:90%}.ornament{right:-28px;width:120px;height:120px;opacity:.22}.card-actions{gap:12px}.edition-label{font-size:7px}.section-heading{align-items:flex-start;gap:12px;flex-direction:column}.quick-links{grid-template-columns:repeat(2,1fr)}.footer{gap:10px;font-size:7px;flex-direction:column}.count-label{font-size:7px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important}}
+
+
+.reader-preview{margin:0 0 16px;padding:15px;border:1px solid var(--line);border-radius:7px;background:#fafaf7}
+.reader-preview-heading{display:flex;justify-content:space-between;gap:12px;margin-bottom:10px}
+.reader-preview-page{min-height:145px;padding:22px;border:1px solid #e9e5d9;border-radius:5px;background:#fffdf7;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:17px}
+.reader-preview-page p{font-family:Georgia,serif;font-size:12px;color:#879087;margin:0;line-height:1.8}
+.reader-preview-lines{width:min(100%,420px);display:grid;gap:9px}
+.reader-preview-lines span{height:1px;background:#e9e5d9;width:100%}
+.reader-preview-lines span:nth-child(2){width:82%}
+.reader-preview-lines span:nth-child(3){width:64%}
+@media(max-width:680px){.reader-preview{padding:10px}.reader-preview-page{min-height:125px;padding:16px}.reader-preview-heading{align-items:flex-start;flex-direction:column}}
