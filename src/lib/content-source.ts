@@ -6,7 +6,7 @@
  * without the independent publication review gate.
  */
 
-import type { ContentProvenance, ReligiousContentType } from "./content-safety";
+import { evaluatePublication, type ContentProvenance, type ReligiousContentType } from "./content-safety";
 
 export interface ContentRecord {
   id: string;
@@ -79,3 +79,51 @@ export const unavailableContentSource: ContentSource = {
     };
   }
 };
+
+
+export interface ContentRecordValidation {
+  valid: boolean;
+  reasons: string[];
+}
+
+/**
+ * Runtime validation for untrusted API responses. Call this at the adapter
+ * boundary before a response is exposed to UI code.
+ */
+export function validateContentRecord(value: unknown): ContentRecordValidation {
+  const reasons: string[] = [];
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return { valid: false, reasons: ["Content record must be an object"] };
+  }
+
+  const record = value as Record<string, unknown>;
+  for (const field of ["id", "title", "locale"] as const) {
+    if (typeof record[field] !== "string" || record[field].trim().length === 0) {
+      reasons.push(`Missing or invalid content field: ${field}`);
+    }
+  }
+
+  const allowedTypes: ReligiousContentType[] = [
+    "quran", "translation", "tafsir", "hadith", "dua", "audio"
+  ];
+  if (typeof record.type !== "string" || !allowedTypes.includes(record.type as ReligiousContentType)) {
+    reasons.push("Content type is not supported");
+  }
+
+  if (record.payload === undefined || record.payload === null) {
+    reasons.push("Content payload is missing");
+  }
+
+  if (!record.provenance || typeof record.provenance !== "object" || Array.isArray(record.provenance)) {
+    reasons.push("Content provenance is missing or invalid");
+  } else {
+    const provenance = record.provenance as Partial<ContentProvenance>;
+    const publication = evaluatePublication(provenance);
+    reasons.push(...publication.reasons);
+    if (typeof record.type === "string" && provenance.contentType !== record.type) {
+      reasons.push("Record type does not match provenance content type");
+    }
+  }
+
+  return { valid: reasons.length === 0, reasons };
+}
