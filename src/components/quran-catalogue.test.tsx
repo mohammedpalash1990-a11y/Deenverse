@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { QuranCatalogue } from "./quran-catalogue";
 import type { ContentRecord, ContentSource } from "@/lib/content-source";
@@ -69,7 +69,7 @@ describe("QuranCatalogue", () => {
     fireEvent.click(await screen.findByRole("button", { name: /Approved catalogue fixture/ }));
     expect(screen.getByText(/Religious text will load only/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Next" }));
-    await waitFor(() => expect(screen.getByText("Second approved fixture")).toBeInTheDocument());
+    await waitFor(() => expect(within(screen.getByRole("list")).getByText("Second approved fixture")).toBeInTheDocument());
     expect(screen.getByRole("button", { name: "Previous" })).toBeEnabled();
   });
 
