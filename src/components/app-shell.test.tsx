@@ -19,6 +19,16 @@ describe("DEENVERSE app shell", () => {
     expect(screen.getByText(/reviewed, source-attributed content/)).toBeInTheDocument();
   });
 
+  it("announces mobile navigation expanded state", () => {
+    render(<AppShell />);
+    const toggle = screen.getByRole("button", { name: "Toggle navigation" });
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+  });
+
   it("filters the section shortcuts", () => {
     render(<AppShell />);
     fireEvent.change(screen.getByRole("textbox", { name: "Find a section" }), { target: { value: "duas" } });
