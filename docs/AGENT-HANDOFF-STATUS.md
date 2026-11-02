@@ -96,3 +96,39 @@ No Quran Arabic, translation, tafsir, Hadith, dua or recitation corpus was appro
 - [ ] Content licensing/authenticity review is complete before any religious corpus is enabled.
 
 **Current verdict: blocked on verified agent implementation and stack decisions.** Integration/QA work continues on this branch only; no agent branch or `main` is modified by this handoff.
+
+
+## 10. Live follow-up audit — 2026-11-02
+
+This section supersedes earlier branch-count snapshots where they conflict. It is based on a fresh GitHub metadata/compare/comment check, not a local build or test run.
+
+| Ref | Current compare | Verified scope/status |
+|---|---:|---|
+| `jules/backend-foundation` vs `main` | 2 ahead / 4 behind | `AGENT_TASK.md` only; no backend source verified |
+| `queen/frontend-foundation` vs `main` | 2 ahead / 4 behind | `AGENT_TASK.md` only; no frontend source verified |
+| `integration/platform-foundation` vs `main` | 18 ahead / 4 behind | Eight documentation files in compare output; still diverged |
+| `assistant/phase1-web-foundation` vs `integration/platform-foundation` | 33 ahead / 18 behind | PR #2 web foundation branch has substantial divergence from integration |
+
+### PR #2 status
+
+- PR #2 is still open.
+- Existing QA comment #6586945957 remains the only observed conversation comment; no author response or formal review submission was returned.
+- The four merge blockers remain unverified: navigation landmark accessible name, lockfile/`npm ci`, accurate limitation of metadata-only content preflight, and CI trigger/merge-path coverage.
+- No green CI run or runtime test result was obtained.
+- Do not merge this branch into integration without a deliberate synchronization/rebase/merge plan and a fresh conflict/diff review. The compare is 33 ahead / 18 behind integration.
+
+### Jules / Queen status
+
+- Issue #3 (Jules) and issue #4 (Queen) remain open; no assignment-thread progress comments were observed.
+- Their current branches still compare as two commits ahead / four behind `main`, with `AGENT_TASK.md` as the only changed file.
+- No implementation PR was found. Status remains **assigned; implementation not yet evidenced**. Do not claim either agent has started or completed code work.
+
+### Next controlled actions
+
+1. Jules: publish a backend stack/ADR and a first runnable health/configuration increment on the assigned branch, then open a PR against `integration/platform-foundation`.
+2. Queen: publish the runnable frontend shell increment on the assigned branch and open a PR against `integration/platform-foundation`; coordinate the framework/lockfile decision with PR #2 to avoid duplicate competing shells.
+3. Integration: synchronize `integration/platform-foundation` with current `main` only through a reviewed, non-destructive update; do not force-push agent branches.
+4. PR #2: resolve each QA finding with code/CI evidence, then re-review the exact new head SHA.
+5. Keep content publication disabled until the source register has approved provenance and rights evidence.
+
+No runtime test, build, deployment, or content-authenticity verification is claimed by this audit.
