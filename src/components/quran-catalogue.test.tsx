@@ -85,4 +85,13 @@ describe("QuranCatalogue", () => {
     fireEvent.click(screen.getByRole("button", { name: "Try again" }));
     expect(await screen.findByText("Approved catalogue fixture")).toBeInTheDocument();
   });
+  it("filters approved catalogue metadata by Surah name or stable ID", async () => {
+    const second = { ...record, id: "fixture-surah-002", title: "Second approved fixture" };
+    render(<QuranCatalogue source={sourceReturning({ ok: true, data: { items: [record, second] } })} />);
+    await screen.findByText("Approved catalogue fixture");
+    fireEvent.change(screen.getByRole("textbox", { name: "Search Surah catalogue" }), { target: { value: "second" } });
+    expect(screen.getByText("Second approved fixture")).toBeInTheDocument();
+    expect(screen.queryByText("Approved catalogue fixture")).not.toBeInTheDocument();
+  });
+
 });
