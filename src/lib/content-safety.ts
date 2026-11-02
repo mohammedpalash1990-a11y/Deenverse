@@ -49,6 +49,21 @@ export function evaluatePublication(provenance: Partial<ContentProvenance>): Pub
     })
     .map((field) => `Missing required provenance: ${field}`);
 
+  const allowedTypes: ReligiousContentType[] = [
+    "quran",
+    "translation",
+    "tafsir",
+    "hadith",
+    "dua",
+    "audio"
+  ];
+  if (
+    typeof provenance.contentType === "string" &&
+    !allowedTypes.includes(provenance.contentType as ReligiousContentType)
+  ) {
+    reasons.push("Content type is not supported");
+  }
+
   if (provenance.redistributionAllowed !== true) {
     reasons.push("Redistribution permission has not been explicitly approved");
   }
