@@ -1,10 +1,12 @@
 name: Web foundation checks
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - assistant/phase1-web-foundation
   pull_request:
+    types: [opened, synchronize, reopened, edited]
     branches:
       - main
       - integration/platform-foundation
