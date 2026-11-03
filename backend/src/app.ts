@@ -52,7 +52,8 @@ export function buildApp(opts: BuildAppOptions): FastifyInstance {
     origin: (origin, cb) => {
       // Requests without an Origin header (e.g. server-to-server/health probes) remain valid.
       if (!origin) return cb(null, true);
-      return cb(null, trustedOrigins.has(origin));
+      if (trustedOrigins.has(origin)) return cb(null, true);
+      return cb(new Error('Origin not allowed by CORS'), false);
     },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
   });
