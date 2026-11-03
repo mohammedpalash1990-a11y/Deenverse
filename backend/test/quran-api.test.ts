@@ -26,6 +26,20 @@ test('Quran Catalogue API Integration', async (t) => {
     assert.ok(body.requestId.startsWith('req_'));
   });
 
+  await t.test('Unknown routes return the canonical NOT_FOUND envelope', async () => {
+    const res = await app.inject({
+      method: 'GET',
+      url: '/api/v1/does-not-exist'
+    });
+
+    assert.equal(res.statusCode, 404);
+    const body = JSON.parse(res.body);
+    assert.equal(body.error.code, 'NOT_FOUND');
+    assert.ok(body.error.requestId.startsWith('req_'));
+    assert.deepEqual(body.error.details, []);
+    assert.equal(body.error.retryable, false);
+  });
+
   await t.test('Fails closed with 503 UNAVAILABLE when no approved source exists', async () => {
     const res = await app.inject({
       method: 'GET',
