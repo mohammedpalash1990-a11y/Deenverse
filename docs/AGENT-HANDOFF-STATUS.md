@@ -207,3 +207,9 @@ No merge approved. PR #2 has a successful CI run but remains draft, targets main
 ### Backend (Jules)
 - Jules was given an explicit independent backend implementation request in issue #3: stack/ADR, safe reproducible setup, validated environment configuration, health/readiness endpoint and tests.
 - No backend implementation commit or PR has yet been verified. Keep status as assigned / implementation not evidenced.
+
+
+### PR #6 — final CI update
+- Latest head `75dbd1714ac9b1705b6602cf6a66edbc3ed24f45`; Actions run #141 succeeded across typecheck, tests and production build.
+- PR #6 is ready for review, open, unmerged, and mergeable against `assistant/phase1-web-foundation`.
+- Manual browser/screen-reader/device verification remains outstanding. PR #2 still has its separate integration-branch divergence blocker.
