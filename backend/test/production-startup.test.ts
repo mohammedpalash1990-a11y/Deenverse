@@ -19,7 +19,7 @@ test('production backend startup fails closed before opening a SQLite database',
         NODE_ENV: 'production',
         DB_CLIENT: 'sqlite3',
         DB_FILENAME: databasePath,
-        PORT: '0'
+        PORT: '3001'
       },
       encoding: 'utf8',
       timeout: 10_000
