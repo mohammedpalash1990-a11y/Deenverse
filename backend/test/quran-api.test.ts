@@ -3,10 +3,12 @@ import assert from 'node:assert/strict';
 import { buildApp } from '../src/app.js';
 import { createDatabaseConnection } from '../src/db/connection.js';
 import * as initialSchema from '../src/db/migrations/20261102_000001_initial_schema.js';
+import * as sourceApprovalGate from '../src/db/migrations/20261103_000002_source_approval_gate.js';
 
 test('Quran Catalogue API Integration', async (t) => {
   const db = createDatabaseConnection({ connection: ':memory:' });
   await initialSchema.up(db);
+  await sourceApprovalGate.up(db);
   const app = buildApp({ db, enableRateLimit: false });
 
   t.after(async () => {
