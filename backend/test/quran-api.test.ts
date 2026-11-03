@@ -233,4 +233,39 @@ test('Quran Catalogue API Integration', async (t) => {
     const body = JSON.parse(res.body);
     assert.equal(body.error.code, 'NOT_FOUND');
   });
+
+  await t.test('Fails closed when multiple active approved Quran sources create edition ambiguity', async () => {
+    await db('content_sources').insert({
+      id: 'src-second-approved-synthetic',
+      code: 'second-approved-synthetic-v1',
+      name: 'Second Synthetic Approved Source (Non-authoritative)',
+      content_type: 'quran',
+      edition: '0.0.2-synthetic',
+      source_url: 'https://example.invalid/second-synthetic-metadata.txt',
+      attribution: 'Synthetic Metadata for Automated Tests Only',
+      license_id: 'CC0-1.0',
+      redistribution_allowed: true,
+      approval_status: 'approved',
+      review_decision_id: 'test-audit-decision-002',
+      approved_by_authority: 'Automated Test Review Authority',
+      approved_at: '2026-11-02T00:00:00.000Z',
+      artifact_sha256: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+      is_active: true
+    });
+
+    const listResponse = await app.inject({
+      method: 'GET',
+      url: '/api/v1/quran/surahs'
+    });
+    assert.equal(listResponse.statusCode, 503);
+    assert.equal(JSON.parse(listResponse.body).error.code, 'UNAVAILABLE');
+
+    const detailResponse = await app.inject({
+      method: 'GET',
+      url: '/api/v1/quran/surahs/1'
+    });
+    assert.equal(detailResponse.statusCode, 503);
+    assert.equal(JSON.parse(detailResponse.body).error.code, 'UNAVAILABLE');
+  });
+
 });
