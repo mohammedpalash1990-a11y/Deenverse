@@ -41,6 +41,11 @@ export class QuranCatalogueService {
     const source = approvedSources[0];
 
     // 2. Validate provenance structure and SHA-256 digest at boundary
+    const approvedAt = new Date(source.approved_at);
+    if (!Number.isFinite(approvedAt.getTime())) {
+      return { items: [], total: 0, hasApprovedSource: false };
+    }
+
     const provenance: ContentProvenance = {
       contentType: source.content_type,
       sourceId: source.id,
@@ -52,7 +57,7 @@ export class QuranCatalogueService {
       approvalStatus: source.approval_status,
       reviewDecisionId: source.review_decision_id,
       approvedByAuthority: source.approved_by_authority,
-      approvedAt: new Date(source.approved_at).toISOString(),
+      approvedAt: approvedAt.toISOString(),
       checksum: source.artifact_sha256
     };
 
@@ -117,6 +122,11 @@ export class QuranCatalogueService {
     }
     const source = approvedSources[0];
 
+    const approvedAt = new Date(source.approved_at);
+    if (!Number.isFinite(approvedAt.getTime())) {
+      return { item: null, hasApprovedSource: false };
+    }
+
     const provenance: ContentProvenance = {
       contentType: source.content_type,
       sourceId: source.id,
@@ -128,7 +138,7 @@ export class QuranCatalogueService {
       approvalStatus: source.approval_status,
       reviewDecisionId: source.review_decision_id,
       approvedByAuthority: source.approved_by_authority,
-      approvedAt: new Date(source.approved_at).toISOString(),
+      approvedAt: approvedAt.toISOString(),
       checksum: source.artifact_sha256
     };
 
