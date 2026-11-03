@@ -46,6 +46,17 @@ export const quranRoutes: FastifyPluginAsync<QuranRoutesOptions> = async (
       return reply.status(400).send(errResponse);
     }
 
+    if (!Number.isSafeInteger(offset + limit)) {
+      const errResponse: ApiErrorResponse = {
+        error: {
+          code: 'INVALID_QUERY',
+          message: 'Pagination cursor is too close to the maximum safe offset.',
+          retryable: false
+        }
+      };
+      return reply.status(400).send(errResponse);
+    }
+
     const result = await catalogueService.listSurahs({ limit, offset });
 
     // Fail closed if no verified content source is available
