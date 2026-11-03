@@ -298,3 +298,9 @@ No local build or test commands were run during this checkpoint. No green CI sta
 
 ### Merge/release disposition
 **No merge approved.** PR #2's successful CI run is a real improvement, but its draft status, main base, 92/27 divergence, missing lockfile, and metadata-only content gate remain unresolved. PR #5 also needs a controlled branch update/review. No local build, test, deployment, Quran authenticity review, or license approval is claimed by this checkpoint.
+
+
+### Comparison correction — final 2026-11-03 03:53 check
+- PR #2 branch versus integration/platform-foundation: **92 ahead / 29 behind** (not 92/27; the latter preceded the two QA/handoff documentation commits). PR #2 still targets main and is draft.
+- PR #5 branch versus integration/platform-foundation: **1 ahead / 6 behind**; GitHub reports mergeable=false. The earlier PR description comparison is stale.
+- Correction comments were posted to PR #2 and PR #5. Neither PR is approved for merge.
