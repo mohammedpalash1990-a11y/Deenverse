@@ -153,4 +153,51 @@ describe("createRestContentSource", () => {
       }
     });
   });
+}
+
+  it("fails closed when the backend repeats a pagination cursor", async () => {
+    const page = {
+      data: [record],
+      meta: { requestId: "req-repeated-cursor", nextCursor: "same-cursor" }
+    };
+    const fetcher = vi.fn()
+      .mockResolvedValueOnce(response(200, page))
+      .mockResolvedValueOnce(response(200, page));
+    const source = createRestContentSource({ fetcher });
+
+    const result = await source.list({ type: "quran", locale: "ar", limit: 114 });
+
+    expect(fetcher).toHaveBeenCalledTimes(2);
+    expect(result).toEqual({
+      ok: false,
+      error: {
+        code: "UNAVAILABLE",
+        message: "The content service returned a repeated pagination cursor.",
+        retryable: false
+      }
+    });
+  });
+
+  it("maps a missing Surah response to the canonical safe not-found error", async () => {
+    const fetcher = vi.fn().mockResolvedValue(response(404, {
+      error: {
+        code: "NOT_FOUND",
+        message: "private backend detail",
+        requestId: "req-surah-missing",
+        details: ["internal"]
+      }
+    }));
+    const source = createRestContentSource({ fetcher });
+
+    const result = await source.getById("quran:surah:114");
+
+    expect(result).toEqual({
+      ok: false,
+      error: {
+        code: "NOT_FOUND",
+        message: "The requested content was not found.",
+        retryable: false
+      }
+    });
+  });
 });
