@@ -19,17 +19,6 @@ export async function up(knex: Knex): Promise<void> {
     table.timestamp('created_at').notNullable().defaultTo(knex.fn.now());
   });
 
-  // Approval is a separate, explicit release decision; source metadata alone is never approval.
-  await knex.schema.createTable('content_source_approvals', (table) => {
-    table.string('id').primary();
-    table.string('source_id').notNullable().unique().references('id').inTable('content_sources').onDelete('RESTRICT');
-    table.string('decision', 20).notNullable(); // only 'approved' is release-eligible
-    table.string('reviewer_id').notNullable();
-    table.timestamp('approved_at').notNullable();
-    table.string('artifact_sha256', 64).notNullable();
-    table.text('review_notes').notNullable();
-  });
-
   // 2. Quran Surahs (Catalogue metadata only - no Quranic text or invented scripture)
   await knex.schema.createTable('quran_surahs', (table) => {
     table.integer('surah_number').primary();
@@ -45,6 +34,5 @@ export async function up(knex: Knex): Promise<void> {
 
 export async function down(knex: Knex): Promise<void> {
   await knex.schema.dropTableIfExists('quran_surahs');
-  await knex.schema.dropTableIfExists('content_source_approvals');
   await knex.schema.dropTableIfExists('content_sources');
 }
