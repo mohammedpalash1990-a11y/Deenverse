@@ -104,7 +104,7 @@ export function QuranCatalogue({ source = restContentSource }: QuranCataloguePro
     </section>;
   }
 
-  return <section className="catalogue-results" aria-label="Verified Quran catalogue">
+  return <section className="catalogue-results" aria-label="Quran catalogue">
     <div className="catalogue-results-heading">
       <div><h3>Surah catalogue</h3><p>{items.length} catalogue records passed metadata checks</p></div>
       <span className="source-tag">METADATA PREFLIGHT ONLY</span>
@@ -117,7 +117,7 @@ export function QuranCatalogue({ source = restContentSource }: QuranCataloguePro
       {filteredItems.map(({ item, index }) => <li key={item.id}>
         <button className={selectedIndex === index ? "surah-item selected" : "surah-item"} onClick={() => setSelectedIndex(index)} aria-pressed={selectedIndex === index}>
           <span className="surah-number">{index + 1}</span>
-          <span className="surah-title">{item.title}<small>{item.locale.toUpperCase()} · APPROVED EDITION METADATA</small></span>
+          <span className="surah-title">{item.title}<small>{item.locale.toUpperCase()} · SURAH METADATA</small></span>
           <span aria-hidden="true">↗</span>
         </button>
       </li>)}
