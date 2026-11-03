@@ -61,7 +61,8 @@ Expected output:
 ```
 ✔ Quran Catalogue API Integration
 ✔ Validation Service
-ℹ tests 13
-ℹ pass 13
+✔ Database migration safety
+ℹ tests 15
+ℹ pass 15
 ℹ fail 0
 ```
