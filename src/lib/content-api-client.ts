@@ -49,9 +49,11 @@ export function createRestContentSource(options: RestContentSourceOptions = {}):
       }
 
       const items: ContentRecord[] = [];
+      const seenRecordIds = new Set<string>();
       let cursor = query.cursor;
       let nextCursor: string | null | undefined = cursor ?? null;
       const seenCursors = new Set<string>();
+      if (cursor) seenCursors.add(cursor);
       do {
         const pageSize = Math.min(50, targetCount - items.length);
         const params = new URLSearchParams({ limit: String(pageSize) });
@@ -69,7 +71,13 @@ export function createRestContentSource(options: RestContentSourceOptions = {}):
         const parsed = parseContentPageResponse(body, "quran");
         if (!parsed.ok) return parsed;
 
-        items.push(...parsed.data.items);
+        for (const item of parsed.data.items) {
+          if (seenRecordIds.has(item.id)) {
+            return failure("UNAVAILABLE", "The content service returned a duplicate catalogue record.");
+          }
+          seenRecordIds.add(item.id);
+          items.push(item);
+        }
         nextCursor = parsed.data.nextCursor ?? null;
         if (!nextCursor || items.length >= targetCount) break;
         if (seenCursors.has(nextCursor)) {
@@ -111,7 +119,8 @@ export function createRestContentSource(options: RestContentSourceOptions = {}):
       const validation = validateContentRecord(record);
       if (!meta || typeof meta.requestId !== "string" || !meta.requestId.trim() ||
           !validation.valid || !record || typeof record !== "object" ||
-          (record as Record<string, unknown>).type !== "quran") {
+          (record as Record<string, unknown>).type !== "quran" ||
+          (record as Record<string, unknown>).id !== `quran:surah:${surahNumber}`) {
         return failure("UNAVAILABLE", "The content service returned an invalid catalogue record.");
       }
       return { ok: true, data: record as ContentRecord };

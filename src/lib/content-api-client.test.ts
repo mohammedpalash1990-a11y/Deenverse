@@ -153,4 +153,120 @@ describe("createRestContentSource", () => {
       }
     });
   });
+
+
+  it("rejects a cursor cycle on the first page without issuing a duplicate request", async () => {
+    const fetcher = vi.fn().mockResolvedValue(response(200, {
+      data: [record],
+      meta: { requestId: "req-cursor-cycle", nextCursor: "start-cursor" }
+    }));
+    const source = createRestContentSource({ fetcher });
+
+    const result = await source.list({
+      type: "quran",
+      locale: "ar",
+      limit: 114,
+      cursor: "start-cursor"
+    });
+
+    expect(fetcher).toHaveBeenCalledTimes(1);
+    expect(result).toEqual({
+      ok: false,
+      error: {
+        code: "UNAVAILABLE",
+        message: "The content service returned a repeated pagination cursor.",
+        retryable: false
+      }
+    });
+  });
+
+  it("fails closed when the backend repeats a pagination cursor", async () => {
+    const firstPage = {
+      data: [record],
+      meta: { requestId: "req-repeated-cursor-1", nextCursor: "same-cursor" }
+    };
+    const secondPage = {
+      data: [{ ...record, id: "quran:surah:2" }],
+      meta: { requestId: "req-repeated-cursor-2", nextCursor: "same-cursor" }
+    };
+    const fetcher = vi.fn()
+      .mockResolvedValueOnce(response(200, firstPage))
+      .mockResolvedValueOnce(response(200, secondPage));
+    const source = createRestContentSource({ fetcher });
+
+    const result = await source.list({ type: "quran", locale: "ar", limit: 114 });
+
+    expect(fetcher).toHaveBeenCalledTimes(2);
+    expect(result).toEqual({
+      ok: false,
+      error: {
+        code: "UNAVAILABLE",
+        message: "The content service returned a repeated pagination cursor.",
+        retryable: false
+      }
+    });
+  });
+
+
+  it("rejects duplicate catalogue records instead of returning a corrupted Surah list", async () => {
+    const fetcher = vi.fn().mockResolvedValue(response(200, {
+      data: [record, record],
+      meta: { requestId: "req-duplicate-records", nextCursor: null }
+    }));
+    const source = createRestContentSource({ fetcher });
+
+    const result = await source.list({ type: "quran", locale: "ar", limit: 2 });
+
+    expect(result).toEqual({
+      ok: false,
+      error: {
+        code: "UNAVAILABLE",
+        message: "The content service returned a duplicate catalogue record.",
+        retryable: false
+      }
+    });
+  });
+
+
+  it("rejects a detail response whose Surah ID does not match the requested route", async () => {
+    const fetcher = vi.fn().mockResolvedValue(response(200, {
+      data: record,
+      meta: { requestId: "req-detail-mismatch" }
+    }));
+    const source = createRestContentSource({ fetcher });
+
+    const result = await source.getById("quran:surah:114");
+
+    expect(result).toEqual({
+      ok: false,
+      error: {
+        code: "UNAVAILABLE",
+        message: "The content service returned an invalid catalogue record.",
+        retryable: false
+      }
+    });
+  });
+
+  it("maps a missing Surah response to the canonical safe not-found error", async () => {
+    const fetcher = vi.fn().mockResolvedValue(response(404, {
+      error: {
+        code: "NOT_FOUND",
+        message: "private backend detail",
+        requestId: "req-surah-missing",
+        details: ["internal"]
+      }
+    }));
+    const source = createRestContentSource({ fetcher });
+
+    const result = await source.getById("quran:surah:114");
+
+    expect(result).toEqual({
+      ok: false,
+      error: {
+        code: "NOT_FOUND",
+        message: "The requested content was not found.",
+        retryable: false
+      }
+    });
+  });
 });
