@@ -17,8 +17,9 @@ export class QuranCatalogueService {
   constructor(private db: Knex) {}
 
   /**
-   * Retrieves paginated Quran Surah catalogue metadata with full immutable provenance.
-   * Fails closed: If no active, approved content source exists, returns null.
+   * Retrieves paginated Quran Surah catalogue metadata with validated approval metadata.
+   * The approval gate compares recorded checksum strings; it does not fetch or hash
+   * an immutable source artifact. Fails closed when no eligible approved source exists.
    */
   async listSurahs(query: SurahListQuery): Promise<{
     items: ContentRecord<SurahPayload>[];
