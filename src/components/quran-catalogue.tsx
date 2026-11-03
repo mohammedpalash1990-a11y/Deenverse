@@ -76,8 +76,8 @@ export function QuranCatalogue({ source = unavailableContentSource }: QuranCatal
   if (state.status === "loading") {
     return <section className="catalogue-state" aria-label="Quran catalogue" aria-busy="true" role="status" aria-live="polite">
       <span className="catalogue-state-symbol" aria-hidden="true">◌</span>
-      <h3>Loading verified catalogue</h3>
-      <p>Checking the approved content source…</p>
+      <h3>Loading catalogue metadata</h3>
+      <p>Checking catalogue availability and required provenance fields…</p>
     </section>;
   }
 
@@ -94,16 +94,16 @@ export function QuranCatalogue({ source = unavailableContentSource }: QuranCatal
   if (state.status === "empty") {
     return <section className="catalogue-state" aria-label="Quran catalogue" role="status" aria-live="polite">
       <span className="catalogue-state-symbol" aria-hidden="true">۞</span>
-      <h3>No approved Surah records yet</h3>
-      <p>The connected source returned an empty catalogue. Please check again later.</p>
-      <span className="source-tag">VERIFIED SOURCE · EMPTY</span>
+      <h3>No catalogue records available yet</h3>
+      <p>The connected source returned an empty catalogue. Source authenticity and licensing approval are separate release checks.</p>
+      <span className="source-tag">EMPTY CATALOGUE</span>
     </section>;
   }
 
   return <section className="catalogue-results" aria-label="Verified Quran catalogue">
     <div className="catalogue-results-heading">
-      <div><h3>Surah catalogue</h3><p>{items.length} source-verified catalogue records</p></div>
-      <span className="source-tag">METADATA VERIFIED</span>
+      <div><h3>Surah catalogue</h3><p>{items.length} catalogue records passed metadata checks</p></div>
+      <span className="source-tag">METADATA PREFLIGHT ONLY</span>
     </div>
     <label className="surah-search">
       <span className="sr-only">Search Surah catalogue</span>
