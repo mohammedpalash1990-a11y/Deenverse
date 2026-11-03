@@ -11,10 +11,20 @@ import { ApiErrorResponse } from './types/content.js';
 export interface BuildAppOptions {
   db: Knex;
   enableRateLimit?: boolean;
+  allowedOrigins?: string[];
+  rateLimitMax?: number;
+  rateLimitWindowMs?: number;
 }
 
 export function buildApp(opts: BuildAppOptions): FastifyInstance {
-  const { db, enableRateLimit = true } = opts;
+  const { db, enableRateLimit = true, allowedOrigins = [], rateLimitMax = 100, rateLimitWindowMs = 60_000 } = opts;
+
+  if (!Number.isSafeInteger(rateLimitMax) || rateLimitMax < 1) {
+    throw new Error('rateLimitMax must be a positive safe integer.');
+  }
+  if (!Number.isSafeInteger(rateLimitWindowMs) || rateLimitWindowMs < 1) {
+    throw new Error('rateLimitWindowMs must be a positive safe integer.');
+  }
 
   const app = fastify({
     genReqId: () => `req_${randomUUID().replace(/-/g, '')}`,
@@ -32,40 +42,46 @@ export function buildApp(opts: BuildAppOptions): FastifyInstance {
     }
   });
 
-  // CORS is opt-in: configure exact browser origins with CORS_ALLOWED_ORIGINS.
-  // Requests without an Origin header (e.g. server-to-server/health probes) remain valid.
-  const allowedOrigins = new Set(
-    (process.env.CORS_ALLOWED_ORIGINS || '')
-      .split(',')
-      .map((value) => value.trim())
-      .filter(Boolean)
-  );
+  // Strict CORS allowlist combines explicit app options with deployment environment values.
+  const environmentOrigins = (process.env.CORS_ALLOWED_ORIGINS || process.env.CORS_ORIGIN || '')
+    .split(',')
+    .map((value) => value.trim())
+    .filter(Boolean);
+  const trustedOrigins = new Set([...allowedOrigins, ...environmentOrigins]);
   app.register(cors, {
     origin: (origin, cb) => {
+      // Requests without an Origin header (e.g. server-to-server/health probes) remain valid.
       if (!origin) return cb(null, true);
-      return cb(null, allowedOrigins.has(origin));
+      return cb(null, trustedOrigins.has(origin));
     },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
   });
 
-  // Rate Limiting
-  if (enableRateLimit) {
-    app.register(rateLimit, {
-      max: 100,
-      timeWindow: '1 minute',
-      errorResponseBuilder: (request, context) => ({
+  // Consistent Error Handler
+  app.setErrorHandler((error: FastifyError, request, reply) => {
+    if (error.message === 'Origin not allowed by CORS') {
+      const errResponse: ApiErrorResponse = {
+        error: {
+          code: 'FORBIDDEN',
+          message: 'Cross-origin request blocked by security policy.',
+          retryable: false
+        }
+      };
+      return reply.status(403).send(errResponse);
+    }
+
+    const statusCode = error.statusCode || 500;
+    if (statusCode === 429) {
+      const rateLimitResponse: ApiErrorResponse = {
         error: {
           code: 'RATE_LIMITED',
           message: 'Too many requests. Please slow down and try again later.',
           retryable: true
         }
-      })
-    });
-  }
+      };
+      return reply.status(429).send(rateLimitResponse);
+    }
 
-  // Consistent Error Handler
-  app.setErrorHandler((error: FastifyError, request, reply) => {
-    const statusCode = error.statusCode || 500;
     const isClientError = statusCode >= 400 && statusCode < 500;
 
     const errorResponse: ApiErrorResponse = {
@@ -82,19 +98,79 @@ export function buildApp(opts: BuildAppOptions): FastifyInstance {
   // Core Service instances
   const quranCatalogueService = new QuranCatalogueService(db);
 
-  // Health route
-  app.get('/api/v1/health', async (request, reply) => {
-    return {
-      status: 'healthy',
-      timestamp: new Date().toISOString(),
-      requestId: request.id
-    };
-  });
+  // Register the rate limiter and API routes in the same encapsulation scope.
+  // Fastify hooks are encapsulated; keeping these registrations together ensures
+  // the global rate-limit hook applies to health, readiness, and Quran routes.
+  app.register(async function registerApiRoutes(api) {
+    if (enableRateLimit) {
+      await api.register(rateLimit, {
+        max: rateLimitMax,
+        timeWindow: rateLimitWindowMs,
+        global: true,
+        errorResponseBuilder: (request, context) => ({
+          statusCode: 429,
+          error: {
+            code: 'RATE_LIMITED',
+            message: 'Too many requests. Please slow down and try again later.',
+            retryable: true
+          }
+        })
+      });
+    }
 
-  // Register Quran routes
-  app.register(quranRoutes, {
-    prefix: '/api/v1/quran',
-    catalogueService: quranCatalogueService
+    // Liveness probe (indicates server process is up and responding)
+    api.get('/api/v1/health', async (request, reply) => {
+      return {
+        status: 'ok',
+        probe: 'liveness',
+        timestamp: new Date().toISOString(),
+        requestId: request.id
+      };
+    });
+
+    // Readiness probe (verifies database connectivity and migration state)
+    api.get('/api/v1/ready', async (request, reply) => {
+      try {
+        await db.raw('SELECT 1');
+        const hasContentSources = await db.schema.hasTable('content_sources');
+        const hasQuranSurahs = await db.schema.hasTable('quran_surahs');
+
+        if (!hasContentSources || !hasQuranSurahs) {
+          const errResponse: ApiErrorResponse = {
+            error: {
+              code: 'UNAVAILABLE',
+              message: 'Database schema is not fully migrated.',
+              retryable: true
+            }
+          };
+          return reply.status(503).send(errResponse);
+        }
+
+        return {
+          status: 'ready',
+          probe: 'readiness',
+          database: 'connected',
+          migrations: 'applied',
+          timestamp: new Date().toISOString(),
+          requestId: request.id
+        };
+      } catch {
+        const errResponse: ApiErrorResponse = {
+          error: {
+            code: 'UNAVAILABLE',
+            message: 'Database connection failed.',
+            retryable: true
+          }
+        };
+        return reply.status(503).send(errResponse);
+      }
+    });
+
+    // Register Quran routes
+    api.register(quranRoutes, {
+      prefix: '/api/v1/quran',
+      catalogueService: quranCatalogueService
+    });
   });
 
   return app;

@@ -1,0 +1,53 @@
+name: Web foundation checks
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - assistant/phase1-web-foundation
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+    branches:
+      - main
+      - integration/platform-foundation
+      - assistant/phase1-web-foundation
+
+permissions:
+  contents: read
+
+concurrency:
+  group: web-foundation-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # npm ci is intentionally blocked until a reviewed package-lock.json is committed.
+      - run: npm install
+      - name: Capture dependency audit report
+        run: npm audit --json > npm-audit.json || true
+      - name: Summarize dependency audit findings
+        run: |
+          node <<'NODE'
+          const fs = require("node:fs");
+          const report = JSON.parse(fs.readFileSync("npm-audit.json", "utf8"));
+          const packages = Object.entries(report.vulnerabilities ?? {}).map(([name, item]) => ({
+            name,
+            severity: item.severity,
+            direct: item.isDirect,
+            affectedRange: item.range,
+            fixAvailable: item.fixAvailable
+          }));
+          console.log(JSON.stringify({
+            totals: report.metadata?.vulnerabilities ?? {},
+            packages
+          }, null, 2));
+          NODE
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build

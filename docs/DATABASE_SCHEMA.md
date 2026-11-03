@@ -3,13 +3,13 @@
 ## Database Strategy
 
 - **Local Development & CI Testing**: SQLite (`:memory:` or local file).
-- **Staging & Production**: PostgreSQL (managed cluster).
-- **Migration Engine**: Knex.js.
+- **Staging & Production**: PostgreSQL (managed cluster, configured via `DATABASE_URL`).
+- **Migration Engine**: Knex.js (`npm run migrate`).
 
-## Initial Phase 1 Schema
+## Phase 1 Catalogue Schema
 
-### 1. `content_sources` (Provenance & Release Gate)
-Stores verified provenance for every imported Islamic content corpus. Content cannot be served without an active, approved record in this table.
+### 1. `content_sources` (Provenance & Approval Gate)
+Stores verified provenance for every imported Islamic content corpus. Content cannot be served without an active, approved record in this table (`approval_status = 'approved'`, `redistribution_allowed = true`).
 
 | Column | Type | Description |
 |---|---|---|
@@ -22,9 +22,11 @@ Stores verified provenance for every imported Islamic content corpus. Content ca
 | `attribution` | VARCHAR | Required attribution text |
 | `license_id` | VARCHAR | SPDX or custom license identifier |
 | `redistribution_allowed`| BOOLEAN | Must be `true` for content to be served |
-| `reviewer` | VARCHAR | Human reviewer identity/group |
-| `reviewed_at` | TIMESTAMP | ISO timestamp of the review approval |
-| `checksum` | VARCHAR | Cryptographic checksum (SHA-256) |
+| `approval_status` | VARCHAR(20) | Multi-stage status: `'pending'`, `'rejected'`, `'approved'` |
+| `review_decision_id` | VARCHAR | Audit log decision reference |
+| `approved_by_authority` | VARCHAR | Formal approving scholarly/editorial authority |
+| `approved_at` | TIMESTAMP | ISO timestamp of the review approval |
+| `artifact_sha256` | VARCHAR(64) | 64-character lowercase hexadecimal SHA-256 digest |
 | `is_active` | BOOLEAN | Soft disable toggle |
 | `created_at` | TIMESTAMP | Record creation date |
 
@@ -33,11 +35,13 @@ Non-fabricated catalogue metadata for the 114 Surahs. Does not contain Quranic A
 
 | Column | Type | Description |
 |---|---|---|
-| `surah_number` | INTEGER PRIMARY KEY | Chapter number (1-114) |
+| `source_id` | VARCHAR FK | References `content_sources.id` (part of composite PK) |
+| `surah_number` | INTEGER | Chapter number (1-114, part of composite PK) |
 | `name_arabic` | VARCHAR | Chapter name in Arabic |
 | `name_simple` | VARCHAR | Transliterated name (e.g. `Al-Fatihah`) |
 | `name_english` | VARCHAR | English meaning (e.g. `The Opener`) |
-| `revelation_place` | VARCHAR | `makkah` or `madinah` |
+| `revelation_place` | VARCHAR(10) | `makkah` or `madinah` |
 | `revelation_order` | INTEGER | Chronological order |
 | `verses_count` | INTEGER | Number of verses |
-| `source_id` | VARCHAR FK | References `content_sources.id` |
+
+**Primary Key**: `PRIMARY KEY (source_id, surah_number)` to support multiple editions without conflicts.

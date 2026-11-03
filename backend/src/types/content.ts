@@ -6,6 +6,8 @@ export type ReligiousContentType =
   | 'dua'
   | 'audio';
 
+export type SourceApprovalStatus = 'pending' | 'rejected' | 'approved';
+
 export interface ContentProvenance {
   contentType: ReligiousContentType;
   sourceId: string;
@@ -14,8 +16,10 @@ export interface ContentProvenance {
   attribution: string;
   licenseId: string;
   redistributionAllowed: boolean;
-  reviewer: string;
-  reviewedAt: string;
+  approvalStatus: SourceApprovalStatus;
+  reviewDecisionId: string;
+  approvedByAuthority: string;
+  approvedAt: string;
   checksum: string;
 }
 
