@@ -57,6 +57,8 @@ export function buildApp(opts: BuildAppOptions): FastifyInstance {
         error: {
           code: 'RATE_LIMITED',
           message: 'Too many requests. Please slow down and try again later.',
+          requestId: request.id,
+          details: [],
           retryable: true
         }
       })
@@ -70,8 +72,10 @@ export function buildApp(opts: BuildAppOptions): FastifyInstance {
 
     const errorResponse: ApiErrorResponse = {
       error: {
-        code: isClientError ? 'INVALID_QUERY' : 'INTERNAL_ERROR',
+        code: isClientError ? 'VALIDATION_ERROR' : 'INTERNAL_ERROR',
         message: isClientError ? error.message : 'An internal error occurred. Please try again.',
+        requestId: request.id,
+        details: [],
         retryable: statusCode >= 500
       }
     };
