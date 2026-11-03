@@ -201,5 +201,7 @@ test('Quran Catalogue API Integration', async (t) => {
     assert.equal(res.statusCode, 404);
     const body = JSON.parse(res.body);
     assert.equal(body.error.code, 'NOT_FOUND');
+    assert.ok(body.error.requestId.startsWith('req_'));
+    assert.deepEqual(body.error.details, []);
   });
 });
