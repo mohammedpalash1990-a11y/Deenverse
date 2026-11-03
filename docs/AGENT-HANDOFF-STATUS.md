@@ -185,3 +185,9 @@ No runtime test, build, deployment, or content-authenticity verification is clai
 
 ### Current disposition
 No merge approved. PR #2 has a successful CI run but remains draft, targets main, and is substantially divergent from integration. PR #5 requires controlled synchronization/review. Continue to keep religious content disabled until exact source, edition, rights, immutable artifact, integrity checks, and independent review are all evidenced.
+
+
+### Final comparison correction — 2026-11-03 03:53
+- PR #2: 92 ahead / 29 behind integration; still draft and targets main.
+- PR #5: 1 ahead / 6 behind integration; GitHub reports mergeable=false.
+- PR #2 and PR #5 received correction comments. Do not merge either without deliberate synchronization and renewed review.
