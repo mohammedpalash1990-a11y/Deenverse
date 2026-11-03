@@ -4,6 +4,29 @@ import { buildApp } from '../src/app.js';
 import { createDatabaseConnection } from '../src/db/connection.js';
 import * as initialSchema from '../src/db/migrations/20261102_000001_initial_schema.js';
 import * as sourceApprovalGate from '../src/db/migrations/20261103_000002_source_approval_gate.js';
+import { ContentProvenanceSchema } from '../src/services/validation.js';
+
+
+test('Content provenance requires a SHA-256 checksum in hexadecimal format', () => {
+  const validProvenance = {
+    contentType: 'quran',
+    sourceId: 'src-test-fixture',
+    edition: 'synthetic-test-fixture',
+    sourceUrl: 'https://example.org/synthetic-test-fixture',
+    attribution: 'Synthetic test fixture only',
+    licenseId: 'TEST-FIXTURE-NOT-A-LICENSE',
+    redistributionAllowed: true,
+    reviewer: 'test-reviewer',
+    reviewedAt: '2026-11-01T00:00:00.000Z',
+    checksum: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
+  };
+
+  assert.equal(ContentProvenanceSchema.safeParse(validProvenance).success, true);
+  assert.equal(ContentProvenanceSchema.safeParse({ ...validProvenance, checksum: '' }).success, false);
+  assert.equal(ContentProvenanceSchema.safeParse({ ...validProvenance, checksum: 'not-a-hash' }).success, false);
+  assert.equal(ContentProvenanceSchema.safeParse({ ...validProvenance, checksum: 'g'.repeat(64) }).success, false);
+  assert.equal(ContentProvenanceSchema.safeParse({ ...validProvenance, checksum: 'a'.repeat(63) }).success, false);
+});
 
 test('Quran Catalogue API Integration', async (t) => {
   const db = createDatabaseConnection({ connection: ':memory:' });
