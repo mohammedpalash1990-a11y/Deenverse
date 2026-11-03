@@ -3,14 +3,17 @@ import { createDatabaseConnection } from './db/connection.js';
 
 const PORT = parseInt(process.env.PORT || '4000', 10);
 const HOST = process.env.HOST || '0.0.0.0';
+const CORS_ORIGIN = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',').map((o) => o.trim())
+  : ['http://localhost:3000'];
 
 async function main() {
-  const db = createDatabaseConnection({
-    client: (process.env.DB_CLIENT as 'sqlite3' | 'pg') || 'sqlite3',
-    connection: process.env.DB_FILENAME || './deenverse.sqlite'
-  });
+  const db = createDatabaseConnection();
 
-  const app = buildApp({ db });
+  const app = buildApp({
+    db,
+    allowedOrigins: CORS_ORIGIN
+  });
 
   try {
     const address = await app.listen({ port: PORT, host: HOST });

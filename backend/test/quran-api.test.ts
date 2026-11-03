@@ -7,7 +7,7 @@ import * as initialSchema from '../src/db/migrations/20261102_000001_initial_sch
 test('Quran Catalogue API Integration', async (t) => {
   const db = createDatabaseConnection({ connection: ':memory:' });
   await initialSchema.up(db);
-  const app = buildApp({ db, enableRateLimit: false });
+  const app = buildApp({ db, enableRateLimit: false, allowedOrigins: ['http://localhost:3000'] });
 
   t.after(async () => {
     await app.close();
@@ -49,6 +49,17 @@ test('Quran Catalogue API Integration', async (t) => {
     assert.equal(body.error.code, 'INVALID_QUERY');
   });
 
+  await t.test('Rejects tampered pagination cursor with 400 INVALID_QUERY', async () => {
+    const res = await app.inject({
+      method: 'GET',
+      url: '/api/v1/quran/surahs?cursor=invalid-cursor-value'
+    });
+
+    assert.equal(res.statusCode, 400);
+    const body = JSON.parse(res.body);
+    assert.equal(body.error.code, 'INVALID_QUERY');
+  });
+
   await t.test('Serves verified Surah catalogue metadata with correct envelope and provenance when configured', async () => {
     // Insert approved source provenance
     await db('content_sources').insert({
@@ -61,33 +72,35 @@ test('Quran Catalogue API Integration', async (t) => {
       attribution: 'Tanzil Project Verified Quran Metadata',
       license_id: 'CC-BY-3.0',
       redistribution_allowed: true,
-      reviewer: 'Islamic Editorial Board',
-      reviewed_at: '2026-11-01T00:00:00.000Z',
-      checksum: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+      approval_status: 'approved',
+      review_decision_id: 'decision-20261102-001',
+      approved_by_authority: 'Islamic Content Review Committee',
+      approved_at: '2026-11-01T00:00:00.000Z',
+      artifact_sha256: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
       is_active: true
     });
 
     // Insert surah catalog metadata (Surah 1 Al-Fatihah, Surah 2 Al-Baqarah)
     await db('quran_surahs').insert([
       {
+        source_id: 'src-tanzil-uthmani',
         surah_number: 1,
         name_arabic: 'الفاتحة',
         name_simple: 'Al-Fatihah',
         name_english: 'The Opener',
         revelation_place: 'makkah',
         revelation_order: 5,
-        verses_count: 7,
-        source_id: 'src-tanzil-uthmani'
+        verses_count: 7
       },
       {
+        source_id: 'src-tanzil-uthmani',
         surah_number: 2,
         name_arabic: 'البقرة',
         name_simple: 'Al-Baqarah',
         name_english: 'The Cow',
         revelation_place: 'madinah',
         revelation_order: 87,
-        verses_count: 286,
-        source_id: 'src-tanzil-uthmani'
+        verses_count: 286
       }
     ]);
 
@@ -113,6 +126,7 @@ test('Quran Catalogue API Integration', async (t) => {
     assert.equal(first.locale, 'ar');
     assert.equal(first.provenance.sourceId, 'src-tanzil-uthmani');
     assert.equal(first.provenance.redistributionAllowed, true);
+    assert.equal(first.provenance.approvalStatus, 'approved');
     assert.equal(first.provenance.checksum, 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855');
     assert.equal(first.payload.surahNumber, 1);
     assert.equal(first.payload.nameArabic, 'الفاتحة');
@@ -143,15 +157,38 @@ test('Quran Catalogue API Integration', async (t) => {
     assert.equal(body.data[0].payload.surahNumber, 1);
   });
 
-  await t.test('GET /api/v1/quran/surahs/999 returns 400 for out-of-range surah', async () => {
-    const res = await app.inject({
+  await t.test('Strict Surah parsing: rejects malformed suffixes, decimals, leading zeros', async () => {
+    // "1abc" suffix
+    const resSuffix = await app.inject({
+      method: 'GET',
+      url: '/api/v1/quran/surahs/1abc'
+    });
+    assert.equal(resSuffix.statusCode, 400);
+    assert.equal(JSON.parse(resSuffix.body).error.code, 'INVALID_QUERY');
+
+    // "1.5" decimal
+    const resDecimal = await app.inject({
+      method: 'GET',
+      url: '/api/v1/quran/surahs/1.5'
+    });
+    assert.equal(resDecimal.statusCode, 400);
+    assert.equal(JSON.parse(resDecimal.body).error.code, 'INVALID_QUERY');
+
+    // "0" or "01" leading zero
+    const resZero = await app.inject({
+      method: 'GET',
+      url: '/api/v1/quran/surahs/01'
+    });
+    assert.equal(resZero.statusCode, 400);
+    assert.equal(JSON.parse(resZero.body).error.code, 'INVALID_QUERY');
+
+    // "999" out of range
+    const resOutOfRange = await app.inject({
       method: 'GET',
       url: '/api/v1/quran/surahs/999'
     });
-
-    assert.equal(res.statusCode, 400);
-    const body = JSON.parse(res.body);
-    assert.equal(body.error.code, 'INVALID_QUERY');
+    assert.equal(resOutOfRange.statusCode, 400);
+    assert.equal(JSON.parse(resOutOfRange.body).error.code, 'INVALID_QUERY');
   });
 
   await t.test('GET /api/v1/quran/surahs/50 returns 404 for unseeded surah', async () => {

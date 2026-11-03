@@ -14,7 +14,7 @@
    ```
 2. Copy the sample environment file:
    ```bash
-   cp .env.example .env
+   cp ../.env.example .env
    ```
    *Note: Only placeholder values are present in `.env.example`. Never commit actual secrets or credentials.*
 
@@ -27,9 +27,11 @@
 
 Run database migrations to initialize the schema:
 ```bash
+npm run migrate
+```
+Or build TypeScript first and run:
+```bash
 npm run build
-# Or directly run with tsx:
-npx tsx src/db/migrate.ts
 ```
 
 ## 4. Running the Development Server
@@ -59,9 +61,11 @@ npm test
 
 Expected output:
 ```
+✔ CORS Security Configuration
+✔ Database Configuration Resolver
 ✔ Quran Catalogue API Integration
 ✔ Validation Service
-ℹ tests 13
-ℹ pass 13
+ℹ tests 23
+ℹ pass 23
 ℹ fail 0
 ```

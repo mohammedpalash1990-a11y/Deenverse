@@ -11,10 +11,11 @@ import { ApiErrorResponse } from './types/content.js';
 export interface BuildAppOptions {
   db: Knex;
   enableRateLimit?: boolean;
+  allowedOrigins?: string[];
 }
 
 export function buildApp(opts: BuildAppOptions): FastifyInstance {
-  const { db, enableRateLimit = true } = opts;
+  const { db, enableRateLimit = true, allowedOrigins = [] } = opts;
 
   const app = fastify({
     genReqId: () => `req_${randomUUID().replace(/-/g, '')}`,
@@ -32,11 +33,21 @@ export function buildApp(opts: BuildAppOptions): FastifyInstance {
     }
   });
 
-  // CORS configuration
+  // Strict CORS configuration with explicit allowlist
   app.register(cors, {
     origin: (origin, cb) => {
-      // Allow local development and standard requests
-      cb(null, true);
+      // Requests without origin header (e.g. curl, server-to-server, mobile apps) are allowed
+      if (!origin) {
+        return cb(null, true);
+      }
+
+      // Check against explicit allowedOrigins list
+      if (allowedOrigins.includes(origin)) {
+        return cb(null, true);
+      }
+
+      // Deny untrusted origins
+      return cb(new Error('Origin not allowed by CORS'), false);
     },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
   });
@@ -58,6 +69,17 @@ export function buildApp(opts: BuildAppOptions): FastifyInstance {
 
   // Consistent Error Handler
   app.setErrorHandler((error: FastifyError, request, reply) => {
+    if (error.message === 'Origin not allowed by CORS') {
+      const errResponse: ApiErrorResponse = {
+        error: {
+          code: 'FORBIDDEN',
+          message: 'Cross-origin request blocked by security policy.',
+          retryable: false
+        }
+      };
+      return reply.status(403).send(errResponse);
+    }
+
     const statusCode = error.statusCode || 500;
     const isClientError = statusCode >= 400 && statusCode < 500;
 
