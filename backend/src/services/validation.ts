@@ -17,7 +17,7 @@ export const ContentProvenanceSchema = z.object({
   reviewedAt: z.string().refine((val) => !Number.isNaN(Date.parse(val)), {
     message: 'Review date is invalid'
   }),
-  checksum: z.string().min(1, 'Checksum is required')
+  checksum: z.string().regex(/^[a-fA-F0-9]{64}$/, 'Checksum must be a 64-character SHA-256 hex digest')
 });
 
 const isValidCursor = (cursor: string): boolean => {
