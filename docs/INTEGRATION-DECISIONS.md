@@ -108,5 +108,6 @@ The QA pass added two documentation commits to the integration branch (the expan
 - `f37f459df19637ec1b1ec97db051f3a846698289` — added `docs/IMPLEMENTED-API-RECONCILIATION.md`.
 - `9a9efad92d715503a009643531255ded3f559597` — first implementation-aligned OpenAPI update.
 - `abdbaddee990eaade77dca827c442a6b133703c4` — tightened the list response metadata schema.
+- `8a988ada9f1f486ce0f31d5b42282710cc3a65ee` — corrected the OpenAPI Surah-number patterns to reject values above 114.
 
 No changes were made to main or either named Jules/Queen assignment branch.
