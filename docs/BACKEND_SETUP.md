@@ -59,6 +59,7 @@ The server will bind to `http://0.0.0.0:4000`.
 Check health:
 ```bash
 curl http://localhost:4000/api/v1/health
+curl -i http://localhost:4000/api/v1/ready
 ```
 
 ## 6. Running Automated Tests
