@@ -143,6 +143,30 @@ test('Quran Catalogue API Integration', async (t) => {
       .where({ id: 'approval-test-fixture' })
       .update({ artifact_sha256: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855' });
 
+    await db('content_source_approvals')
+      .where({ id: 'approval-test-fixture' })
+      .update({ decision: 'rejected' });
+    const rejectedApprovalRes = await app.inject({
+      method: 'GET',
+      url: '/api/v1/quran/surahs'
+    });
+    assert.equal(rejectedApprovalRes.statusCode, 503, 'a rejected source approval must never publish the catalogue');
+    await db('content_source_approvals')
+      .where({ id: 'approval-test-fixture' })
+      .update({ decision: 'approved' });
+
+    await db('content_sources')
+      .where({ id: 'src-test-fixture' })
+      .update({ source_url: 'http://example.org/synthetic-test-fixture' });
+    const invalidProvenanceRes = await app.inject({
+      method: 'GET',
+      url: '/api/v1/quran/surahs'
+    });
+    assert.equal(invalidProvenanceRes.statusCode, 503, 'invalid non-HTTPS provenance must fail closed');
+    await db('content_sources')
+      .where({ id: 'src-test-fixture' })
+      .update({ source_url: 'https://example.org/synthetic-test-fixture' });
+
     // Insert surah catalog metadata (Surah 1 Al-Fatihah, Surah 2 Al-Baqarah)
     await db('quran_surahs').insert([
       {
