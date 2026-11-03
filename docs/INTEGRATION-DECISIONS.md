@@ -1,6 +1,6 @@
 # DEENVERSE Integration Decision & Blocker Log
 
-Last reviewed: 2026-11-02 19:22 Asia/Riyadh  
+Last reviewed: 2026-11-03 — current status appended below  
 Owner: integration/platform-foundation
 
 This is an evidence log. A proposal is not an accepted decision, and an assigned task is not evidence of implementation.
@@ -76,3 +76,37 @@ The QA pass added two documentation commits to the integration branch (the expan
 5. Integrate the shell with empty/verified-content states; test RTL and responsive layouts against the declared browser/device matrix.
 6. Review content-source authenticity, attribution and license evidence independently of software test status.
 7. Re-run the QA plan, resolve branch divergence and inspect all checks before merge.
+
+
+## Current implementation reconciliation — 2026-11-03
+
+**This section supersedes the historical repository/branch/stack/CI statements above.** Earlier entries are retained as a dated record of the initial planning phase.
+
+- Current `main`: `6a1beb1c90aa7d195e8081ca1157649fae4dd305`.
+- Current `jules/backend-foundation`: `f84e35c242ab37ccafca0528a1d06e0d4b244834`, 3 ahead / 14 behind main; current diff is `AGENT_TASK.md` and `JULES_NEXT_TASK.md` only.
+- Current `queen/frontend-foundation`: `9ef788c81de85e9ebfa139b35c42d606c38f2010`, 2 ahead / 14 behind main; current diff is `AGENT_TASK.md` only.
+- Current `integration/platform-foundation` before this reconciliation: `eac93a6616e73048ea3787dcced87bc471eb25bc`, 36 ahead / 14 behind main.
+- Actual backend source was integrated through merged PR #18; frontend accessibility and typed REST adapter work through merged PRs #16 and #17. These are merged-code facts, not claims that the exact Jules/Queen assignment branches are currently active.
+- Main now has Next.js/React/TypeScript web code, a Fastify/Knex backend, a typed Quran metadata REST adapter, database migrations, tests and GitHub Actions CI.
+- Main CI run `41626698190` on the exact main SHA passed web typecheck/tests/build and backend typecheck/tests/build.
+- PR #22 (head `51b8735f6b3f39a659e4eb15a9e95d31076006c4`) passed CI runs `41627796874` and `41627796745`, but remains open. No hosted PostgreSQL integration run is recorded; main still blocks production startup until the PostgreSQL runtime/migration change is merged.
+- PR #1 remains open and unsynchronized; do not merge it in its current state. PR #11 remains open, but its static API gap register describes an earlier backend snapshot and needs revision against current main.
+- Current route inventory, response schemas, adapter behavior, contract differences, source-integrity limitations, exact CI evidence and next gates are recorded in `docs/IMPLEMENTED-API-RECONCILIATION.md`.
+- `docs/OPENAPI-DRAFT.yaml` has been changed from the future-surface proposal to an implementation-aligned snapshot containing only the four routes currently registered on main. The filename is retained for link compatibility.
+- No Quran Ayah corpus, translation, tafsir, Hadith, dua or audio dataset has been imported or approved. The current backend compares stored approval/source digest fields but does not independently retrieve and hash the immutable source artifact.
+
+### Current blockers
+
+1. Synchronize this integration branch with main through a reviewed merge/update and resolve duplicate documentation paths before PR #1 can be considered.
+2. Add OpenAPI parser validation and contract tests to CI.
+3. Run PostgreSQL migration and backend integration tests against a real disposable PostgreSQL service before production readiness is claimed.
+4. Complete manual responsive, RTL, keyboard and screen-reader verification.
+5. Complete independent source identity, artifact, attribution, redistribution and caching/offline rights review before importing or publishing religious content.
+
+### Integration commits in this reconciliation
+
+- `f37f459df19637ec1b1ec97db051f3a846698289` — added `docs/IMPLEMENTED-API-RECONCILIATION.md`.
+- `9a9efad92d715503a009643531255ded3f559597` — first implementation-aligned OpenAPI update.
+- `abdbaddee990eaade77dca827c442a6b133703c4` — tightened the list response metadata schema.
+
+No changes were made to main or either named Jules/Queen assignment branch.
