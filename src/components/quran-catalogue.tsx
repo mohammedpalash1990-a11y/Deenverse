@@ -2,11 +2,15 @@
 
 import { useEffect, useMemo, useState } from "react";
 import {
-  unavailableContentSource,
   validateContentRecord,
   type ContentRecord,
   type ContentSource
 } from "@/lib/content-source";
+import { createRestContentSource } from "@/lib/content-api-client";
+
+const restContentSource = createRestContentSource({
+  baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL || "/api/v1"
+});
 
 type CatalogueState =
   | { status: "loading" }
@@ -18,7 +22,7 @@ interface QuranCatalogueProps {
   source?: ContentSource;
 }
 
-export function QuranCatalogue({ source = unavailableContentSource }: QuranCatalogueProps) {
+export function QuranCatalogue({ source = restContentSource }: QuranCatalogueProps) {
   const [state, setState] = useState<CatalogueState>({ status: "loading" });
   const [retryKey, setRetryKey] = useState(0);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
@@ -100,7 +104,7 @@ export function QuranCatalogue({ source = unavailableContentSource }: QuranCatal
     </section>;
   }
 
-  return <section className="catalogue-results" aria-label="Verified Quran catalogue">
+  return <section className="catalogue-results" aria-label="Quran catalogue">
     <div className="catalogue-results-heading">
       <div><h3>Surah catalogue</h3><p>{items.length} catalogue records passed metadata checks</p></div>
       <span className="source-tag">METADATA PREFLIGHT ONLY</span>
@@ -113,7 +117,7 @@ export function QuranCatalogue({ source = unavailableContentSource }: QuranCatal
       {filteredItems.map(({ item, index }) => <li key={item.id}>
         <button className={selectedIndex === index ? "surah-item selected" : "surah-item"} onClick={() => setSelectedIndex(index)} aria-pressed={selectedIndex === index}>
           <span className="surah-number">{index + 1}</span>
-          <span className="surah-title">{item.title}<small>{item.locale.toUpperCase()} · APPROVED EDITION METADATA</small></span>
+          <span className="surah-title">{item.title}<small>{item.locale.toUpperCase()} · SURAH METADATA</small></span>
           <span aria-hidden="true">↗</span>
         </button>
       </li>)}
