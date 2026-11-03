@@ -122,7 +122,7 @@ export function buildApp(opts: BuildAppOptions): FastifyInstance {
     // Liveness probe (indicates server process is up and responding)
     api.get('/api/v1/health', async (request, reply) => {
       return {
-        status: 'ok',
+        status: 'healthy',
         probe: 'liveness',
         timestamp: new Date().toISOString(),
         requestId: request.id
@@ -134,9 +134,10 @@ export function buildApp(opts: BuildAppOptions): FastifyInstance {
       try {
         await db.raw('SELECT 1');
         const hasContentSources = await db.schema.hasTable('content_sources');
+        const hasSourceApprovals = await db.schema.hasTable('content_source_approvals');
         const hasQuranSurahs = await db.schema.hasTable('quran_surahs');
 
-        if (!hasContentSources || !hasQuranSurahs) {
+        if (!hasContentSources || !hasSourceApprovals || !hasQuranSurahs) {
           const errResponse: ApiErrorResponse = {
             error: {
               code: 'UNAVAILABLE',
