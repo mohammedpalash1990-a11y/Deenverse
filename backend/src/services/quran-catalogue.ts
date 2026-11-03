@@ -24,18 +24,21 @@ export class QuranCatalogueService {
     hasApprovedSource: boolean;
   }> {
     // 1. Fetch approved active source with controlled approval status
-    const source = await this.db('content_sources')
+    // Never choose an edition implicitly when multiple approved active sources exist.
+    const approvedSources = await this.db('content_sources')
       .where({
         content_type: 'quran',
         is_active: true,
         approval_status: 'approved',
         redistribution_allowed: true
       })
-      .first();
+      .orderBy('id', 'asc')
+      .limit(2);
 
-    if (!source) {
+    if (approvedSources.length !== 1) {
       return { items: [], total: 0, hasApprovedSource: false };
     }
+    const source = approvedSources[0];
 
     // 2. Validate provenance structure and SHA-256 digest at boundary
     const provenance: ContentProvenance = {
@@ -98,18 +101,21 @@ export class QuranCatalogueService {
     item: ContentRecord<SurahPayload> | null;
     hasApprovedSource: boolean;
   }> {
-    const source = await this.db('content_sources')
+    // Never choose an edition implicitly when multiple approved active sources exist.
+    const approvedSources = await this.db('content_sources')
       .where({
         content_type: 'quran',
         is_active: true,
         approval_status: 'approved',
         redistribution_allowed: true
       })
-      .first();
+      .orderBy('id', 'asc')
+      .limit(2);
 
-    if (!source) {
+    if (approvedSources.length !== 1) {
       return { item: null, hasApprovedSource: false };
     }
+    const source = approvedSources[0];
 
     const provenance: ContentProvenance = {
       contentType: source.content_type,
