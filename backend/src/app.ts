@@ -97,13 +97,55 @@ export function buildApp(opts: BuildAppOptions): FastifyInstance {
   // Core Service instances
   const quranCatalogueService = new QuranCatalogueService(db);
 
-  // Health route
+  // Liveness probe (indicates server process is up and responding)
   app.get('/api/v1/health', async (request, reply) => {
     return {
-      status: 'healthy',
+      status: 'ok',
+      probe: 'liveness',
       timestamp: new Date().toISOString(),
       requestId: request.id
     };
+  });
+
+  // Readiness probe (verifies database connectivity and migration state)
+  app.get('/api/v1/ready', async (request, reply) => {
+    try {
+      // 1. Check basic DB connectivity
+      await db.raw('SELECT 1');
+
+      // 2. Check that critical migration tables exist
+      const hasContentSources = await db.schema.hasTable('content_sources');
+      const hasQuranSurahs = await db.schema.hasTable('quran_surahs');
+
+      if (!hasContentSources || !hasQuranSurahs) {
+        const errResponse: ApiErrorResponse = {
+          error: {
+            code: 'UNAVAILABLE',
+            message: 'Database schema is not fully migrated.',
+            retryable: true
+          }
+        };
+        return reply.status(503).send(errResponse);
+      }
+
+      return {
+        status: 'ready',
+        probe: 'readiness',
+        database: 'connected',
+        migrations: 'applied',
+        timestamp: new Date().toISOString(),
+        requestId: request.id
+      };
+    } catch (err: any) {
+      const errResponse: ApiErrorResponse = {
+        error: {
+          code: 'UNAVAILABLE',
+          message: 'Database connection failed.',
+          retryable: true
+        }
+      };
+      return reply.status(503).send(errResponse);
+    }
   });
 
   // Register Quran routes
