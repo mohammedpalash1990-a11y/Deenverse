@@ -154,3 +154,8 @@ h1{font-size:clamp(31px,4vw,47px);letter-spacing:-1.2px;margin-bottom:10px;color
 .main-panel:focus{outline:none}
 .main-panel:focus-visible{outline:3px solid #b18d4e;outline-offset:-3px}
 @media(prefers-reduced-motion:reduce){.skip-link{transition:none!important}}
+
+
+/* Mobile drawer dismissal layer sits below the sidebar and above page content. */
+.sidebar-backdrop{display:none}
+@media(max-width:680px){.sidebar-backdrop{display:block;position:fixed;inset:0;z-index:4;border:0;padding:0;background:#0b1714a6;cursor:pointer}}
