@@ -19,7 +19,9 @@ describe("DEENVERSE app shell", () => {
     const navigation = screen.getByRole("navigation", { name: "Main navigation" });
     fireEvent.click(within(navigation).getByRole("button", { name: "Hadith" }));
     expect(within(navigation).getByRole("button", { name: "Hadith" })).toHaveAttribute("aria-current", "page");
-    expect(screen.getByText(/DEENVERSE \/ HADITH/)).toHaveAttribute("aria-live", "polite");
+    const breadcrumb = document.querySelector(".breadcrumb");
+    expect(breadcrumb).toHaveTextContent("DEENVERSE / HADITH");
+    expect(breadcrumb).toHaveAttribute("aria-live", "polite");
   });
 
   it("switches sections without inventing religious content", () => {
