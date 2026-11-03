@@ -91,6 +91,20 @@ test('Quran Catalogue API Integration', async (t) => {
     assert.ok(body.error.requestId.startsWith('req_'));
   });
 
+  await t.test('Rejects malformed and unsafe pagination cursors with 400 VALIDATION_ERROR', async () => {
+    for (const cursor of ['not-base64!', 'MDA=', 'OTAwNzE5OTI1NDc0MDk5Mg==']) {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/api/v1/quran/surahs?cursor=${encodeURIComponent(cursor)}`
+      });
+
+      assert.equal(res.statusCode, 400, `cursor ${cursor} must be rejected`);
+      const body = JSON.parse(res.body);
+      assert.equal(body.error.code, 'VALIDATION_ERROR');
+      assert.ok(body.error.requestId.startsWith('req_'));
+    }
+  });
+
   await t.test('Serves verified Surah catalogue metadata with correct envelope and provenance when configured', async () => {
     // Insert approved source provenance
     await db('content_sources').insert({
