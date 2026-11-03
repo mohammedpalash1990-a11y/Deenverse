@@ -92,6 +92,42 @@ test('Quran Catalogue API Integration', async (t) => {
     await db('content_sources').where({ id: 'src-pending-synthetic' }).del();
   });
 
+  await t.test('Fails closed on malformed approval timestamps without throwing', async () => {
+    await db('content_sources').insert({
+      id: 'src-invalid-approved-at',
+      code: 'invalid-approved-at-v1',
+      name: 'Invalid Approval Timestamp Test Source',
+      content_type: 'quran',
+      edition: '0.0.1-synthetic',
+      source_url: 'https://example.invalid/invalid-date-metadata.txt',
+      attribution: 'Synthetic Metadata for Automated Tests Only',
+      license_id: 'CC0-1.0',
+      redistribution_allowed: true,
+      approval_status: 'approved',
+      review_decision_id: 'test-invalid-date-decision',
+      approved_by_authority: 'Automated Test Review Authority',
+      approved_at: 'not-a-valid-date',
+      artifact_sha256: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+      is_active: true
+    });
+
+    const listResponse = await app.inject({
+      method: 'GET',
+      url: '/api/v1/quran/surahs'
+    });
+    assert.equal(listResponse.statusCode, 503);
+    assert.equal(JSON.parse(listResponse.body).error.code, 'UNAVAILABLE');
+
+    const detailResponse = await app.inject({
+      method: 'GET',
+      url: '/api/v1/quran/surahs/1'
+    });
+    assert.equal(detailResponse.statusCode, 503);
+    assert.equal(JSON.parse(detailResponse.body).error.code, 'UNAVAILABLE');
+
+    await db('content_sources').where({ id: 'src-invalid-approved-at' }).del();
+  });
+
   await t.test('Serves catalogue metadata with correct envelope and provenance when configured with synthetic test fixture', async () => {
     // Insert synthetic test fixture with explicit non-authoritative identifiers
     await db('content_sources').insert({
