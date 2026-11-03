@@ -107,5 +107,9 @@ test('Validation Service', async (t) => {
     assert.throws(() => decodeCursor(Buffer.from('-5').toString('base64')), /Invalid cursor value/);
     assert.throws(() => decodeCursor(Buffer.from('3.14').toString('base64')), /Invalid cursor value/);
     assert.throws(() => decodeCursor(Buffer.from('abc').toString('base64')), /Invalid cursor value/);
+    assert.throws(() => decodeCursor(Buffer.from('9007199254740992').toString('base64')), /non-negative safe integer/);
+    assert.throws(() => decodeCursor('AB=='), /Invalid cursor encoding/);
+    assert.throws(() => encodeCursor(Number.MAX_SAFE_INTEGER + 1), /non-negative safe integer/);
+    assert.equal(decodeCursor(encodeCursor(Number.MAX_SAFE_INTEGER)), Number.MAX_SAFE_INTEGER);
   });
 });
