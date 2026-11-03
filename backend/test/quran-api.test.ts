@@ -49,6 +49,17 @@ test('Quran Catalogue API Integration', async (t) => {
     assert.equal(body.error.code, 'INVALID_QUERY');
   });
 
+  await t.test('Rejects a valid cursor whose next page offset would overflow', async () => {
+    const cursor = Buffer.from(Number.MAX_SAFE_INTEGER.toString()).toString('base64');
+    const res = await app.inject({
+      method: 'GET',
+      url: `/api/v1/quran/surahs?limit=50&cursor=${cursor}`
+    });
+
+    assert.equal(res.statusCode, 400);
+    assert.equal(JSON.parse(res.body).error.code, 'INVALID_QUERY');
+  });
+
   await t.test('Rejects tampered pagination cursor with 400 INVALID_QUERY', async () => {
     const res = await app.inject({
       method: 'GET',
