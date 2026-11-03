@@ -25,7 +25,8 @@ export function AppShell() {
   );
 
   return (
-    <main className="app-frame">
+    <div className="app-frame">
+      <a className="skip-link" href="#main-content">Skip to main content</a>
       <aside id="primary-sidebar" className={`sidebar ${menuOpen ? "sidebar-open" : ""}`}>
         <a className="brand" href="/" aria-label="DEENVERSE home">
           <span className="brand-mark">D<span>·</span></span>
@@ -52,10 +53,10 @@ export function AppShell() {
         </div>
       </aside>
 
-      <section className="main-panel">
+      <main id="main-content" className="main-panel" tabIndex={-1}>
         <header className="topbar">
           <button className="mobile-menu" onClick={() => setMenuOpen(!menuOpen)} aria-label="Toggle navigation" aria-controls="primary-sidebar" aria-expanded={menuOpen}>☰</button>
-          <div className="breadcrumb">DEENVERSE <span>/</span> {section.label.toUpperCase()}</div>
+          <div className="breadcrumb" aria-live="polite" aria-atomic="true">DEENVERSE <span>/</span> {section.label.toUpperCase()}</div>
           <div className="topbar-right"><span className="status-dot" /> CONTENT SOURCES PENDING REVIEW</div>
         </header>
 
@@ -114,7 +115,7 @@ export function AppShell() {
           )}
           <footer className="footer"><span>DEENVERSE © 2026</span><span>Built with care · Content integrity first</span></footer>
         </div>
-      </section>
-    </main>
+      </main>
+    </div>
   );
 }
