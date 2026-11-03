@@ -21,7 +21,7 @@ test('Liveness and Readiness Probes', async (t) => {
 
     assert.equal(res.statusCode, 200);
     const body = JSON.parse(res.body);
-    assert.equal(body.status, 'ok');
+    assert.equal(body.status, 'healthy');
     assert.equal(body.probe, 'liveness');
     assert.ok(body.requestId);
   });
