@@ -61,24 +61,6 @@ export function buildApp(opts: BuildAppOptions): FastifyInstance {
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
   });
 
-  // Rate Limiting
-  if (enableRateLimit) {
-    app.register(rateLimit, {
-      max: rateLimitMax,
-      timeWindow: rateLimitWindowMs,
-      global: true,
-      hook: 'preHandler',
-      keyGenerator: (request) => request.ip,
-      errorResponseBuilder: (request, context) => ({
-        error: {
-          code: 'RATE_LIMITED',
-          message: 'Too many requests. Please slow down and try again later.',
-          retryable: true
-        }
-      })
-    });
-  }
-
   // Consistent Error Handler
   app.setErrorHandler((error: FastifyError, request, reply) => {
     if (error.message === 'Origin not allowed by CORS') {
@@ -109,61 +91,78 @@ export function buildApp(opts: BuildAppOptions): FastifyInstance {
   // Core Service instances
   const quranCatalogueService = new QuranCatalogueService(db);
 
-  // Liveness probe (indicates server process is up and responding)
-  app.get('/api/v1/health', async (request, reply) => {
-    return {
-      status: 'ok',
-      probe: 'liveness',
-      timestamp: new Date().toISOString(),
-      requestId: request.id
-    };
-  });
+  // Register the rate limiter and API routes in the same encapsulation scope.
+  // Fastify hooks are encapsulated; keeping these registrations together ensures
+  // the global rate-limit hook applies to health, readiness, and Quran routes.
+  app.register(async function registerApiRoutes(api) {
+    if (enableRateLimit) {
+      await api.register(rateLimit, {
+        max: rateLimitMax,
+        timeWindow: rateLimitWindowMs,
+        global: true,
+        errorResponseBuilder: (request, context) => ({
+          error: {
+            code: 'RATE_LIMITED',
+            message: 'Too many requests. Please slow down and try again later.',
+            retryable: true
+          }
+        })
+      });
+    }
 
-  // Readiness probe (verifies database connectivity and migration state)
-  app.get('/api/v1/ready', async (request, reply) => {
-    try {
-      // 1. Check basic DB connectivity
-      await db.raw('SELECT 1');
+    // Liveness probe (indicates server process is up and responding)
+    api.get('/api/v1/health', async (request, reply) => {
+      return {
+        status: 'ok',
+        probe: 'liveness',
+        timestamp: new Date().toISOString(),
+        requestId: request.id
+      };
+    });
 
-      // 2. Check that critical migration tables exist
-      const hasContentSources = await db.schema.hasTable('content_sources');
-      const hasQuranSurahs = await db.schema.hasTable('quran_surahs');
+    // Readiness probe (verifies database connectivity and migration state)
+    api.get('/api/v1/ready', async (request, reply) => {
+      try {
+        await db.raw('SELECT 1');
+        const hasContentSources = await db.schema.hasTable('content_sources');
+        const hasQuranSurahs = await db.schema.hasTable('quran_surahs');
 
-      if (!hasContentSources || !hasQuranSurahs) {
+        if (!hasContentSources || !hasQuranSurahs) {
+          const errResponse: ApiErrorResponse = {
+            error: {
+              code: 'UNAVAILABLE',
+              message: 'Database schema is not fully migrated.',
+              retryable: true
+            }
+          };
+          return reply.status(503).send(errResponse);
+        }
+
+        return {
+          status: 'ready',
+          probe: 'readiness',
+          database: 'connected',
+          migrations: 'applied',
+          timestamp: new Date().toISOString(),
+          requestId: request.id
+        };
+      } catch {
         const errResponse: ApiErrorResponse = {
           error: {
             code: 'UNAVAILABLE',
-            message: 'Database schema is not fully migrated.',
+            message: 'Database connection failed.',
             retryable: true
           }
         };
         return reply.status(503).send(errResponse);
       }
+    });
 
-      return {
-        status: 'ready',
-        probe: 'readiness',
-        database: 'connected',
-        migrations: 'applied',
-        timestamp: new Date().toISOString(),
-        requestId: request.id
-      };
-    } catch (err: any) {
-      const errResponse: ApiErrorResponse = {
-        error: {
-          code: 'UNAVAILABLE',
-          message: 'Database connection failed.',
-          retryable: true
-        }
-      };
-      return reply.status(503).send(errResponse);
-    }
-  });
-
-  // Register Quran routes
-  app.register(quranRoutes, {
-    prefix: '/api/v1/quran',
-    catalogueService: quranCatalogueService
+    // Register Quran routes
+    api.register(quranRoutes, {
+      prefix: '/api/v1/quran',
+      catalogueService: quranCatalogueService
+    });
   });
 
   return app;
