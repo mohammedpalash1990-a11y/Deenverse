@@ -32,11 +32,18 @@ export function buildApp(opts: BuildAppOptions): FastifyInstance {
     }
   });
 
-  // CORS configuration
+  // CORS is opt-in: configure exact browser origins with CORS_ALLOWED_ORIGINS.
+  // Requests without an Origin header (e.g. server-to-server/health probes) remain valid.
+  const allowedOrigins = new Set(
+    (process.env.CORS_ALLOWED_ORIGINS || '')
+      .split(',')
+      .map((value) => value.trim())
+      .filter(Boolean)
+  );
   app.register(cors, {
     origin: (origin, cb) => {
-      // Allow local development and standard requests
-      cb(null, true);
+      if (!origin) return cb(null, true);
+      return cb(null, allowedOrigins.has(origin));
     },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
   });
