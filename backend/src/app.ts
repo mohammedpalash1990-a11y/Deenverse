@@ -12,10 +12,19 @@ export interface BuildAppOptions {
   db: Knex;
   enableRateLimit?: boolean;
   allowedOrigins?: string[];
+  rateLimitMax?: number;
+  rateLimitWindowMs?: number;
 }
 
 export function buildApp(opts: BuildAppOptions): FastifyInstance {
-  const { db, enableRateLimit = true, allowedOrigins = [] } = opts;
+  const { db, enableRateLimit = true, allowedOrigins = [], rateLimitMax = 100, rateLimitWindowMs = 60_000 } = opts;
+
+  if (!Number.isSafeInteger(rateLimitMax) || rateLimitMax < 1) {
+    throw new Error('rateLimitMax must be a positive safe integer.');
+  }
+  if (!Number.isSafeInteger(rateLimitWindowMs) || rateLimitWindowMs < 1) {
+    throw new Error('rateLimitWindowMs must be a positive safe integer.');
+  }
 
   const app = fastify({
     genReqId: () => `req_${randomUUID().replace(/-/g, '')}`,
@@ -55,8 +64,8 @@ export function buildApp(opts: BuildAppOptions): FastifyInstance {
   // Rate Limiting
   if (enableRateLimit) {
     app.register(rateLimit, {
-      max: 100,
-      timeWindow: '1 minute',
+      max: rateLimitMax,
+      timeWindow: rateLimitWindowMs,
       errorResponseBuilder: (request, context) => ({
         error: {
           code: 'RATE_LIMITED',
