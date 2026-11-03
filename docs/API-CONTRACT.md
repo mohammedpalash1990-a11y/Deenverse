@@ -83,7 +83,7 @@ Returns system health, server timestamp, and unique `requestId`.
 ### `GET /api/v1/quran/surahs`
 - Query params:
   - `limit` (integer, min 1, max 50, default 20)
-  - `cursor` (opaque base64 string, offset-based)
+  - `cursor` (canonical base64 encoding of a non-negative safe-integer offset; malformed, non-canonical, and overflowing values are rejected with HTTP 400)
 - Fail-closed behavior: Returns HTTP 503 `UNAVAILABLE` if no approved source exists in the database.
 
 ### `GET /api/v1/quran/surahs/:surahNumber`
