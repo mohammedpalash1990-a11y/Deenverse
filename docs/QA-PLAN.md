@@ -334,3 +334,25 @@ No local build or test commands were run during this checkpoint. No green CI sta
 - GitHub Actions run #141 (ID `41557149798`) completed successfully. Job `verify` passed `npm install`, dependency audit summary, `npm run typecheck`, `npm test`, and `npm run build`.
 - PR #6 is now **ready for review**, open, unmerged, and GitHub reports mergeable=true against `assistant/phase1-web-foundation`.
 - This is CI evidence only; no manual browser, screen-reader, or device audit is claimed. PR #2's integration divergence remains a separate blocker.
+
+
+## 2026-11-03 04:10 Asia/Riyadh — backend PR #7 and frontend PR #6 checkpoint
+
+### Queen / frontend — PR #6
+- PR #6 is open and ready for review; exact head `75dbd1714ac9b1705b6602cf6a66edbc3ed24f45`.
+- GitHub Actions run #141 is reported successful for typecheck, Vitest, and production build. This is CI evidence; manual browser, screen-reader, and device checks remain outstanding.
+- PR #6 remains stacked on PR #2's web-foundation branch. Do not merge the stack into integration until PR #2's base divergence is reconciled.
+
+### Jules / backend — PR #7
+- New implementation PR: https://github.com/mohammedpalash1990-a11y/Deenverse/pull/7
+- Head: `dcb743264912f1516e357790e21b01ca2bedd464`; base: `main`; 24 files, approximately 4,250 additions.
+- Implemented scope visible in the PR diff: Fastify/TypeScript backend skeleton, Knex/SQLite schema for source provenance and Surah metadata, health and Surah catalogue routes, validation helpers, package lockfile, setup docs, and automated tests.
+- PR description reports 13 passing tests, but the GitHub Actions workflow-run lookup for this exact head returned no PR-triggered runs. Treat the test count as author-reported, not independently CI-verified.
+- Compare against current `main`: **1 ahead / 4 behind**. The PR is not synchronized with current main despite its description; reconcile before merge.
+- Focused static review comment posted to PR #7 (comment ID 6592708257). Blocking findings: unrestricted CORS; provenance metadata can be self-asserted and checksum is not verified; migration runner is not wired to startup/CLI despite setup instructions; PostgreSQL configuration path is incomplete; malformed cursors reset to offset zero; permissive `parseInt` route parsing; insufficient edition-aware Surah schema constraints; and API contract/example consistency.
+- No merge approval. Do not seed or publish Quran content. The current database fields do not prove source authenticity, reviewer authority, or license scope.
+
+### Current disposition
+- Queen's focused accessibility increment has green CI for its exact head; manual accessibility verification remains open.
+- Jules has delivered a real backend code PR; implementation is now present for review, but the above blockers and missing exact-head CI remain.
+- No PR was merged by this checkpoint. No local build/test execution or Quran content approval is claimed.
