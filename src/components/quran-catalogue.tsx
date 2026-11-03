@@ -74,7 +74,7 @@ export function QuranCatalogue({ source = unavailableContentSource }: QuranCatal
   const selected = selectedIndex === null ? null : items[selectedIndex];
 
   if (state.status === "loading") {
-    return <section className="catalogue-state" aria-label="Quran catalogue" aria-busy="true">
+    return <section className="catalogue-state" aria-label="Quran catalogue" aria-busy="true" role="status" aria-live="polite">
       <span className="catalogue-state-symbol" aria-hidden="true">◌</span>
       <h3>Loading verified catalogue</h3>
       <p>Checking the approved content source…</p>
@@ -92,7 +92,7 @@ export function QuranCatalogue({ source = unavailableContentSource }: QuranCatal
   }
 
   if (state.status === "empty") {
-    return <section className="catalogue-state" aria-label="Quran catalogue">
+    return <section className="catalogue-state" aria-label="Quran catalogue" role="status" aria-live="polite">
       <span className="catalogue-state-symbol" aria-hidden="true">۞</span>
       <h3>No approved Surah records yet</h3>
       <p>The connected source returned an empty catalogue. Please check again later.</p>
