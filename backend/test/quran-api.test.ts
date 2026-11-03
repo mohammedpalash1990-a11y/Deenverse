@@ -34,7 +34,9 @@ test('Quran Catalogue API Integration', async (t) => {
 
     assert.equal(res.statusCode, 503);
     const body = JSON.parse(res.body);
-    assert.equal(body.error.code, 'UNAVAILABLE');
+    assert.equal(body.error.code, 'CONTENT_UNAVAILABLE');
+    assert.ok(body.error.requestId.startsWith('req_'));
+    assert.deepEqual(body.error.details, []);
     assert.equal(body.error.retryable, false);
   });
 
@@ -46,7 +48,8 @@ test('Quran Catalogue API Integration', async (t) => {
 
     assert.equal(res.statusCode, 400);
     const body = JSON.parse(res.body);
-    assert.equal(body.error.code, 'INVALID_QUERY');
+    assert.equal(body.error.code, 'VALIDATION_ERROR');
+    assert.ok(body.error.requestId.startsWith('req_'));
   });
 
   await t.test('Serves verified Surah catalogue metadata with correct envelope and provenance when configured', async () => {
@@ -173,8 +176,8 @@ test('Quran Catalogue API Integration', async (t) => {
 
     assert.equal(res.statusCode, 200);
     const body = JSON.parse(res.body);
-    assert.equal(body.data.length, 1);
-    assert.equal(body.data[0].payload.surahNumber, 1);
+    assert.equal(body.data.payload.surahNumber, 1);
+    assert.ok(body.meta.requestId.startsWith('req_'));
   });
 
   await t.test('GET /api/v1/quran/surahs/999 returns 400 for out-of-range surah', async () => {
@@ -185,7 +188,8 @@ test('Quran Catalogue API Integration', async (t) => {
 
     assert.equal(res.statusCode, 400);
     const body = JSON.parse(res.body);
-    assert.equal(body.error.code, 'INVALID_QUERY');
+    assert.equal(body.error.code, 'VALIDATION_ERROR');
+    assert.ok(body.error.requestId.startsWith('req_'));
   });
 
   await t.test('GET /api/v1/quran/surahs/50 returns 404 for unseeded surah', async () => {
