@@ -37,7 +37,8 @@ describe("QuranCatalogue", () => {
       getById: vi.fn()
     };
     render(<QuranCatalogue source={source} />);
-    expect(screen.getByText("Loading verified catalogue")).toBeInTheDocument();
+    expect(screen.getByText("Loading catalogue metadata")).toBeInTheDocument();
+    expect(screen.getByRole("status", { name: "Quran catalogue" })).toHaveAttribute("aria-busy", "true");
   });
 
   it("fails closed when no approved provider is configured", async () => {
@@ -47,13 +48,14 @@ describe("QuranCatalogue", () => {
 
   it("shows an explicit empty state", async () => {
     render(<QuranCatalogue source={sourceReturning({ ok: true, data: { items: [] } })} />);
-    expect(await screen.findByText("No approved Surah records yet")).toBeInTheDocument();
+    expect(await screen.findByText("No catalogue records available yet")).toBeInTheDocument();
+    expect(screen.getByRole("status", { name: "Quran catalogue" })).toHaveAttribute("aria-live", "polite");
   });
 
   it("renders only records that pass provenance validation", async () => {
     render(<QuranCatalogue source={sourceReturning({ ok: true, data: { items: [record] } })} />);
     expect(await screen.findByText("Approved catalogue fixture")).toBeInTheDocument();
-    expect(screen.getByText(/source-verified catalogue records/)).toBeInTheDocument();
+    expect(screen.getByText(/catalogue records passed metadata checks/)).toBeInTheDocument();
   });
 
   it("rejects records with incomplete provenance", async () => {

@@ -6,10 +6,22 @@ describe("DEENVERSE app shell", () => {
   it("renders the primary navigation and safe Quran placeholder", () => {
     render(<AppShell />);
     expect(screen.getByRole("navigation", { name: "Main navigation" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Skip to main content" })).toHaveAttribute("href", "#main-content");
+    expect(screen.getByRole("main")).toHaveAttribute("id", "main-content");
     expect(screen.getByRole("heading", { name: "Return to the words." })).toBeInTheDocument();
     expect(screen.getByText(/Verified Quran text and approved editions/)).toBeInTheDocument();
     expect(screen.getByRole("region", { name: "Reserved Arabic Quran text area" })).toHaveAttribute("dir", "rtl");
     expect(screen.getByRole("region", { name: "Reserved Arabic Quran text area" })).toHaveAttribute("lang", "ar");
+  });
+
+  it("keeps the active section announcement and selected navigation state in sync", () => {
+    render(<AppShell />);
+    const navigation = screen.getByRole("navigation", { name: "Main navigation" });
+    fireEvent.click(within(navigation).getByRole("button", { name: "Hadith" }));
+    expect(within(navigation).getByRole("button", { name: "Hadith" })).toHaveAttribute("aria-current", "page");
+    const breadcrumb = document.querySelector(".breadcrumb");
+    expect(breadcrumb).toHaveTextContent("DEENVERSE / HADITH");
+    expect(breadcrumb).toHaveAttribute("aria-live", "polite");
   });
 
   it("switches sections without inventing religious content", () => {
@@ -27,6 +39,23 @@ describe("DEENVERSE app shell", () => {
     expect(toggle).toHaveAttribute("aria-expanded", "true");
     fireEvent.click(toggle);
     expect(toggle).toHaveAttribute("aria-expanded", "false");
+  });
+
+  it("closes the mobile navigation with Escape and restores focus", () => {
+    render(<AppShell />);
+    const toggle = screen.getByRole("button", { name: "Toggle navigation" });
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(toggle).toHaveFocus();
+  });
+
+  it("provides a labelled backdrop to dismiss the mobile navigation", () => {
+    render(<AppShell />);
+    fireEvent.click(screen.getByRole("button", { name: "Toggle navigation" }));
+    fireEvent.click(screen.getByRole("button", { name: "Close navigation" }));
+    expect(screen.getByRole("button", { name: "Toggle navigation" })).toHaveAttribute("aria-expanded", "false");
   });
 
   it("filters the section shortcuts", () => {
