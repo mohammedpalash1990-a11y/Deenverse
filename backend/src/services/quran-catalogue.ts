@@ -133,8 +133,8 @@ export class QuranCatalogueService {
       attribution: source.attribution,
       licenseId: source.license_id,
       redistributionAllowed: Boolean(source.redistribution_allowed),
-      reviewer: source.reviewer,
-      reviewedAt: new Date(source.reviewed_at).toISOString(),
+      reviewer: source.approval_reviewer,
+      reviewedAt: new Date(source.approval_date).toISOString(),
       checksum: source.checksum
     };
 
