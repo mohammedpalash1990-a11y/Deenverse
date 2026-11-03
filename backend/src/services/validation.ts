@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ReligiousContentType, ContentProvenance } from '../types/content.js';
+import { ReligiousContentType, ContentProvenance, SourceApprovalStatus } from '../types/content.js';
 
 export const ContentProvenanceSchema = z.object({
   contentType: z.enum(['quran', 'translation', 'tafsir', 'hadith', 'dua', 'audio']),
@@ -13,17 +13,29 @@ export const ContentProvenanceSchema = z.object({
   redistributionAllowed: z.literal(true, {
     errorMap: () => ({ message: 'Redistribution permission has not been explicitly approved' })
   }),
-  reviewer: z.string().min(1, 'Reviewer is required'),
+  reviewer: z.string().min(1, 'Approval reviewer is required'),
   reviewedAt: z.string().refine((val) => !Number.isNaN(Date.parse(val)), {
     message: 'Review date is invalid'
   }),
-  checksum: z.string().regex(/^[a-fA-F0-9]{64}$/, 'Checksum must be a 64-character SHA-256 hex digest')
+  approvalStatus: z.literal('approved', {
+    errorMap: () => ({ message: 'Source must have an explicit approved status' })
+  }),
+  reviewDecisionId: z.string().min(1, 'Review decision ID is required'),
+  approvedByAuthority: z.string().min(1, 'Approved by authority is required'),
+  approvedAt: z.string().refine((val) => !Number.isNaN(Date.parse(val)), {
+    message: 'Approval date is invalid'
+  }),
+  checksum: z.string().regex(/^[a-f0-9]{64}$/, {
+    message: 'Checksum must be a valid 64-character lowercase SHA-256 hex digest'
+  })
 });
 
 const isValidCursor = (cursor: string): boolean => {
   if (!/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(cursor)) return false;
   const decoded = Buffer.from(cursor, 'base64').toString('utf-8');
-  return /^(0|[1-9]\d*)$/.test(decoded) && Number.isSafeInteger(Number(decoded));
+  return /^(0|[1-9]\d*)$/.test(decoded)
+    && Number.isSafeInteger(Number(decoded))
+    && Buffer.from(decoded, 'utf-8').toString('base64') === cursor;
 };
 
 export const PaginationQuerySchema = z.object({
@@ -40,6 +52,8 @@ export function decodeCursor(cursor?: string): number {
 }
 
 export function encodeCursor(offset: number): string {
-  if (!Number.isSafeInteger(offset) || offset < 0) throw new Error('Cursor offset must be a non-negative safe integer');
+  if (!Number.isSafeInteger(offset) || offset < 0) {
+    throw new Error('Cursor offset must be a non-negative safe integer');
+  }
   return Buffer.from(offset.toString(), 'utf-8').toString('base64');
 }

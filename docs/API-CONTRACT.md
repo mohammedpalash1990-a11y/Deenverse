@@ -32,6 +32,10 @@ All responses adhere to the standard REST envelope specified in `docs/CONTENT-AP
         "redistributionAllowed": true,
         "reviewer": "example-reviewer-not-production",
         "reviewedAt": "2026-01-01T00:00:00.000Z",
+        "approvalStatus": "approved",
+        "reviewDecisionId": "example-approval-not-production",
+        "approvedByAuthority": "example-reviewer-not-production",
+        "approvedAt": "2026-01-01T00:00:00.000Z",
         "checksum": "0000000000000000000000000000000000000000000000000000000000000000"
       },
       "payload": {

@@ -40,7 +40,10 @@ test('CORS permits only explicitly configured browser origins', async (t) => {
       headers: { origin: 'https://untrusted.example.test' }
     });
 
-    assert.equal(response.statusCode, 200);
+    assert.equal(response.statusCode, 403);
     assert.equal(response.headers['access-control-allow-origin'], undefined);
+    const body = JSON.parse(response.body);
+    assert.equal(body.error.code, 'FORBIDDEN');
+    assert.ok(body.error.requestId.startsWith('req_'));
   });
 });

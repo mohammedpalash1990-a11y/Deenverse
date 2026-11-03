@@ -21,11 +21,11 @@ export async function up(knex: Knex): Promise<void> {
 
   // 2. Quran Surahs (Catalogue metadata only - no Quranic text or invented scripture)
   await knex.schema.createTable('quran_surahs', (table) => {
-    table.integer('surah_number').primary();
+    table.integer('surah_number').primary().checkBetween([1, 114]);
     table.string('name_arabic').notNullable();
     table.string('name_simple').notNullable();
     table.string('name_english').notNullable();
-    table.string('revelation_place').notNullable(); // 'makkah' or 'madinah'
+    table.string('revelation_place').notNullable().checkIn(['makkah', 'madinah']); // 'makkah' or 'madinah'
     table.integer('revelation_order').notNullable();
     table.integer('verses_count').notNullable();
     table.string('source_id').notNullable().references('id').inTable('content_sources').onDelete('RESTRICT');

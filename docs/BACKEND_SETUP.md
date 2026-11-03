@@ -4,7 +4,7 @@
 
 - **Node.js**: v22.x or higher
 - **npm**: v10.x or higher
-- **SQLite3**: used for local development and CI testing
+- **SQLite3**: Pre-installed on most UNIX systems (used for local development and CI testing)
 
 ## 2. Installation & Environment Configuration
 
@@ -14,54 +14,56 @@
    ```
 2. Copy the sample environment file:
    ```bash
-   cp .env.example .env
+   cp ../.env.example .env
    ```
-   Only placeholder/local values are present in `.env.example`. Never commit actual secrets or credentials.
-3. Install dependencies:
+   *Note: Only placeholder values are present in `.env.example`. Never commit actual secrets or credentials.*
+
+3. Install locked dependencies:
    ```bash
-   npm install
+   npm ci
    ```
 
-## 3. Running Database Migrations
+## 3. Typecheck, Tests, and Build
 
-Run database migrations to initialize or upgrade the SQLite schema:
+Run the same verification sequence used by CI:
+```bash
+npm run typecheck
+npm test
+npm run build
+```
+
+## 4. Running Database Migrations
+
+Run database migrations to initialize the schema (SQLite local development):
 ```bash
 npm run db:migrate
 ```
 
-The migration command:
-- creates the base schema for a fresh database;
-- adds the source-approval table to an existing database that already has the base `content_sources` and `quran_surahs` tables;
-- safely does nothing when the complete schema already exists;
-- rejects a partial base schema so an operator can inspect it rather than guessing how to repair it.
+The command creates the initial schema only when neither required table exists. Re-running it after a successful migration is safe. If only one required table exists, it stops with a partial-schema error instead of guessing how to repair the database. The migration CLI currently supports SQLite only; PostgreSQL configuration is intentionally not advertised as ready. The API server does not silently run schema migrations at startup.
 
-The source-approval table is an additive migration; the original base schema migration remains limited to its original tables. The migration CLI currently supports SQLite only. PostgreSQL is not ready for production use. The API server does not silently run schema migrations at startup.
+## 5. Running the Development Server
 
-## 4. Running the Development Server
-
-Start the Fastify server:
+To start the Fastify server:
 ```bash
 npm run dev
 ```
-
 Or build and run the production bundle:
 ```bash
 npm run build
 npm start
 ```
-
-The server binds to `http://0.0.0.0:4000`. Configure browser access with the exact comma-separated `CORS_ALLOWED_ORIGINS` allow-list.
+The server will bind to `http://0.0.0.0:4000`.
 
 Check health:
 ```bash
 curl http://localhost:4000/api/v1/health
 ```
 
-## 5. Running Automated Tests
+## 6. Running Automated Tests
 
-Run the full test suite:
+Run the full test suite using the Node.js test runner:
 ```bash
 npm test
 ```
 
-The suite includes Quran catalogue API behavior, validation, migration idempotency and upgrade paths, canonical API errors, and exact-origin CORS behavior. Treat actual command output as the test result; no result is pre-claimed here.
+The suite covers the Quran catalogue API, input validation, and migration idempotency/partial-schema handling. Treat the actual command output as the test result; no result is pre-claimed here.

@@ -18,6 +18,10 @@ test('Content provenance requires a SHA-256 checksum in hexadecimal format', () 
     redistributionAllowed: true,
     reviewer: 'test-reviewer',
     reviewedAt: '2026-11-01T00:00:00.000Z',
+    approvalStatus: 'approved',
+    reviewDecisionId: 'approval-test-fixture',
+    approvedByAuthority: 'test-reviewer',
+    approvedAt: '2026-11-01T00:00:00.000Z',
     checksum: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
   };
 
@@ -227,6 +231,10 @@ test('Quran Catalogue API Integration', async (t) => {
     assert.equal(first.locale, 'ar');
     assert.equal(first.provenance.sourceId, 'src-test-fixture');
     assert.equal(first.provenance.redistributionAllowed, true);
+    assert.equal(first.provenance.approvalStatus, 'approved');
+    assert.equal(first.provenance.reviewDecisionId, 'approval-test-fixture');
+    assert.equal(first.provenance.approvedByAuthority, 'test-reviewer');
+    assert.equal(first.provenance.approvedAt, '2026-11-01T00:00:00.000Z');
     assert.equal(first.provenance.checksum, 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855');
     assert.equal(first.payload.surahNumber, 1);
     assert.equal(first.payload.nameArabic, 'الفاتحة');

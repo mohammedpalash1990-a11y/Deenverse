@@ -42,3 +42,31 @@ Repository bootstrap. Product implementation, architecture decisions, source sel
 - `integration/platform-foundation` — integration and cross-cutting documentation
 
 All contributions should be submitted as pull requests against `main`.
+
+
+## Phase 1 web foundation
+
+A responsive Next.js UI foundation is being developed on `assistant/phase1-web-foundation`. It includes the primary navigation shell, Quran entry state, responsive layouts, PWA manifest metadata, and initial navigation tests.
+
+### Local web setup
+
+```bash
+cd .
+npm install
+npm run dev
+```
+
+### Checks
+
+```bash
+npm run typecheck
+npm test
+npm run build
+```
+
+The web shell intentionally contains no Quranic Arabic, hadith, dua, translation, tafsir, or reciter data. A provider-neutral `ContentSource` boundary and runtime provenance validator now define how an approved API may be integrated; the default source remains unavailable and fails closed. It is not connected to a backend, does not sync bookmarks, and does not claim audio playback or offline religious-content availability. See `docs/PHASE-1-MVP.md` and `docs/VERIFIED-CONTENT-DELIVERY.md` for the release gates.
+
+
+## Quran catalogue integration
+
+See [docs/QURAN-CATALOGUE.md](docs/QURAN-CATALOGUE.md) for the loading, unavailable, empty, integrity-rejected, and verified-metadata states and the remaining backend integration gates.
