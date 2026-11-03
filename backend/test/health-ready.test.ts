@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { buildApp } from '../src/app.js';
 import { createDatabaseConnection } from '../src/db/connection.js';
-import * as initialSchema from '../src/db/migrations/20261102_000001_initial_schema.js';
+import { runMigrations, INITIAL_SCHEMA_MIGRATION } from '../src/db/migrate.js';
 
 test('Liveness and Readiness Probes', async (t) => {
   const db = createDatabaseConnection({ connection: ':memory:' });
@@ -39,7 +39,7 @@ test('Liveness and Readiness Probes', async (t) => {
   });
 
   await t.test('GET /api/v1/ready returns 200 ready when migrations are applied', async () => {
-    await initialSchema.up(db);
+    await runMigrations(db);
 
     const res = await app.inject({
       method: 'GET',
@@ -52,5 +52,15 @@ test('Liveness and Readiness Probes', async (t) => {
     assert.equal(body.probe, 'readiness');
     assert.equal(body.database, 'connected');
     assert.equal(body.migrations, 'applied');
+
+    await db('schema_migrations').where({ name: INITIAL_SCHEMA_MIGRATION }).del();
+
+    const incomplete = await app.inject({
+      method: 'GET',
+      url: '/api/v1/ready'
+    });
+    assert.equal(incomplete.statusCode, 503);
+    assert.equal(JSON.parse(incomplete.body).error.code, 'UNAVAILABLE');
+    assert.equal(JSON.parse(incomplete.body).error.message, 'Required database migrations have not been applied.');
   });
 });
