@@ -229,7 +229,6 @@ components:
           const: quran
         title:
           type: string
-          minLength: 1
         locale:
           const: ar
         provenance:
@@ -264,7 +263,6 @@ components:
           type: integer
         versesCount:
           type: integer
-          minimum: 1
     ContentProvenance:
       type: object
       required:
