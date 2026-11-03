@@ -67,6 +67,8 @@ export function buildApp(opts: BuildAppOptions): FastifyInstance {
       max: rateLimitMax,
       timeWindow: rateLimitWindowMs,
       global: true,
+      hook: 'preHandler',
+      keyGenerator: (request) => request.ip,
       errorResponseBuilder: (request, context) => ({
         error: {
           code: 'RATE_LIMITED',
