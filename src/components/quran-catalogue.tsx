@@ -2,11 +2,15 @@
 
 import { useEffect, useMemo, useState } from "react";
 import {
-  unavailableContentSource,
   validateContentRecord,
   type ContentRecord,
   type ContentSource
 } from "@/lib/content-source";
+import { createRestContentSource } from "@/lib/content-api-client";
+
+const restContentSource = createRestContentSource({
+  baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL || "/api/v1"
+});
 
 type CatalogueState =
   | { status: "loading" }
@@ -18,7 +22,7 @@ interface QuranCatalogueProps {
   source?: ContentSource;
 }
 
-export function QuranCatalogue({ source = unavailableContentSource }: QuranCatalogueProps) {
+export function QuranCatalogue({ source = restContentSource }: QuranCatalogueProps) {
   const [state, setState] = useState<CatalogueState>({ status: "loading" });
   const [retryKey, setRetryKey] = useState(0);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
