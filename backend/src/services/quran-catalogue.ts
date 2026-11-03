@@ -2,9 +2,7 @@ import { Knex } from 'knex';
 import {
   ContentRecord,
   ContentProvenance,
-  SurahPayload,
-  ApiSuccessResponse,
-  ApiErrorResponse
+  SurahPayload
 } from '../types/content.js';
 import { ContentProvenanceSchema } from './validation.js';
 
@@ -25,11 +23,12 @@ export class QuranCatalogueService {
     total: number;
     hasApprovedSource: boolean;
   }> {
-    // 1. Fetch approved active source for Quran metadata
+    // 1. Fetch approved active source with controlled approval status
     const source = await this.db('content_sources')
       .where({
         content_type: 'quran',
         is_active: true,
+        approval_status: 'approved',
         redistribution_allowed: true
       })
       .first();
@@ -38,7 +37,7 @@ export class QuranCatalogueService {
       return { items: [], total: 0, hasApprovedSource: false };
     }
 
-    // 2. Validate provenance structure at boundary
+    // 2. Validate provenance structure and SHA-256 digest at boundary
     const provenance: ContentProvenance = {
       contentType: source.content_type,
       sourceId: source.id,
@@ -47,9 +46,11 @@ export class QuranCatalogueService {
       attribution: source.attribution,
       licenseId: source.license_id,
       redistributionAllowed: Boolean(source.redistribution_allowed),
-      reviewer: source.reviewer,
-      reviewedAt: new Date(source.reviewed_at).toISOString(),
-      checksum: source.checksum
+      approvalStatus: source.approval_status,
+      reviewDecisionId: source.review_decision_id,
+      approvedByAuthority: source.approved_by_authority,
+      approvedAt: new Date(source.approved_at).toISOString(),
+      checksum: source.artifact_sha256
     };
 
     const provValidation = ContentProvenanceSchema.safeParse(provenance);
@@ -58,7 +59,7 @@ export class QuranCatalogueService {
       return { items: [], total: 0, hasApprovedSource: false };
     }
 
-    // 3. Count total surahs
+    // 3. Count total surahs for this approved source
     const countResult = await this.db('quran_surahs')
       .where({ source_id: source.id })
       .count<{ count: number | string }>('* as count')
@@ -101,6 +102,7 @@ export class QuranCatalogueService {
       .where({
         content_type: 'quran',
         is_active: true,
+        approval_status: 'approved',
         redistribution_allowed: true
       })
       .first();
@@ -117,9 +119,11 @@ export class QuranCatalogueService {
       attribution: source.attribution,
       licenseId: source.license_id,
       redistributionAllowed: Boolean(source.redistribution_allowed),
-      reviewer: source.reviewer,
-      reviewedAt: new Date(source.reviewed_at).toISOString(),
-      checksum: source.checksum
+      approvalStatus: source.approval_status,
+      reviewDecisionId: source.review_decision_id,
+      approvedByAuthority: source.approved_by_authority,
+      approvedAt: new Date(source.approved_at).toISOString(),
+      checksum: source.artifact_sha256
     };
 
     const provValidation = ContentProvenanceSchema.safeParse(provenance);

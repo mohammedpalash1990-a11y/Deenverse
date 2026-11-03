@@ -1,17 +1,19 @@
 # DEENVERSE — API Contract v1 (Backend & Frontend Boundary)
 
-## Overview
+> **IMPORTANT DISCLAIMER**: All sample JSON bodies, URLs, names, and checksums in this documentation are **Synthetic / Illustrative Examples Only — Non-authoritative**. No religious texts, Hadith, or Quranic Arabic are generated or certified here. In production, only independently reviewed, verified, and checksum-validated corpora from approved authorities are published.
 
-All responses adhere to the standard REST envelope specified in `docs/CONTENT-API-RESPONSE-PARSING.md` and `docs/CONTENT-API-ERROR-MAPPING.md`.
+---
 
-## Response Envelopes
+## 1. Universal Response Envelopes
 
-### Success Envelope (Paginated)
+Every DEENVERSE API endpoint returns either a structured Success Envelope or a structured Error Envelope.
+
+### 1.1 Paginated Success Envelope
 ```json
 {
   "meta": {
-    "requestId": "req_01h7abc...",
-    "nextCursor": "eyJwYWdlIjoyfQ=="
+    "requestId": "req_01h7abc1234567890abcdef123456789",
+    "nextCursor": "NDU="
   },
   "data": [
     {
@@ -21,14 +23,16 @@ All responses adhere to the standard REST envelope specified in `docs/CONTENT-AP
       "locale": "ar",
       "provenance": {
         "contentType": "quran",
-        "sourceId": "src-quran-tanzil-uthmani",
+        "sourceId": "src-tanzil-uthmani",
         "edition": "1.0.2",
-        "sourceUrl": "https://tanzil.net/pub/download/quran-uthmani.txt",
-        "attribution": "Tanzil Project Verified Quran Metadata",
+        "sourceUrl": "https://example.com/verified/corpus.txt",
+        "attribution": "Sample Verified Provenance Attribution",
         "licenseId": "CC-BY-3.0",
         "redistributionAllowed": true,
-        "reviewer": "Islamic Editorial Board",
-        "reviewedAt": "2026-11-01T00:00:00.000Z",
+        "approvalStatus": "approved",
+        "reviewDecisionId": "rev-decision-202611-001",
+        "approvedByAuthority": "Islamic Content Review Committee",
+        "approvedAt": "2026-11-01T00:00:00.000Z",
         "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
       },
       "payload": {
@@ -45,21 +49,43 @@ All responses adhere to the standard REST envelope specified in `docs/CONTENT-AP
 }
 ```
 
-### Error Envelope
+### 1.2 Error Envelope
 ```json
 {
   "error": {
-    "code": "NOT_FOUND",
-    "message": "Resource not found",
+    "code": "INVALID_QUERY",
+    "message": "Surah number must be a positive integer without leading zeroes or alphabetic characters.",
     "retryable": false
   }
 }
 ```
 
-Standard Error Codes:
-- `UNAVAILABLE`: Service or verified source not configured/available.
-- `INVALID_QUERY`: Query parameters or payload failed validation.
-- `INTEGRITY_REJECTED`: Content failed provenance or verification review.
-- `NOT_FOUND`: Requested entity does not exist.
-- `RATE_LIMITED`: Too many requests (retryable: true).
-- `INTERNAL_ERROR`: Internal server failure.
+---
+
+## 2. Standard Error Codes
+
+Aligned directly with the frontend error mapper (`src/lib/content-api-errors.ts`):
+- `UNAVAILABLE`: Service or verified source not configured or not approved (HTTP 503).
+- `INVALID_QUERY`: Query parameters, invalid cursor, or route params failed validation (HTTP 400).
+- `FORBIDDEN`: Cross-origin request or permission denied (HTTP 403).
+- `NOT_FOUND`: Requested entity does not exist (HTTP 404).
+- `RATE_LIMITED`: Too many requests; client should back off and retry (HTTP 429, retryable: true).
+- `INTEGRITY_REJECTED`: Content failed provenance or verification review (HTTP 422).
+- `INTERNAL_ERROR`: Internal server failure (HTTP 500, retryable: true).
+
+---
+
+## 3. Endpoints in Initial Slice
+
+### `GET /api/v1/health`
+Returns system health, server timestamp, and unique `requestId`.
+
+### `GET /api/v1/quran/surahs`
+- Query params:
+  - `limit` (integer, min 1, max 50, default 20)
+  - `cursor` (opaque base64 string, offset-based)
+- Fail-closed behavior: Returns HTTP 503 `UNAVAILABLE` if no approved source exists in the database.
+
+### `GET /api/v1/quran/surahs/:surahNumber`
+- Path param: `surahNumber` (strict positive integer between 1 and 114).
+- Rejects non-integers, suffixes (e.g. `1abc`), decimals, and leading zeros with HTTP 400 `INVALID_QUERY`.

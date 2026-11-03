@@ -14,25 +14,36 @@
    ```
 2. Copy the sample environment file:
    ```bash
-   cp .env.example .env
+   cp ../.env.example .env
    ```
    *Note: Only placeholder values are present in `.env.example`. Never commit actual secrets or credentials.*
 
-3. Install dependencies:
+3. Install locked dependencies:
    ```bash
-   npm install
+   npm ci
    ```
 
-## 3. Running Database Migrations
+## 3. Typecheck, Tests, and Build
+
+Run the same verification sequence used by CI:
+```bash
+npm run typecheck
+npm test
+npm run build
+```
+
+## 4. Running Database Migrations
 
 Run database migrations to initialize the schema:
 ```bash
+npm run migrate
+```
+Or build TypeScript first and run:
+```bash
 npm run build
-# Or directly run with tsx:
-npx tsx src/db/migrate.ts
 ```
 
-## 4. Running the Development Server
+## 5. Running the Development Server
 
 To start the Fastify server:
 ```bash
@@ -50,18 +61,9 @@ Check health:
 curl http://localhost:4000/api/v1/health
 ```
 
-## 5. Running Automated Tests
+## 6. Running Automated Tests
 
 Run the full test suite using the Node.js test runner:
 ```bash
 npm test
-```
-
-Expected output:
-```
-✔ Quran Catalogue API Integration
-✔ Validation Service
-ℹ tests 13
-ℹ pass 13
-ℹ fail 0
 ```
