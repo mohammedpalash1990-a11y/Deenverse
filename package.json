@@ -14,6 +14,9 @@
     "react": "19.1.2",
     "react-dom": "19.1.2"
   },
+  "overrides": {
+    "postcss": "8.5.23"
+  },
   "devDependencies": {
     "@testing-library/jest-dom": "6.9.1",
     "@testing-library/react": "16.3.0",
