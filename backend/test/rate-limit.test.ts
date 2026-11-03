@@ -16,6 +16,7 @@ test('Rate limit configuration', async (t) => {
       rateLimitMax: 1,
       rateLimitWindowMs: 60_000
     });
+    await app.ready();
 
     t.after(async () => {
       await app.close();
