@@ -32,4 +32,4 @@ Both values must be positive safe integers. The same settings are available thro
 - A supported PostgreSQL `DATABASE_URL` selects PostgreSQL even when `DB_CLIENT` is omitted.
 - Unsupported clients and URL schemes fail closed.
 
-PostgreSQL runtime support must not be considered production-ready until its migrations and integration tests are run against a real PostgreSQL service.
+The backend runtime and migration CLI support PostgreSQL through Knex and the `pg` driver. Production startup rejects SQLite. Set `NODE_ENV=production` and `DATABASE_URL` to a PostgreSQL connection string. Run `npm run db:migrate` from `backend/` as a release step before starting the service. The migration CLI applies the same additive schema migrations to SQLite in development and PostgreSQL in production. A successful TypeScript build or SQLite test run alone is not evidence that a particular hosted PostgreSQL instance is reachable; verify the deployment database with `/api/v1/ready`.
