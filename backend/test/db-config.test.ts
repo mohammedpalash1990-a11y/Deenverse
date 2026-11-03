@@ -27,6 +27,27 @@ test('Database Configuration Resolver', async (t) => {
     assert.equal(config.connection, 'postgresql://user:secret@localhost:5432/deenverse_prod');
   });
 
+  await t.test('rejects PostgreSQL mode without an explicit database URL', () => {
+    delete process.env.DATABASE_URL;
+    process.env.DB_CLIENT = 'pg';
+
+    assert.throws(() => resolveDatabaseConfig(), /DATABASE_URL is required/);
+  });
+
+  await t.test('rejects unsupported database clients instead of silently falling back', () => {
+    delete process.env.DATABASE_URL;
+    process.env.DB_CLIENT = 'mysql';
+
+    assert.throws(() => resolveDatabaseConfig(), /DB_CLIENT must be either/);
+  });
+
+  await t.test('rejects database URLs with unsupported schemes', () => {
+    process.env.DATABASE_URL = 'mysql://localhost/deenverse';
+    delete process.env.DB_CLIENT;
+
+    assert.throws(() => resolveDatabaseConfig(), /DATABASE_URL must use/);
+  });
+
   await t.test('resolves custom DB_FILENAME for SQLite', () => {
     delete process.env.DATABASE_URL;
     process.env.DB_CLIENT = 'sqlite3';
