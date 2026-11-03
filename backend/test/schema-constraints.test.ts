@@ -23,11 +23,9 @@ test('Schema Constraints and Coverage Validation', async (t) => {
       attribution: 'Attribution',
       license_id: 'MIT',
       redistribution_allowed: true,
-      approval_status: 'approved',
-      review_decision_id: 'rev-1',
-      approved_by_authority: 'Auth',
-      approved_at: new Date().toISOString(),
-      artifact_sha256: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
+      reviewer: 'schema-test-reviewer',
+      reviewed_at: new Date().toISOString(),
+      checksum: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
     });
 
     await assert.rejects(async () => {
