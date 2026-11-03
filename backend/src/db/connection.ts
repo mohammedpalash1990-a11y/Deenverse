@@ -7,20 +7,26 @@ export interface DatabaseConfig {
 }
 
 export function resolveDatabaseConfig(): DatabaseConfig {
-  const databaseUrl = process.env.DATABASE_URL;
-  if (databaseUrl && (databaseUrl.startsWith('postgresql://') || databaseUrl.startsWith('postgres://'))) {
+  const databaseUrl = process.env.DATABASE_URL?.trim();
+  const requestedClient = process.env.DB_CLIENT?.trim();
+
+  if (requestedClient && requestedClient !== 'sqlite3' && requestedClient !== 'pg') {
+    throw new Error("DB_CLIENT must be either 'sqlite3' or 'pg'.");
+  }
+
+  if (databaseUrl) {
+    if (!databaseUrl.startsWith('postgresql://') && !databaseUrl.startsWith('postgres://')) {
+      throw new Error('DATABASE_URL must use the postgresql:// or postgres:// scheme.');
+    }
     return {
       client: 'pg',
       connection: databaseUrl
     };
   }
 
-  const client = (process.env.DB_CLIENT as 'sqlite3' | 'pg') || 'sqlite3';
+  const client = requestedClient || 'sqlite3';
   if (client === 'pg') {
-    return {
-      client: 'pg',
-      connection: databaseUrl || 'postgresql://localhost:5432/deenverse'
-    };
+    throw new Error('DATABASE_URL is required when DB_CLIENT=pg.');
   }
 
   return {
