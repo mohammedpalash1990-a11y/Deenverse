@@ -13,6 +13,10 @@ export const ContentProvenanceSchema = z.object({
   redistributionAllowed: z.literal(true, {
     errorMap: () => ({ message: 'Redistribution permission has not been explicitly approved' })
   }),
+  reviewer: z.string().min(1, 'Approval reviewer is required'),
+  reviewedAt: z.string().refine((val) => !Number.isNaN(Date.parse(val)), {
+    message: 'Review date is invalid'
+  }),
   approvalStatus: z.literal('approved', {
     errorMap: () => ({ message: 'Source must have an explicit approved status' })
   }),
