@@ -35,7 +35,7 @@ describe("createRestContentSource", () => {
   it("requests the paginated Surah metadata route and validates the response", async () => {
     const fetcher = vi.fn().mockResolvedValue(response(200, {
       data: [record],
-      meta: { requestId: "req-list-1", nextCursor: "cursor-2" }
+      meta: { requestId: "req-list-1", nextCursor: null }
     }));
     const source = createRestContentSource({ baseUrl: "https://api.example.test/api/v1", fetcher });
 
@@ -45,7 +45,7 @@ describe("createRestContentSource", () => {
       "https://api.example.test/api/v1/quran/surahs?limit=25&cursor=cursor-1",
       { method: "GET", headers: { Accept: "application/json" } }
     );
-    expect(result).toEqual({ ok: true, data: { items: [record], nextCursor: "cursor-2" } });
+    expect(result).toEqual({ ok: true, data: { items: [record], nextCursor: null } });
   });
 
   it("maps backend content-unavailable errors without exposing server messages", async () => {
