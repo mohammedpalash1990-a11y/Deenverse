@@ -35,7 +35,7 @@ export interface ApiResponseMeta {
 
 export interface ApiSuccessResponse<T> {
   meta: ApiResponseMeta;
-  data: T[];
+  data: T;
 }
 
 export type ContentSourceErrorCode =
@@ -44,6 +44,7 @@ export type ContentSourceErrorCode =
   | 'UNAUTHENTICATED'
   | 'FORBIDDEN'
   | 'INVALID_QUERY'
+  | 'VALIDATION_ERROR'
   | 'NOT_FOUND'
   | 'RATE_LIMITED'
   | 'CONTENT_UNAVAILABLE'
@@ -54,6 +55,8 @@ export interface ApiErrorResponse {
   error: {
     code: ContentSourceErrorCode;
     message: string;
+    requestId: string;
+    details?: unknown[];
     retryable: boolean;
   };
 }
