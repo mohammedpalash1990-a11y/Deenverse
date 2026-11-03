@@ -2,7 +2,7 @@
 
 ## Implemented in the web foundation
 
-The Quran library uses the provider-neutral `ContentSource` interface. The UI requests Arabic Quran catalogue metadata with locale `ar` and a page limit of 114. It supports four explicit states:
+The Quran library uses the provider-neutral `ContentSource` interface and defaults to the read-only REST adapter. The adapter requests Arabic Quran catalogue metadata from `GET /api/v1/quran/surahs`, follows opaque cursors when the UI requests more than one backend page (the backend page cap is 50), and validates every page before returning it. Set `NEXT_PUBLIC_API_BASE_URL` to the API root (for example `http://localhost:4000/api/v1`); the default is same-origin `/api/v1`. It supports four explicit states:
 
 - **Loading:** source request is pending; the region announces busy state.
 - **Error/unavailable:** provider errors, transport failures, and integrity failures are shown without fallback content. Retry is offered only for retryable provider/network failures.
@@ -19,7 +19,7 @@ This is metadata validation, not scholarly authentication. The approved source, 
 
 ## Remaining integration work
 
-1. Backend owner must implement and confirm the Quran catalogue endpoint and response mapping.
-2. Frontend/backend owners must acknowledge the provisional API contract before endpoint coupling.
+1. Deploy/configure the backend origin through `NEXT_PUBLIC_API_BASE_URL` and verify the browser's network/CORS path.
+2. The adapter currently supports only the Surah metadata list and single-Surah metadata endpoints; it does not fetch ayahs. No Ayah route or text payload may be exposed until an exact production edition is independently authenticated, checksum-verified, rights-cleared, and explicitly approved.
 3. Add edition selection and ayah retrieval only after the exact source artifact, checksums, completeness, attribution, license, and redistribution permissions are reviewed.
-4. Add integration tests against a controlled approved-source fixture; never use generated scripture as test content.
+4. Run end-to-end browser tests against a controlled approved-source fixture; never use generated scripture as test content.
