@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { getSection, sections, type SectionId } from "@/lib/navigation";
 import { QuranCatalogue } from "@/components/quran-catalogue";
+import { ReaderControls } from "@/components/reader-controls";
 
 const symbols: Record<SectionId, string> = {
   quran: "۞",
@@ -94,6 +95,7 @@ export function AppShell() {
                     <div className="reader-preview-lines" aria-hidden="true"><span /><span /><span /></div>
                   </div>
                 </section>
+                <ReaderControls />
                 <QuranCatalogue />
                 <div className="quick-links" role="group" aria-label="Explore sections">
                   {filtered.map((item) => <button key={item.id} onClick={() => setActive(item.id)}><span>{symbols[item.id]}</span>{item.label}<b>↗</b></button>)}
