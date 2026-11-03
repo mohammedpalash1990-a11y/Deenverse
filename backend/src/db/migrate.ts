@@ -24,8 +24,11 @@ export async function runMigrations(db: Knex = createDatabaseConnection()): Prom
   for (const migration of MIGRATIONS) {
     if (!executedSet.has(migration.name)) {
       console.log(`Applying migration: ${migration.name}...`);
-      await migration.run(db);
-      await db('schema_migrations').insert({ name: migration.name });
+      await db.transaction(async (trx) => {
+        await migration.run(trx);
+        await trx('schema_migrations').insert({ name: migration.name });
+      });
+      executedSet.add(migration.name);
       console.log(`Migration ${migration.name} applied successfully.`);
     } else {
       console.log(`Migration ${migration.name} is already applied (skipped).`);
