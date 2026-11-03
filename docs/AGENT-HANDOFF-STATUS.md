@@ -191,3 +191,19 @@ No merge approved. PR #2 has a successful CI run but remains draft, targets main
 - PR #2: 92 ahead / 29 behind integration; still draft and targets main.
 - PR #5: 1 ahead / 6 behind integration; GitHub reports mergeable=false.
 - PR #2 and PR #5 received correction comments. Do not merge either without deliberate synchronization and renewed review.
+
+
+## 2026-11-03 — frontend work taken forward; backend independently assigned
+
+### Frontend (assistant, covering Queen scope)
+- Draft PR #6: https://github.com/mohammedpalash1990-a11y/Deenverse/pull/6
+- Branch `assistant/queen-frontend-delivery` is stacked on `assistant/phase1-web-foundation` to avoid duplicating PR #2's 39-file foundation or pulling its full divergence into integration.
+- Focused five-file diff adds skip navigation, semantic main landmark, live section announcement, mobile drawer Escape/backdrop dismissal and focus restoration, plus accessible catalogue status states.
+- Catalogue copy now says metadata preflight only; no authenticity/license approval is implied.
+- No religious corpus added. Reader area remains a neutral RTL placeholder.
+- Run #140 passed typecheck, tests and production build at its tested head. Latest head run #141 is pending/in progress; wait for it before considering PR ready.
+- PR #6 remains draft and unmerged.
+
+### Backend (Jules)
+- Jules was given an explicit independent backend implementation request in issue #3: stack/ADR, safe reproducible setup, validated environment configuration, health/readiness endpoint and tests.
+- No backend implementation commit or PR has yet been verified. Keep status as assigned / implementation not evidenced.
