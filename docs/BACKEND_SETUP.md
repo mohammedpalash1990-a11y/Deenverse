@@ -18,12 +18,21 @@
    ```
    *Note: Only placeholder values are present in `.env.example`. Never commit actual secrets or credentials.*
 
-3. Install dependencies:
+3. Install locked dependencies:
    ```bash
-   npm install
+   npm ci
    ```
 
-## 3. Running Database Migrations
+## 3. Typecheck, Tests, and Build
+
+Run the same verification sequence used by CI:
+```bash
+npm run typecheck
+npm test
+npm run build
+```
+
+## 4. Running Database Migrations
 
 Run database migrations to initialize the schema:
 ```bash
@@ -34,7 +43,7 @@ Or build TypeScript first and run:
 npm run build
 ```
 
-## 4. Running the Development Server
+## 5. Running the Development Server
 
 To start the Fastify server:
 ```bash
@@ -52,20 +61,9 @@ Check health:
 curl http://localhost:4000/api/v1/health
 ```
 
-## 5. Running Automated Tests
+## 6. Running Automated Tests
 
 Run the full test suite using the Node.js test runner:
 ```bash
 npm test
-```
-
-Expected output:
-```
-✔ CORS Security Configuration
-✔ Database Configuration Resolver
-✔ Quran Catalogue API Integration
-✔ Validation Service
-ℹ tests 23
-ℹ pass 23
-ℹ fail 0
 ```
