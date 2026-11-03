@@ -64,8 +64,9 @@ export const quranRoutes: FastifyPluginAsync<QuranRoutesOptions> = async (
 
   // GET /api/v1/quran/surahs/:surahNumber
   fastify.get<{ Params: { surahNumber: string } }>('/surahs/:surahNumber', async (request, reply) => {
-    const surahNum = parseInt(request.params.surahNumber, 10);
-    if (Number.isNaN(surahNum) || surahNum < 1 || surahNum > 114) {
+    const rawSurahNumber = request.params.surahNumber;
+    const surahNum = Number(rawSurahNumber);
+    if (!/^(?:[1-9]|[1-9][0-9]|1[01][0-9]|114)$/.test(rawSurahNumber) || !Number.isInteger(surahNum) || surahNum < 1 || surahNum > 114) {
       const errResponse: ApiErrorResponse = {
         error: {
           code: 'INVALID_QUERY',
