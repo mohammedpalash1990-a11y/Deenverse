@@ -2,7 +2,6 @@ name: DEENVERSE CI
 
 on:
   pull_request:
-    branches: [main]
     paths:
       - ".github/workflows/ci.yml"
       - "backend/**"
@@ -38,16 +37,13 @@ jobs:
   backend:
     name: Backend typecheck, tests and build
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: backend
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Detect backend project
         id: backend
         run: |
-          if [ -f package.json ]; then
+          if [ -f backend/package.json ]; then
             echo "present=true" >> "$GITHUB_OUTPUT"
           else
             echo "present=false" >> "$GITHUB_OUTPUT"
@@ -62,12 +58,15 @@ jobs:
       - name: Install locked dependencies
         if: steps.backend.outputs.present == 'true'
         run: npm ci --no-audit --no-fund
+        working-directory: backend
       - name: Run backend tests
         if: steps.backend.outputs.present == 'true'
         run: npm test
+        working-directory: backend
       - name: Compile backend
         if: steps.backend.outputs.present == 'true'
         run: npm run build
+        working-directory: backend
 
   web:
     name: Web typecheck, tests and production build
