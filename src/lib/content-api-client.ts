@@ -42,21 +42,43 @@ export function createRestContentSource(options: RestContentSourceOptions = {}):
       if (query.type !== "quran" || query.locale !== "ar") {
         return failure("INVALID_QUERY", "This API adapter currently supports Arabic Quran catalogue metadata only.");
       }
-      const params = new URLSearchParams();
-      if (query.limit !== undefined) params.set("limit", String(query.limit));
-      if (query.cursor) params.set("cursor", query.cursor);
-      const suffix = params.toString();
-      const url = `${baseUrl}/quran/surahs${suffix ? `?${suffix}` : ""}`;
-
-      let response: Response;
-      try {
-        response = await fetcher(url, { method: "GET", headers: { Accept: "application/json" } });
-      } catch {
-        return { ok: false, error: { code: "UNAVAILABLE", message: "The content service could not be reached.", retryable: true } };
+      const targetCount = query.limit ?? 50;
+      if (!Number.isInteger(targetCount) || targetCount < 1 || targetCount > 114) {
+        return failure("INVALID_QUERY", "Catalogue page size must be between 1 and 114.");
       }
-      const body = await readJson(response);
-      if (!response.ok) return { ok: false, error: mapContentApiError(response.status, body) };
-      return parseContentPageResponse(body, "quran");
+
+      const items: ContentRecord[] = [];
+      let cursor = query.cursor;
+      let nextCursor: string | null | undefined = cursor ?? null;
+      const seenCursors = new Set<string>();
+      do {
+        const pageSize = Math.min(50, targetCount - items.length);
+        const params = new URLSearchParams({ limit: String(pageSize) });
+        if (cursor) params.set("cursor", cursor);
+        const url = `${baseUrl}/quran/surahs?${params.toString()}`;
+
+        let response: Response;
+        try {
+          response = await fetcher(url, { method: "GET", headers: { Accept: "application/json" } });
+        } catch {
+          return { ok: false, error: { code: "UNAVAILABLE", message: "The content service could not be reached.", retryable: true } };
+        }
+        const body = await readJson(response);
+        if (!response.ok) return { ok: false, error: mapContentApiError(response.status, body) };
+        const parsed = parseContentPageResponse(body, "quran");
+        if (!parsed.ok) return parsed;
+
+        items.push(...parsed.data.items);
+        nextCursor = parsed.data.nextCursor ?? null;
+        if (!nextCursor || items.length >= targetCount) break;
+        if (seenCursors.has(nextCursor)) {
+          return failure("UNAVAILABLE", "The content service returned a repeated pagination cursor.");
+        }
+        seenCursors.add(nextCursor);
+        cursor = nextCursor;
+      } while (items.length < targetCount);
+
+      return { ok: true, data: { items, nextCursor } };
     },
 
     async getById(id): Promise<ContentSourceResult<ContentRecord | null>> {
