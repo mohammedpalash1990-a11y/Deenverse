@@ -69,6 +69,12 @@ test('Validation Service', async (t) => {
 
     const encoded = encodeCursor(40);
     assert.equal(decodeCursor(encoded), 40);
-    assert.equal(decodeCursor('invalid-base64'), 0);
+    for (const invalid of ['invalid-base64', 'MQ==junk', 'LTE=', 'MS4y', '']) {
+      if (invalid === '') continue;
+      assert.equal(PaginationQuerySchema.safeParse({ cursor: invalid }).success, false);
+      assert.throws(() => decodeCursor(invalid));
+    }
+    assert.equal(PaginationQuerySchema.safeParse({ cursor: encodeCursor(0) }).success, true);
+    assert.throws(() => encodeCursor(-1));
   });
 });
