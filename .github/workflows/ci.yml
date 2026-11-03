@@ -1,0 +1,101 @@
+name: DEENVERSE CI
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/ci.yml"
+      - "backend/**"
+      - "src/**"
+      - "public/**"
+      - "package.json"
+      - "package-lock.json"
+      - "tsconfig.json"
+      - "next.config.*"
+      - "vitest.config.*"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/ci.yml"
+      - "backend/**"
+      - "src/**"
+      - "public/**"
+      - "package.json"
+      - "package-lock.json"
+      - "tsconfig.json"
+      - "next.config.*"
+      - "vitest.config.*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deenverse-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend typecheck, tests and build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Detect backend project
+        id: backend
+        run: |
+          if [ -f backend/package.json ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Set up Node.js
+        if: steps.backend.outputs.present == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - name: Install locked dependencies
+        if: steps.backend.outputs.present == 'true'
+        run: npm ci --no-audit --no-fund
+        working-directory: backend
+      - name: Run backend tests
+        if: steps.backend.outputs.present == 'true'
+        run: npm test
+        working-directory: backend
+      - name: Compile backend
+        if: steps.backend.outputs.present == 'true'
+        run: npm run build
+        working-directory: backend
+
+  web:
+    name: Web typecheck, tests and production build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Detect web project
+        id: web
+        run: |
+          if [ -f package.json ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Set up Node.js
+        if: steps.web.outputs.present == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install web dependencies
+        if: steps.web.outputs.present == 'true'
+        run: npm install --no-audit --no-fund
+      - name: Typecheck web
+        if: steps.web.outputs.present == 'true'
+        run: npm run typecheck
+      - name: Run web tests
+        if: steps.web.outputs.present == 'true'
+        run: npm test
+      - name: Build web application
+        if: steps.web.outputs.present == 'true'
+        run: npm run build
