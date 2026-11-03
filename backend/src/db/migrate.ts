@@ -3,7 +3,7 @@ import { resolve } from 'node:path';
 import { createDatabaseConnection } from './connection.js';
 import * as initialSchema from './migrations/20261102_000001_initial_schema.js';
 
-const REQUIRED_TABLES = ['content_sources', 'quran_surahs'] as const;
+const REQUIRED_TABLES = ['content_sources', 'content_source_approvals', 'quran_surahs'] as const;
 
 /**
  * Apply the initial schema exactly once. A partially-created schema is treated
@@ -14,7 +14,7 @@ export async function runMigrations(db = createDatabaseConnection()): Promise<vo
   if (present.every(Boolean)) return;
   if (present.some(Boolean)) {
     throw new Error(
-      'Partial DEENVERSE schema detected. Inspect content_sources and quran_surahs before retrying migrations.'
+      'Partial DEENVERSE schema detected. Inspect content_sources, content_source_approvals, and quran_surahs before retrying migrations.'
     );
   }
   await initialSchema.up(db);
