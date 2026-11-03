@@ -54,17 +54,28 @@ test('Quran Catalogue API Integration', async (t) => {
     await db('content_sources').insert({
       id: 'src-tanzil-uthmani',
       code: 'tanzil-uthmani-v1',
-      name: 'Tanzil Project Verified Quran Metadata',
+      name: 'Synthetic test fixture — not a production source',
       content_type: 'quran',
       edition: '1.0.2',
       source_url: 'https://tanzil.net/pub/download/quran-uthmani.txt',
-      attribution: 'Tanzil Project Verified Quran Metadata',
+      attribution: 'Synthetic test fixture only; not approved for production',
       license_id: 'CC-BY-3.0',
       redistribution_allowed: true,
       reviewer: 'Islamic Editorial Board',
       reviewed_at: '2026-11-01T00:00:00.000Z',
       checksum: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
       is_active: true
+    });
+
+    // Test-only approval fixture. This does not approve or identify any production Quran source.
+    await db('content_source_approvals').insert({
+      id: 'approval-test-fixture',
+      source_id: 'src-tanzil-uthmani',
+      decision: 'approved',
+      reviewer_id: 'test-reviewer',
+      approved_at: '2026-11-01T00:00:00.000Z',
+      artifact_sha256: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+      review_notes: 'Automated test fixture only; never use as a real source approval.'
     });
 
     // Insert surah catalog metadata (Surah 1 Al-Fatihah, Surah 2 Al-Baqarah)
