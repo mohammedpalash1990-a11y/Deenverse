@@ -101,6 +101,7 @@ export function buildApp(opts: BuildAppOptions): FastifyInstance {
         timeWindow: rateLimitWindowMs,
         global: true,
         errorResponseBuilder: (request, context) => ({
+          statusCode: 429,
           error: {
             code: 'RATE_LIMITED',
             message: 'Too many requests. Please slow down and try again later.',
