@@ -75,10 +75,6 @@ jobs:
         if: steps.backend.outputs.present == 'true'
         run: npm ci --no-audit --no-fund
         working-directory: backend
-      - name: Audit backend dependencies
-        if: steps.backend.outputs.present == 'true'
-        run: npm audit --audit-level=high
-        working-directory: backend
       - name: Typecheck backend
         if: steps.backend.outputs.present == 'true'
         run: npm run typecheck
@@ -90,6 +86,10 @@ jobs:
       - name: Build backend
         if: steps.backend.outputs.present == 'true'
         run: npm run build
+        working-directory: backend
+      - name: Audit backend dependencies
+        if: steps.backend.outputs.present == 'true'
+        run: npm audit --audit-level=high
         working-directory: backend
 
   web:
