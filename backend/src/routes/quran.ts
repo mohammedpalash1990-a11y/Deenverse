@@ -32,7 +32,19 @@ export const quranRoutes: FastifyPluginAsync<QuranRoutesOptions> = async (
     }
 
     const { limit, cursor } = queryValidation.data;
-    const offset = decodeCursor(cursor);
+    let offset: number;
+    try {
+      offset = decodeCursor(cursor);
+    } catch (err: any) {
+      const errResponse: ApiErrorResponse = {
+        error: {
+          code: 'INVALID_QUERY',
+          message: err.message || 'Invalid pagination cursor provided.',
+          retryable: false
+        }
+      };
+      return reply.status(400).send(errResponse);
+    }
 
     const result = await catalogueService.listSurahs({ limit, offset });
 
@@ -64,9 +76,22 @@ export const quranRoutes: FastifyPluginAsync<QuranRoutesOptions> = async (
 
   // GET /api/v1/quran/surahs/:surahNumber
   fastify.get<{ Params: { surahNumber: string } }>('/surahs/:surahNumber', async (request, reply) => {
-    const rawSurahNumber = request.params.surahNumber;
-    const surahNum = Number(rawSurahNumber);
-    if (!/^(?:[1-9]|[1-9][0-9]|1[01][0-9]|114)$/.test(rawSurahNumber) || !Number.isInteger(surahNum) || surahNum < 1 || surahNum > 114) {
+    const rawSurah = request.params.surahNumber;
+
+    // Strict positive integer match: reject non-integers, suffixes (1abc), decimals (1.5), and leading zeros (01)
+    if (!/^[1-9]\d*$/.test(rawSurah)) {
+      const errResponse: ApiErrorResponse = {
+        error: {
+          code: 'INVALID_QUERY',
+          message: 'Surah number must be a positive integer without leading zeroes or alphabetic characters.',
+          retryable: false
+        }
+      };
+      return reply.status(400).send(errResponse);
+    }
+
+    const surahNum = parseInt(rawSurah, 10);
+    if (surahNum > 114) {
       const errResponse: ApiErrorResponse = {
         error: {
           code: 'INVALID_QUERY',

@@ -14,16 +14,25 @@
    ```
 2. Copy the sample environment file:
    ```bash
-   cp .env.example .env
+   cp ../.env.example .env
    ```
    *Note: Only placeholder values are present in `.env.example`. Never commit actual secrets or credentials.*
 
-3. Install dependencies:
+3. Install locked dependencies:
    ```bash
-   npm install
+   npm ci
    ```
 
-## 3. Running Database Migrations
+## 3. Typecheck, Tests, and Build
+
+Run the same verification sequence used by CI:
+```bash
+npm run typecheck
+npm test
+npm run build
+```
+
+## 4. Running Database Migrations
 
 Run database migrations to initialize the schema (SQLite local development):
 ```bash
@@ -32,7 +41,7 @@ npm run db:migrate
 
 The command creates the initial schema only when neither required table exists. Re-running it after a successful migration is safe. If only one required table exists, it stops with a partial-schema error instead of guessing how to repair the database. The migration CLI currently supports SQLite only; PostgreSQL configuration is intentionally not advertised as ready. The API server does not silently run schema migrations at startup.
 
-## 4. Running the Development Server
+## 5. Running the Development Server
 
 To start the Fastify server:
 ```bash
@@ -50,7 +59,7 @@ Check health:
 curl http://localhost:4000/api/v1/health
 ```
 
-## 5. Running Automated Tests
+## 6. Running Automated Tests
 
 Run the full test suite using the Node.js test runner:
 ```bash

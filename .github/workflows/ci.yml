@@ -13,7 +13,7 @@ on:
       - "next.config.*"
       - "vitest.config.*"
   push:
-    branches: [assistant/source-approval-gate]
+    branches: [main, assistant/source-approval-gate]
     paths:
       - ".github/workflows/ci.yml"
       - "backend/**"
@@ -38,27 +38,37 @@ jobs:
     name: Backend typecheck, tests and build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
       - name: Detect backend project
         id: backend
         run: |
-          if [ -f backend/package.json ]; then echo "present=true" >> "$GITHUB_OUTPUT"; else echo "present=false" >> "$GITHUB_OUTPUT"; fi
-      - uses: actions/setup-node@v4
+          if [ -f backend/package.json ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Set up Node.js
         if: steps.backend.outputs.present == 'true'
+        uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
           cache-dependency-path: backend/package-lock.json
-      - if: steps.backend.outputs.present == 'true'
+      - name: Install locked dependencies
+        if: steps.backend.outputs.present == 'true'
         run: npm ci --no-audit --no-fund
         working-directory: backend
-      - if: steps.backend.outputs.present == 'true'
+      - name: Typecheck backend
+        if: steps.backend.outputs.present == 'true'
         run: npm run typecheck
         working-directory: backend
-      - if: steps.backend.outputs.present == 'true'
+      - name: Run backend tests
+        if: steps.backend.outputs.present == 'true'
         run: npm test
         working-directory: backend
-      - if: steps.backend.outputs.present == 'true'
+      - name: Build backend
+        if: steps.backend.outputs.present == 'true'
         run: npm run build
         working-directory: backend
 
@@ -66,20 +76,30 @@ jobs:
     name: Web typecheck, tests and production build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
       - name: Detect web project
         id: web
         run: |
-          if [ -f package.json ]; then echo "present=true" >> "$GITHUB_OUTPUT"; else echo "present=false" >> "$GITHUB_OUTPUT"; fi
-      - uses: actions/setup-node@v4
+          if [ -f package.json ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Set up Node.js
         if: steps.web.outputs.present == 'true'
+        uses: actions/setup-node@v4
         with:
           node-version: 22
-      - if: steps.web.outputs.present == 'true'
+      - name: Install web dependencies
+        if: steps.web.outputs.present == 'true'
         run: npm install --no-audit --no-fund
-      - if: steps.web.outputs.present == 'true'
+      - name: Typecheck web
+        if: steps.web.outputs.present == 'true'
         run: npm run typecheck
-      - if: steps.web.outputs.present == 'true'
+      - name: Run web tests
+        if: steps.web.outputs.present == 'true'
         run: npm test
-      - if: steps.web.outputs.present == 'true'
+      - name: Build web application
+        if: steps.web.outputs.present == 'true'
         run: npm run build
