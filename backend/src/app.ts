@@ -65,22 +65,43 @@ export function buildApp(opts: BuildAppOptions): FastifyInstance {
     });
   }
 
-  // Consistent Error Handler
+  // Keep HTTP status semantics aligned with the shared API error contract.
   app.setErrorHandler((error: FastifyError, request, reply) => {
     const statusCode = error.statusCode || 500;
-    const isClientError = statusCode >= 400 && statusCode < 500;
+    const code = statusCode === 401 ? 'UNAUTHENTICATED'
+      : statusCode === 403 ? 'FORBIDDEN'
+        : statusCode === 404 ? 'NOT_FOUND'
+          : statusCode === 429 ? 'RATE_LIMITED'
+            : statusCode === 400 || statusCode === 422 ? 'VALIDATION_ERROR'
+              : statusCode >= 400 && statusCode < 500 ? 'VALIDATION_ERROR'
+                : 'INTERNAL_ERROR';
+    const retryable = code === 'RATE_LIMITED' || statusCode >= 500;
 
     const errorResponse: ApiErrorResponse = {
       error: {
-        code: isClientError ? 'VALIDATION_ERROR' : 'INTERNAL_ERROR',
-        message: isClientError ? error.message : 'An internal error occurred. Please try again.',
+        code,
+        message: statusCode >= 500 ? 'An internal error occurred. Please try again.' : error.message,
         requestId: request.id,
         details: [],
-        retryable: statusCode >= 500
+        retryable
       }
     };
 
     reply.status(statusCode).send(errorResponse);
+  });
+
+  // Unknown routes must use the same canonical error envelope as known routes.
+  app.setNotFoundHandler((request, reply) => {
+    const errorResponse: ApiErrorResponse = {
+      error: {
+        code: 'NOT_FOUND',
+        message: 'The requested resource was not found.',
+        requestId: request.id,
+        details: [],
+        retryable: false
+      }
+    };
+    reply.status(404).send(errorResponse);
   });
 
   // Core Service instances
