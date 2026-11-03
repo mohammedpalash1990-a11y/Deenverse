@@ -57,12 +57,4 @@ Run the full test suite using the Node.js test runner:
 npm test
 ```
 
-Expected output:
-```
-✔ Quran Catalogue API Integration
-✔ Validation Service
-✔ Database migration safety
-ℹ tests 15
-ℹ pass 15
-ℹ fail 0
-```
+The suite covers the Quran catalogue API, input validation, and migration idempotency/partial-schema handling. Treat the actual command output as the test result; no result is pre-claimed here.
