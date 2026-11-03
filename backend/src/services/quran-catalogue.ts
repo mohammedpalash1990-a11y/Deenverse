@@ -27,11 +27,19 @@ export class QuranCatalogueService {
   }> {
     // 1. Fetch approved active source for Quran metadata
     const source = await this.db('content_sources')
+      .join('content_source_approvals', 'content_source_approvals.source_id', 'content_sources.id')
       .where({
-        content_type: 'quran',
-        is_active: true,
-        redistribution_allowed: true
+        'content_sources.content_type': 'quran',
+        'content_sources.is_active': true,
+        'content_sources.redistribution_allowed': true,
+        'content_source_approvals.decision': 'approved'
       })
+      .whereRaw('content_source_approvals.artifact_sha256 = content_sources.checksum')
+      .select(
+        'content_sources.*',
+        'content_source_approvals.reviewer_id as approval_reviewer',
+        'content_source_approvals.approved_at as approval_date'
+      )
       .first();
 
     if (!source) {
@@ -47,8 +55,8 @@ export class QuranCatalogueService {
       attribution: source.attribution,
       licenseId: source.license_id,
       redistributionAllowed: Boolean(source.redistribution_allowed),
-      reviewer: source.reviewer,
-      reviewedAt: new Date(source.reviewed_at).toISOString(),
+      reviewer: source.approval_reviewer,
+      reviewedAt: new Date(source.approval_date).toISOString(),
       checksum: source.checksum
     };
 
@@ -98,11 +106,19 @@ export class QuranCatalogueService {
     hasApprovedSource: boolean;
   }> {
     const source = await this.db('content_sources')
+      .join('content_source_approvals', 'content_source_approvals.source_id', 'content_sources.id')
       .where({
-        content_type: 'quran',
-        is_active: true,
-        redistribution_allowed: true
+        'content_sources.content_type': 'quran',
+        'content_sources.is_active': true,
+        'content_sources.redistribution_allowed': true,
+        'content_source_approvals.decision': 'approved'
       })
+      .whereRaw('content_source_approvals.artifact_sha256 = content_sources.checksum')
+      .select(
+        'content_sources.*',
+        'content_source_approvals.reviewer_id as approval_reviewer',
+        'content_source_approvals.approved_at as approval_date'
+      )
       .first();
 
     if (!source) {
