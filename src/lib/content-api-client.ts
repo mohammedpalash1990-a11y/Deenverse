@@ -3,6 +3,7 @@ import {
   type ContentPage,
   type ContentRecord,
   type ContentSource,
+  type ContentSourceError,
   type ContentSourceResult
 } from "./content-source";
 import { mapContentApiError } from "./content-api-errors";
@@ -15,7 +16,7 @@ export interface RestContentSourceOptions {
   fetcher?: typeof fetch;
 }
 
-function failure<T>(code: "UNAVAILABLE" | "INVALID_QUERY", message: string, retryable = false): ContentSourceResult<T> {
+function failure(code: "UNAVAILABLE" | "INVALID_QUERY", message: string, retryable = false): { ok: false; error: ContentSourceError } {
   return { ok: false, error: { code, message, retryable } };
 }
 
