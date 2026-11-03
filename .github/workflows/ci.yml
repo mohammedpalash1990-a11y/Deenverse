@@ -59,11 +59,15 @@ jobs:
         if: steps.backend.outputs.present == 'true'
         run: npm ci --no-audit --no-fund
         working-directory: backend
+      - name: Typecheck backend
+        if: steps.backend.outputs.present == 'true'
+        run: npm run typecheck
+        working-directory: backend
       - name: Run backend tests
         if: steps.backend.outputs.present == 'true'
         run: npm test
         working-directory: backend
-      - name: Compile backend
+      - name: Build backend
         if: steps.backend.outputs.present == 'true'
         run: npm run build
         working-directory: backend
