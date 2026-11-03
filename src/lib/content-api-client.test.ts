@@ -153,7 +153,6 @@ describe("createRestContentSource", () => {
       }
     });
   });
-});
 
   it("fails closed when the backend repeats a pagination cursor", async () => {
     const page = {
