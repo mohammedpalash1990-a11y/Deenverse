@@ -39,6 +39,23 @@ describe("DEENVERSE app shell", () => {
     expect(toggle).toHaveAttribute("aria-expanded", "false");
   });
 
+  it("closes the mobile navigation with Escape and restores focus", () => {
+    render(<AppShell />);
+    const toggle = screen.getByRole("button", { name: "Toggle navigation" });
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(toggle).toHaveFocus();
+  });
+
+  it("provides a labelled backdrop to dismiss the mobile navigation", () => {
+    render(<AppShell />);
+    fireEvent.click(screen.getByRole("button", { name: "Toggle navigation" }));
+    fireEvent.click(screen.getByRole("button", { name: "Close navigation" }));
+    expect(screen.getByRole("button", { name: "Toggle navigation" })).toHaveAttribute("aria-expanded", "false");
+  });
+
   it("filters the section shortcuts", () => {
     render(<AppShell />);
     fireEvent.change(screen.getByRole("textbox", { name: "Find a section" }), { target: { value: "duas" } });
