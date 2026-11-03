@@ -2,13 +2,14 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join, resolve } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 
 test('production backend startup fails closed before opening a SQLite database', () => {
   const directory = mkdtempSync(join(tmpdir(), 'deenverse-production-guard-'));
   const databasePath = join(directory, 'must-not-be-created.sqlite');
-  const backendDirectory = resolve(process.cwd(), 'backend');
+  const backendDirectory = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
   try {
     const result = spawnSync(process.execPath, ['--import', 'tsx', 'src/index.ts'], {
