@@ -44,7 +44,7 @@ export function buildApp(opts: BuildAppOptions): FastifyInstance {
 
   // Strict CORS configuration with explicit allowlist
   app.register(cors, {
-    origin: (origin, cb) => {
+    origin: (origin: string | undefined, cb: (err: Error | null, allow: boolean) => void) => {
       // Requests without origin header (e.g. curl, server-to-server, mobile apps) are allowed
       if (!origin) {
         return cb(null, true);
@@ -61,6 +61,21 @@ export function buildApp(opts: BuildAppOptions): FastifyInstance {
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
   });
 
+  // Rate Limiting
+  if (enableRateLimit) {
+    app.register(rateLimit, {
+      max: rateLimitMax,
+      timeWindow: rateLimitWindowMs,
+      errorResponseBuilder: (request, context) => ({
+        statusCode: 429,
+        error: 'Too Many Requests',
+        message: `Rate limit exceeded, retry in ${context.after}`,
+        date: Date.now(),
+        expiresIn: context.ttl
+      })
+    });
+  }
+
   // Consistent Error Handler
   app.setErrorHandler((error: FastifyError, request, reply) => {
     if (error.message === 'Origin not allowed by CORS') {
@@ -75,15 +90,16 @@ export function buildApp(opts: BuildAppOptions): FastifyInstance {
     }
 
     const statusCode = error.statusCode || 500;
+
     if (statusCode === 429) {
-      const rateLimitResponse: ApiErrorResponse = {
+      const errResponse: ApiErrorResponse = {
         error: {
           code: 'RATE_LIMITED',
           message: 'Too many requests. Please slow down and try again later.',
           retryable: true
         }
       };
-      return reply.status(429).send(rateLimitResponse);
+      return reply.status(429).send(errResponse);
     }
 
     const isClientError = statusCode >= 400 && statusCode < 500;
@@ -102,28 +118,10 @@ export function buildApp(opts: BuildAppOptions): FastifyInstance {
   // Core Service instances
   const quranCatalogueService = new QuranCatalogueService(db);
 
-  // Register the rate limiter and API routes in the same encapsulation scope.
-  // Fastify hooks are encapsulated; keeping these registrations together ensures
-  // the global rate-limit hook applies to health, readiness, and Quran routes.
-  app.register(async function registerApiRoutes(api) {
-    if (enableRateLimit) {
-      await api.register(rateLimit, {
-        max: rateLimitMax,
-        timeWindow: rateLimitWindowMs,
-        global: true,
-        errorResponseBuilder: (request, context) => ({
-          statusCode: 429,
-          error: {
-            code: 'RATE_LIMITED',
-            message: 'Too many requests. Please slow down and try again later.',
-            retryable: true
-          }
-        })
-      });
-    }
-
+  // Register routes after plugins are initialized
+  app.after(() => {
     // Liveness probe (indicates server process is up and responding)
-    api.get('/api/v1/health', async (request, reply) => {
+    app.get('/api/v1/health', async (request, reply) => {
       return {
         status: 'ok',
         probe: 'liveness',
@@ -133,9 +131,12 @@ export function buildApp(opts: BuildAppOptions): FastifyInstance {
     });
 
     // Readiness probe (verifies database connectivity and migration state)
-    api.get('/api/v1/ready', async (request, reply) => {
+    app.get('/api/v1/ready', async (request, reply) => {
       try {
+        // 1. Check basic DB connectivity
         await db.raw('SELECT 1');
+
+        // 2. Check that critical migration tables exist
         const hasContentSources = await db.schema.hasTable('content_sources');
         const hasQuranSurahs = await db.schema.hasTable('quran_surahs');
 
@@ -158,7 +159,7 @@ export function buildApp(opts: BuildAppOptions): FastifyInstance {
           timestamp: new Date().toISOString(),
           requestId: request.id
         };
-      } catch {
+      } catch (err: any) {
         const errResponse: ApiErrorResponse = {
           error: {
             code: 'UNAVAILABLE',
@@ -171,7 +172,7 @@ export function buildApp(opts: BuildAppOptions): FastifyInstance {
     });
 
     // Register Quran routes
-    api.register(quranRoutes, {
+    app.register(quranRoutes, {
       prefix: '/api/v1/quran',
       catalogueService: quranCatalogueService
     });
