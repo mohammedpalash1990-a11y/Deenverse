@@ -45,5 +45,6 @@ export async function up(knex: Knex): Promise<void> {
 
 export async function down(knex: Knex): Promise<void> {
   await knex.schema.dropTableIfExists('quran_surahs');
+  await knex.schema.dropTableIfExists('content_source_approvals');
   await knex.schema.dropTableIfExists('content_sources');
 }
