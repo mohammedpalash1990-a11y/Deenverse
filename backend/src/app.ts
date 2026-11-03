@@ -66,6 +66,7 @@ export function buildApp(opts: BuildAppOptions): FastifyInstance {
     app.register(rateLimit, {
       max: rateLimitMax,
       timeWindow: rateLimitWindowMs,
+      global: true,
       errorResponseBuilder: (request, context) => ({
         error: {
           code: 'RATE_LIMITED',
