@@ -272,3 +272,29 @@ PR #2 is a substantive frontend foundation, but it is not a complete frontend re
 - Continue to report backend/frontend implementation as unverified until code commits, tests, and PR evidence exist.
 
 No local build or test commands were run during this checkpoint. No green CI status is inferred from the workflow file existing.
+
+
+## 2026-11-03 03:52 Asia/Riyadh — verified CI and agent follow-up
+
+### PR #2 — refreshed facts
+- PR #2 remains **open and draft**. Its base is main, not integration/platform-foundation; do not describe it as currently targeting integration.
+- Current PR head: 83ce357774c9e1fc91ce4c235f75d39b7d4efae4.
+- GitHub Actions workflow run **#135** for that exact head completed with conclusion **success** (run ID 41553550435). This is positive CI evidence for the current head. The workflow includes typecheck, Vitest, and production build steps; the connector returned the workflow conclusion, not individual job logs, so retain the run link/evidence and do not overstate separate step details.
+- Current compare against integration/platform-foundation: **92 commits ahead / 27 behind**. This is a large divergence and the PR base remains main; no merge or retarget is approved.
+- The app's content provenance evaluator remains a metadata-only preflight, not checksum verification, source authenticity, reviewer authority, license-scope validation, or release approval.
+- No reviewed package-lock.json is present; CI still uses npm install, so dependency installation is not lockfile-reproducible.
+
+### Jules / Queen — assignment follow-up
+- Issues #3 and #4 were rechecked. Both remain open and had no progress comments before this checkpoint.
+- A concrete follow-up request was posted to each issue, asking for weighted Done/Hold/Remaining reporting and a small code PR with actual commands/results.
+- Jules immediate deliverable: backend config validation + health endpoint + reproducible setup.
+- Queen immediate deliverable: responsive semantic app shell + RTL-safe neutral reader placeholder and UI states.
+- No backend or Queen implementation is verified yet. The new issue comments are requests, not evidence of work completed.
+
+### PR #5 — Quran source gate
+- PR #5 remains open, unmerged, and one commit ahead / four behind integration/platform-foundation.
+- Its PR description's earlier comparison count is stale. The content itself remains a documentation-only source-ingestion/release-gate specification.
+- No Quran corpus has been downloaded, imported, validated, or approved.
+
+### Merge/release disposition
+**No merge approved.** PR #2's successful CI run is a real improvement, but its draft status, main base, 92/27 divergence, missing lockfile, and metadata-only content gate remain unresolved. PR #5 also needs a controlled branch update/review. No local build, test, deployment, Quran authenticity review, or license approval is claimed by this checkpoint.
