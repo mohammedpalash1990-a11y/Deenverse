@@ -1,0 +1,48 @@
+name: DEENVERSE OpenAPI contract validation
+
+on:
+  pull_request:
+    paths:
+      - "docs/OPENAPI-DRAFT.yaml"
+      - ".github/workflows/openapi-contract.yml"
+  push:
+    branches:
+      - integration/platform-foundation
+    paths:
+      - "docs/OPENAPI-DRAFT.yaml"
+      - ".github/workflows/openapi-contract.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-implemented-contract:
+    name: Validate implemented OpenAPI snapshot
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+      - name: Parse YAML and assert implementation boundary
+        run: |
+          ruby -r yaml -e '
+            spec = YAML.safe_load_file("docs/OPENAPI-DRAFT.yaml", permitted_classes: [], aliases: false)
+            abort "Expected OpenAPI 3.1.0" unless spec["openapi"] == "3.1.0"
+            expected = [
+              "/api/v1/health",
+              "/api/v1/ready",
+              "/api/v1/quran/surahs",
+              "/api/v1/quran/surahs/{surahNumber}"
+            ].sort
+            actual = spec.fetch("paths").keys.sort
+            abort "Unexpected API paths: #{actual.inspect}" unless actual == expected
+            spec.fetch("paths").each do |path, operations|
+              abort "Path #{path} must expose GET only" unless operations.keys == ["get"]
+              operations.fetch("get").fetch("responses")
+            end
+            puts "OpenAPI YAML parses; only the four documented implemented GET routes are present."
+          '
