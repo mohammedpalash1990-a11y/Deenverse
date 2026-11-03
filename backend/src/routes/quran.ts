@@ -23,8 +23,10 @@ export const quranRoutes: FastifyPluginAsync<QuranRoutesOptions> = async (
     if (!queryValidation.success) {
       const errResponse: ApiErrorResponse = {
         error: {
-          code: 'INVALID_QUERY',
+          code: 'VALIDATION_ERROR',
           message: queryValidation.error.errors.map((e) => e.message).join(', '),
+          requestId: request.id,
+          details: [],
           retryable: false
         }
       };
@@ -40,8 +42,10 @@ export const quranRoutes: FastifyPluginAsync<QuranRoutesOptions> = async (
     if (!result.hasApprovedSource) {
       const errResponse: ApiErrorResponse = {
         error: {
-          code: 'UNAVAILABLE',
-          message: 'Verified Quran catalogue source is not configured or approved.',
+          code: 'CONTENT_UNAVAILABLE',
+          message: 'Approved Quran catalogue metadata is not available.',
+          requestId: request.id,
+          details: [],
           retryable: false
         }
       };
@@ -51,7 +55,7 @@ export const quranRoutes: FastifyPluginAsync<QuranRoutesOptions> = async (
     const nextOffset = offset + limit;
     const hasNext = nextOffset < result.total;
 
-    const response: ApiSuccessResponse<ContentRecord<SurahPayload>> = {
+    const response: ApiSuccessResponse<ContentRecord<SurahPayload>[]> = {
       meta: {
         requestId: request.id,
         nextCursor: hasNext ? encodeCursor(nextOffset) : null
@@ -69,8 +73,10 @@ export const quranRoutes: FastifyPluginAsync<QuranRoutesOptions> = async (
     if (!/^(?:[1-9]|[1-9][0-9]|1[01][0-9]|114)$/.test(rawSurahNumber) || !Number.isInteger(surahNum) || surahNum < 1 || surahNum > 114) {
       const errResponse: ApiErrorResponse = {
         error: {
-          code: 'INVALID_QUERY',
+          code: 'VALIDATION_ERROR',
           message: 'Surah number must be an integer between 1 and 114.',
+          requestId: request.id,
+          details: [],
           retryable: false
         }
       };
@@ -94,7 +100,9 @@ export const quranRoutes: FastifyPluginAsync<QuranRoutesOptions> = async (
       const errResponse: ApiErrorResponse = {
         error: {
           code: 'NOT_FOUND',
-          message: `Surah ${surahNum} not found in the verified catalogue.`,
+          message: `Surah ${surahNum} not found in the approved catalogue metadata.`,
+          requestId: request.id,
+          details: [],
           retryable: false
         }
       };
@@ -105,7 +113,7 @@ export const quranRoutes: FastifyPluginAsync<QuranRoutesOptions> = async (
       meta: {
         requestId: request.id
       },
-      data: [result.item]
+      data: result.item
     });
   });
 };
