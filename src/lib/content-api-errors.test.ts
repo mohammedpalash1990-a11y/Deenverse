@@ -3,11 +3,11 @@ import { mapContentApiError } from "./content-api-errors";
 
 describe("mapContentApiError", () => {
   it.each([
-    [400, "INVALID_QUERY", false],
+    [400, "VALIDATION_ERROR", false],
     [401, "UNAUTHENTICATED", false],
     [403, "FORBIDDEN", false],
     [404, "NOT_FOUND", false],
-    [422, "INVALID_QUERY", false],
+    [422, "VALIDATION_ERROR", false],
     [429, "RATE_LIMITED", true],
     [503, "UNAVAILABLE", true],
     [500, "INTERNAL_ERROR", true]
