@@ -16,6 +16,8 @@ export interface ContentProvenance {
   attribution: string;
   licenseId: string;
   redistributionAllowed: boolean;
+  reviewer: string;
+  reviewedAt: string;
   approvalStatus: SourceApprovalStatus;
   reviewDecisionId: string;
   approvedByAuthority: string;
