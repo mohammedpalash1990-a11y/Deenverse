@@ -198,9 +198,14 @@ components:
       required: [meta, data]
       properties:
         meta:
-          allOf:
-            - $ref: '#/components/schemas/ApiMeta'
-          required: [nextCursor]
+          type: object
+          required: [requestId, nextCursor]
+          properties:
+            requestId:
+              type: string
+              minLength: 1
+            nextCursor:
+              type: [string, 'null']
         data:
           type: array
           items:
