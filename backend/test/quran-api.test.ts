@@ -52,8 +52,8 @@ test('Quran Catalogue API Integration', async (t) => {
   await t.test('Serves verified Surah catalogue metadata with correct envelope and provenance when configured', async () => {
     // Insert approved source provenance
     await db('content_sources').insert({
-      id: 'src-tanzil-uthmani',
-      code: 'tanzil-uthmani-v1',
+      id: 'src-test-fixture',
+      code: 'synthetic-test-fixture',
       name: 'Synthetic test fixture — not a production source',
       content_type: 'quran',
       edition: '1.0.2',
@@ -67,10 +67,16 @@ test('Quran Catalogue API Integration', async (t) => {
       is_active: true
     });
 
+    const unapprovedRes = await app.inject({
+      method: 'GET',
+      url: '/api/v1/quran/surahs'
+    });
+    assert.equal(unapprovedRes.statusCode, 503, 'source metadata alone must never grant publication access');
+
     // Test-only approval fixture. This does not approve or identify any production Quran source.
     await db('content_source_approvals').insert({
       id: 'approval-test-fixture',
-      source_id: 'src-tanzil-uthmani',
+      source_id: 'src-test-fixture',
       decision: 'approved',
       reviewer_id: 'test-reviewer',
       approved_at: '2026-11-01T00:00:00.000Z',
@@ -88,7 +94,7 @@ test('Quran Catalogue API Integration', async (t) => {
         revelation_place: 'makkah',
         revelation_order: 5,
         verses_count: 7,
-        source_id: 'src-tanzil-uthmani'
+        source_id: 'src-test-fixture'
       },
       {
         surah_number: 2,
@@ -98,7 +104,7 @@ test('Quran Catalogue API Integration', async (t) => {
         revelation_place: 'madinah',
         revelation_order: 87,
         verses_count: 286,
-        source_id: 'src-tanzil-uthmani'
+        source_id: 'src-test-fixture'
       }
     ]);
 
@@ -122,7 +128,7 @@ test('Quran Catalogue API Integration', async (t) => {
     assert.equal(first.type, 'quran');
     assert.equal(first.title, 'Al-Fatihah');
     assert.equal(first.locale, 'ar');
-    assert.equal(first.provenance.sourceId, 'src-tanzil-uthmani');
+    assert.equal(first.provenance.sourceId, 'src-test-fixture');
     assert.equal(first.provenance.redistributionAllowed, true);
     assert.equal(first.provenance.checksum, 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855');
     assert.equal(first.payload.surahNumber, 1);
