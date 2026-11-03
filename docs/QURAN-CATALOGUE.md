@@ -11,6 +11,10 @@ The Quran library uses the provider-neutral `ContentSource` interface. The UI re
 
 The catalogue also supports local search by approved Surah title or stable record ID. A selected catalogue entry supports previous/next metadata navigation. This is not yet the ayah reader: the selected entry explicitly states that religious text must come from a separately approved reader endpoint.
 
+## Edition selection boundary
+
+The current API does not accept an explicit edition/source selector. It therefore serves data only when exactly one active, approved, redistribution-permitted Quran source exists. If zero or multiple sources match, catalogue and detail requests return HTTP 503 rather than selecting an edition implicitly. Add an explicit, reviewed edition-selection contract before enabling multiple simultaneously active editions.
+
 ## Integrity boundary
 
 Each returned record is validated for required identity fields, supported content type, non-null payload, complete provenance metadata, HTTPS source URL, valid review timestamp, explicit redistribution permission, and matching record/provenance content type. A single invalid record rejects the response as a whole (fail closed).
