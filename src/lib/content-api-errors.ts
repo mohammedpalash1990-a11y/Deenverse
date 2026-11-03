@@ -6,6 +6,7 @@ const SAFE_MESSAGES: Record<ContentSourceErrorCode, string> = {
   UNAUTHENTICATED: "Please sign in to continue.",
   FORBIDDEN: "This content is not available for this request.",
   INVALID_QUERY: "The content request is invalid.",
+  VALIDATION_ERROR: "The content request is invalid.",
   NOT_FOUND: "The requested content was not found.",
   RATE_LIMITED: "Too many requests. Please wait and try again.",
   CONTENT_UNAVAILABLE: "Approved content is not available at this time.",
@@ -32,7 +33,7 @@ export function mapContentApiError(status: number, body: unknown): ContentSource
       : status === 403 ? "FORBIDDEN"
         : status === 404 ? "NOT_FOUND"
           : status === 429 ? "RATE_LIMITED"
-            : status === 400 || status === 422 ? "INVALID_QUERY"
+            : status === 400 || status === 422 ? "VALIDATION_ERROR"
               : status === 503 ? "UNAVAILABLE"
                 : "INTERNAL_ERROR";
 
