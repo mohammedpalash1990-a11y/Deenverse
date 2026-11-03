@@ -163,3 +163,25 @@ No runtime test, build, deployment, or content-authenticity verification is clai
 3. PR #2 owner: commit a real lockfile, switch to `npm ci`, then provide green typecheck/test/build results; strengthen the publication gate or keep it clearly non-authoritative.
 4. Integration owner: reconcile the 4-commit main divergence through a reviewed merge/rebase plan, not a blind merge.
 5. Quran source owner: acquire no corpus until exact edition, license scope, immutable artifact, full validation, and independent human review are complete.
+
+
+## 2026-11-03 03:52 Asia/Riyadh — latest verified handoff
+
+### PR #2 web foundation
+- Open, draft; base branch is main. Current head SHA: 83ce357774c9e1fc91ce4c235f75d39b7d4efae4.
+- GitHub Actions run #135 (ID 41553550435) for this exact head completed successfully.
+- Compare against integration/platform-foundation: 92 ahead / 27 behind. Do not merge or retarget without a deliberate divergence review.
+- Missing reviewed package-lock.json; workflow still uses npm install. Content provenance function remains metadata-only and is not a publication approval gate.
+- A fresh QA note was posted on PR #2; it explicitly records CI success and the remaining blockers.
+
+### Quran source gate PR #5
+- Open and unmerged; 1 ahead / 4 behind integration/platform-foundation.
+- Documentation-only. No corpus imported or approved. PR description's earlier branch comparison is stale.
+
+### Jules and Queen
+- Issues #3 and #4 remain open; latest audit found no agent progress comments or implementation PR evidence.
+- Follow-up requests were posted to both issue threads asking for weighted progress accounting and immediate code deliverables with real test evidence.
+- Status remains **implementation not yet verified** for both workstreams.
+
+### Current disposition
+No merge approved. PR #2 has a successful CI run but remains draft, targets main, and is substantially divergent from integration. PR #5 requires controlled synchronization/review. Continue to keep religious content disabled until exact source, edition, rights, immutable artifact, integrity checks, and independent review are all evidenced.
