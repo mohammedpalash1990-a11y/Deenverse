@@ -104,7 +104,7 @@ paths:
           description: Decimal Surah number from 1 through 114.
           schema:
             type: string
-            pattern: '^(?:[1-9]|[1-9][0-9]|1[01][0-9]|114)$'
+            pattern: '^(?:[1-9]|[1-9][0-9]|10[0-9]|11[0-4])$'
       responses:
         '200':
           description: One Surah metadata record.
@@ -224,7 +224,7 @@ components:
       properties:
         id:
           type: string
-          pattern: '^quran:surah:(?:[1-9]|[1-9][0-9]|1[01][0-9]|114)$'
+          pattern: '^quran:surah:(?:[1-9]|[1-9][0-9]|10[0-9]|11[0-4])$'
         type:
           const: quran
         title:
