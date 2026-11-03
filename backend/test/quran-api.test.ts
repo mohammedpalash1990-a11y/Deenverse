@@ -84,6 +84,18 @@ test('Quran Catalogue API Integration', async (t) => {
       review_notes: 'Automated test fixture only; never use as a real source approval.'
     });
 
+    await db('content_source_approvals')
+      .where({ id: 'approval-test-fixture' })
+      .update({ artifact_sha256: '0'.repeat(64) });
+    const checksumMismatchRes = await app.inject({
+      method: 'GET',
+      url: '/api/v1/quran/surahs'
+    });
+    assert.equal(checksumMismatchRes.statusCode, 503, 'approval for a different artifact must not publish this source');
+    await db('content_source_approvals')
+      .where({ id: 'approval-test-fixture' })
+      .update({ artifact_sha256: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855' });
+
     // Insert surah catalog metadata (Surah 1 Al-Fatihah, Surah 2 Al-Baqarah)
     await db('quran_surahs').insert([
       {
