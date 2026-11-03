@@ -5,12 +5,15 @@ on:
   push:
     branches:
       - assistant/phase1-web-foundation
+      - assistant/queen-frontend-delivery
   pull_request:
     types: [opened, synchronize, reopened, edited]
     branches:
       - main
       - integration/platform-foundation
       - assistant/phase1-web-foundation
+      - assistant/queen-frontend-delivery
+      - assistant/frontend-rest-adapter
 
 permissions:
   contents: read
