@@ -88,8 +88,10 @@ export const quranRoutes: FastifyPluginAsync<QuranRoutesOptions> = async (
     if (!result.hasApprovedSource) {
       const errResponse: ApiErrorResponse = {
         error: {
-          code: 'UNAVAILABLE',
-          message: 'Verified Quran catalogue source is not configured or approved.',
+          code: 'CONTENT_UNAVAILABLE',
+          message: 'Approved Quran catalogue metadata is not available.',
+          requestId: request.id,
+          details: [],
           retryable: false
         }
       };
