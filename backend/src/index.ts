@@ -22,6 +22,10 @@ const CORS_ORIGIN = (process.env.CORS_ALLOWED_ORIGINS || process.env.CORS_ORIGIN
   .filter(Boolean);
 
 async function main(): Promise<void> {
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('Production startup is blocked: DEENVERSE PostgreSQL runtime is not implemented; SQLite is development/test only.');
+  }
+
   const dbClient = process.env.DB_CLIENT || 'sqlite3';
   if (dbClient !== 'sqlite3') {
     throw new Error('PostgreSQL runtime is not configured yet. Use DB_CLIENT=sqlite3 until the PostgreSQL driver, connection handling, and migrations are implemented.');
