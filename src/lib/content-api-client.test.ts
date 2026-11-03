@@ -154,6 +154,32 @@ describe("createRestContentSource", () => {
     });
   });
 
+
+  it("rejects a cursor cycle on the first page without issuing a duplicate request", async () => {
+    const fetcher = vi.fn().mockResolvedValue(response(200, {
+      data: [record],
+      meta: { requestId: "req-cursor-cycle", nextCursor: "start-cursor" }
+    }));
+    const source = createRestContentSource({ fetcher });
+
+    const result = await source.list({
+      type: "quran",
+      locale: "ar",
+      limit: 114,
+      cursor: "start-cursor"
+    });
+
+    expect(fetcher).toHaveBeenCalledTimes(1);
+    expect(result).toEqual({
+      ok: false,
+      error: {
+        code: "UNAVAILABLE",
+        message: "The content service returned a repeated pagination cursor.",
+        retryable: false
+      }
+    });
+  });
+
   it("fails closed when the backend repeats a pagination cursor", async () => {
     const page = {
       data: [record],
