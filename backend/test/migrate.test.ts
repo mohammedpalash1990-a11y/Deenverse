@@ -34,4 +34,57 @@ test('Migration Ledger and Repeat Safety', async (t) => {
     const records = await db('schema_migrations').select();
     assert.equal(records.length, 1);
   });
+
+  await t.test('enforces Quran catalogue metadata constraints', async () => {
+    await db('content_sources').insert({
+      id: 'test-source',
+      code: 'test-catalogue',
+      name: 'Test catalogue metadata',
+      content_type: 'quran',
+      edition: 'metadata-only-test',
+      source_url: 'https://example.invalid/catalogue',
+      attribution: 'Test fixture',
+      license_id: 'test-only',
+      redistribution_allowed: false,
+      approval_status: 'pending',
+      review_decision_id: 'test-pending-review',
+      approved_by_authority: 'test-fixture-authority',
+      approved_at: new Date().toISOString(),
+      artifact_sha256: 'a'.repeat(64)
+    });
+
+    const validMetadata = {
+      source_id: 'test-source',
+      surah_number: 1,
+      name_arabic: 'test',
+      name_simple: 'test',
+      name_english: 'test',
+      revelation_place: 'makkah',
+      revelation_order: 1,
+      verses_count: 7
+    };
+
+    await db('quran_surahs').insert(validMetadata);
+
+    await assert.rejects(
+      db('quran_surahs').insert({ ...validMetadata, surah_number: 115 }),
+      /constraint/i
+    );
+    await assert.rejects(
+      db('quran_surahs').insert({ ...validMetadata, surah_number: 0 }),
+      /constraint/i
+    );
+    await assert.rejects(
+      db('quran_surahs').insert({ ...validMetadata, surah_number: 2, revelation_place: 'unknown' }),
+      /constraint/i
+    );
+    await assert.rejects(
+      db('quran_surahs').insert({ ...validMetadata, surah_number: 2, revelation_order: 0 }),
+      /constraint/i
+    );
+    await assert.rejects(
+      db('quran_surahs').insert({ ...validMetadata, surah_number: 2, verses_count: 0 }),
+      /constraint/i
+    );
+  });
 });
