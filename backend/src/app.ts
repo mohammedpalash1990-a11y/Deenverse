@@ -75,6 +75,17 @@ export function buildApp(opts: BuildAppOptions): FastifyInstance {
     }
 
     const statusCode = error.statusCode || 500;
+    if (statusCode === 429) {
+      const rateLimitResponse: ApiErrorResponse = {
+        error: {
+          code: 'RATE_LIMITED',
+          message: 'Too many requests. Please slow down and try again later.',
+          retryable: true
+        }
+      };
+      return reply.status(429).send(rateLimitResponse);
+    }
+
     const isClientError = statusCode >= 400 && statusCode < 500;
 
     const errorResponse: ApiErrorResponse = {
