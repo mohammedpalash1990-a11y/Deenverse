@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { getSection, sections, type SectionId } from "@/lib/navigation";
 import { QuranCatalogue } from "@/components/quran-catalogue";
 import { ReaderControls } from "@/components/reader-controls";
@@ -18,6 +18,21 @@ export function AppShell() {
   const [active, setActive] = useState<SectionId>("quran");
   const [query, setQuery] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const closeMobileMenu = () => {
+    setMenuOpen(false);
+    menuButtonRef.current?.focus();
+  };
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") closeMobileMenu();
+    };
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, [menuOpen]);
+
   const section = getSection(active);
   const filtered = useMemo(
     () => sections.filter((item) => item.label.toLowerCase().includes(query.toLowerCase())),
@@ -25,7 +40,8 @@ export function AppShell() {
   );
 
   return (
-    <main className="app-frame">
+    <div className="app-frame">
+      <a className="skip-link" href="#main-content">Skip to main content</a>
       <aside id="primary-sidebar" className={`sidebar ${menuOpen ? "sidebar-open" : ""}`}>
         <a className="brand" href="/" aria-label="DEENVERSE home">
           <span className="brand-mark">D<span>·</span></span>
@@ -37,7 +53,7 @@ export function AppShell() {
             <button
               className={`nav-item ${active === item.id ? "active" : ""}`}
               key={item.id}
-              onClick={() => { setActive(item.id); setMenuOpen(false); }}
+              onClick={() => { setActive(item.id); if (menuOpen) closeMobileMenu(); }}
               aria-current={active === item.id ? "page" : undefined}
             >
               <span className="nav-symbol" aria-hidden="true">{symbols[item.id]}</span>
@@ -51,11 +67,12 @@ export function AppShell() {
           <span className="version">FOUNDATION PREVIEW · 0.1</span>
         </div>
       </aside>
+      {menuOpen && <button type="button" className="sidebar-backdrop" aria-label="Close navigation" onClick={closeMobileMenu} />}
 
-      <section className="main-panel">
+      <main id="main-content" className="main-panel" tabIndex={-1}>
         <header className="topbar">
-          <button className="mobile-menu" onClick={() => setMenuOpen(!menuOpen)} aria-label="Toggle navigation" aria-controls="primary-sidebar" aria-expanded={menuOpen}>☰</button>
-          <div className="breadcrumb">DEENVERSE <span>/</span> {section.label.toUpperCase()}</div>
+          <button ref={menuButtonRef} type="button" className="mobile-menu" onClick={() => setMenuOpen(!menuOpen)} aria-label="Toggle navigation" aria-controls="primary-sidebar" aria-expanded={menuOpen}>☰</button>
+          <div className="breadcrumb" aria-live="polite" aria-atomic="true">DEENVERSE <span>/</span> {section.label.toUpperCase()}</div>
           <div className="topbar-right"><span className="status-dot" /> CONTENT SOURCES PENDING REVIEW</div>
         </header>
 
@@ -114,7 +131,7 @@ export function AppShell() {
           )}
           <footer className="footer"><span>DEENVERSE © 2026</span><span>Built with care · Content integrity first</span></footer>
         </div>
-      </section>
-    </main>
+      </main>
+    </div>
   );
 }
