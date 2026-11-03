@@ -53,6 +53,7 @@ export function createRestContentSource(options: RestContentSourceOptions = {}):
       let cursor = query.cursor;
       let nextCursor: string | null | undefined = cursor ?? null;
       const seenCursors = new Set<string>();
+      if (cursor) seenCursors.add(cursor);
       do {
         const pageSize = Math.min(50, targetCount - items.length);
         const params = new URLSearchParams({ limit: String(pageSize) });
