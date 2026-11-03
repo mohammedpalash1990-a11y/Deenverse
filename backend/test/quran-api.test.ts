@@ -72,6 +72,11 @@ test('Quran Catalogue API Integration', async (t) => {
       url: '/api/v1/quran/surahs'
     });
     assert.equal(unapprovedRes.statusCode, 503, 'source metadata alone must never grant publication access');
+    const unapprovedSingleRes = await app.inject({
+      method: 'GET',
+      url: '/api/v1/quran/surahs/1'
+    });
+    assert.equal(unapprovedSingleRes.statusCode, 503, 'single-Surah reads must use the same approval gate');
 
     // Test-only approval fixture. This does not approve or identify any production Quran source.
     await db('content_source_approvals').insert({
