@@ -177,6 +177,46 @@ describe("createRestContentSource", () => {
     });
   });
 
+
+  it("rejects duplicate catalogue records instead of returning a corrupted Surah list", async () => {
+    const fetcher = vi.fn().mockResolvedValue(response(200, {
+      data: [record, record],
+      meta: { requestId: "req-duplicate-records", nextCursor: null }
+    }));
+    const source = createRestContentSource({ fetcher });
+
+    const result = await source.list({ type: "quran", locale: "ar", limit: 2 });
+
+    expect(result).toEqual({
+      ok: false,
+      error: {
+        code: "UNAVAILABLE",
+        message: "The content service returned a duplicate catalogue record.",
+        retryable: false
+      }
+    });
+  });
+
+
+  it("rejects a detail response whose Surah ID does not match the requested route", async () => {
+    const fetcher = vi.fn().mockResolvedValue(response(200, {
+      data: record,
+      meta: { requestId: "req-detail-mismatch" }
+    }));
+    const source = createRestContentSource({ fetcher });
+
+    const result = await source.getById("quran:surah:114");
+
+    expect(result).toEqual({
+      ok: false,
+      error: {
+        code: "UNAVAILABLE",
+        message: "The content service returned an invalid catalogue record.",
+        retryable: false
+      }
+    });
+  });
+
   it("maps a missing Surah response to the canonical safe not-found error", async () => {
     const fetcher = vi.fn().mockResolvedValue(response(404, {
       error: {
