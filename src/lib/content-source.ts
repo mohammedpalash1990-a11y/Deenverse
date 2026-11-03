@@ -37,6 +37,7 @@ export type ContentSourceErrorCode =
   | "UNAUTHENTICATED"
   | "FORBIDDEN"
   | "INVALID_QUERY"
+  | "VALIDATION_ERROR"
   | "NOT_FOUND"
   | "RATE_LIMITED"
   | "CONTENT_UNAVAILABLE"
