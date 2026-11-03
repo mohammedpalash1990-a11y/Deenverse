@@ -6,6 +6,7 @@ import { randomUUID } from 'crypto';
 import { Knex } from 'knex';
 import { QuranCatalogueService } from './services/quran-catalogue.js';
 import { quranRoutes } from './routes/quran.js';
+import { INITIAL_SCHEMA_MIGRATION } from './db/migrate.js';
 import { ApiErrorResponse } from './types/content.js';
 
 export interface BuildAppOptions {
@@ -139,12 +140,28 @@ export function buildApp(opts: BuildAppOptions): FastifyInstance {
         // 2. Check that critical migration tables exist
         const hasContentSources = await db.schema.hasTable('content_sources');
         const hasQuranSurahs = await db.schema.hasTable('quran_surahs');
+        const hasMigrationLedger = await db.schema.hasTable('schema_migrations');
 
-        if (!hasContentSources || !hasQuranSurahs) {
+        if (!hasContentSources || !hasQuranSurahs || !hasMigrationLedger) {
           const errResponse: ApiErrorResponse = {
             error: {
               code: 'UNAVAILABLE',
               message: 'Database schema is not fully migrated.',
+              retryable: true
+            }
+          };
+          return reply.status(503).send(errResponse);
+        }
+
+        const initialMigration = await db('schema_migrations')
+          .where({ name: INITIAL_SCHEMA_MIGRATION })
+          .first();
+
+        if (!initialMigration) {
+          const errResponse: ApiErrorResponse = {
+            error: {
+              code: 'UNAVAILABLE',
+              message: 'Required database migrations have not been applied.',
               retryable: true
             }
           };
