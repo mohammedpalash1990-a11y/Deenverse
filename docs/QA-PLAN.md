@@ -304,3 +304,26 @@ No local build or test commands were run during this checkpoint. No green CI sta
 - PR #2 branch versus integration/platform-foundation: **92 ahead / 29 behind** (not 92/27; the latter preceded the two QA/handoff documentation commits). PR #2 still targets main and is draft.
 - PR #5 branch versus integration/platform-foundation: **1 ahead / 6 behind**; GitHub reports mergeable=false. The earlier PR description comparison is stale.
 - Correction comments were posted to PR #2 and PR #5. Neither PR is approved for merge.
+
+
+## 2026-11-03 — assistant frontend delivery (Queen scope)
+
+### PR #6 — stacked accessibility/content-label increment
+- Draft PR: https://github.com/mohammedpalash1990-a11y/Deenverse/pull/6
+- Branch: `assistant/queen-frontend-delivery`; base: `assistant/phase1-web-foundation`.
+- Branch compare: 13 commits ahead / 0 behind PR #2 branch; focused diff is five files (app shell, tests, Quran catalogue, catalogue tests, global CSS).
+- Added keyboard skip link, dedicated main landmark, polite active-section announcement, mobile drawer Escape dismissal, labelled backdrop dismissal, and focus restoration to menu toggle.
+- Loading/empty catalogue states announce as status messages.
+- Catalogue copy now identifies metadata preflight only, not source authenticity or licensing approval. Empty state no longer implies an approved source exists.
+- No canonical Quran text, translations, Hadith, duas, tafsir or recitation data was added. Arabic region remains a labelled RTL placeholder.
+
+### CI evidence
+- Run #138 failed on a newly added breadcrumb text matcher; npm install and typecheck passed, tests failed, build skipped.
+- The matcher was corrected to inspect the breadcrumb element directly.
+- Run #140 passed typecheck, tests and production build at head `1e7c8ec46851e31cf3eff3f4923670459f57ed50`.
+- Latest head `75dbd1714ac9b1705b6602cf6a66edbc3ed24f45` has run #141 pending/in progress at this checkpoint; latest-head CI is not yet confirmed.
+- PR #6 remains draft and unmerged.
+
+### Jules backend work
+- Jules was explicitly instructed to work independently on stack/ADR, reproducible setup, validated config, health/readiness endpoint and tests, with PR against integration/platform-foundation.
+- No Jules implementation PR or code evidence has appeared yet; issue #3 remains open. Assignment comments are not implementation evidence.
