@@ -181,13 +181,17 @@ describe("createRestContentSource", () => {
   });
 
   it("fails closed when the backend repeats a pagination cursor", async () => {
-    const page = {
+    const firstPage = {
       data: [record],
-      meta: { requestId: "req-repeated-cursor", nextCursor: "same-cursor" }
+      meta: { requestId: "req-repeated-cursor-1", nextCursor: "same-cursor" }
+    };
+    const secondPage = {
+      data: [{ ...record, id: "quran:surah:2" }],
+      meta: { requestId: "req-repeated-cursor-2", nextCursor: "same-cursor" }
     };
     const fetcher = vi.fn()
-      .mockResolvedValueOnce(response(200, page))
-      .mockResolvedValueOnce(response(200, page));
+      .mockResolvedValueOnce(response(200, firstPage))
+      .mockResolvedValueOnce(response(200, secondPage));
     const source = createRestContentSource({ fetcher });
 
     const result = await source.list({ type: "quran", locale: "ar", limit: 114 });
