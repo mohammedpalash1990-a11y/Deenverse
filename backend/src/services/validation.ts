@@ -47,22 +47,27 @@ export function decodeCursor(cursor?: string): number {
     throw new Error('Invalid cursor encoding');
   }
 
-  // Must strictly be an integer representation (digits only, no decimals or extra chars)
+  // Reject non-canonical base64 encodings that Buffer.from otherwise tolerates.
+  if (Buffer.from(raw, 'utf-8').toString('base64') !== cursor) {
+    throw new Error('Invalid cursor encoding');
+  }
+
+  // Must strictly be an integer representation (digits only, no decimals or extra chars).
   if (!/^\d+$/.test(raw)) {
     throw new Error('Invalid cursor value');
   }
 
-  const offset = parseInt(raw, 10);
-  if (Number.isNaN(offset) || offset < 0) {
-    throw new Error('Cursor must be a non-negative integer');
+  const offset = Number(raw);
+  if (!Number.isSafeInteger(offset) || offset < 0) {
+    throw new Error('Cursor must be a non-negative safe integer');
   }
 
   return offset;
 }
 
 export function encodeCursor(offset: number): string {
-  if (offset < 0 || !Number.isInteger(offset)) {
-    throw new Error('Offset must be a non-negative integer');
+  if (!Number.isSafeInteger(offset) || offset < 0) {
+    throw new Error('Offset must be a non-negative safe integer');
   }
   return Buffer.from(offset.toString(), 'utf-8').toString('base64');
 }
