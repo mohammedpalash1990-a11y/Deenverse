@@ -20,6 +20,6 @@ This is metadata validation, not scholarly authentication. The approved source, 
 ## Remaining integration work
 
 1. Deploy/configure the backend origin through `NEXT_PUBLIC_API_BASE_URL` and verify the browser's network/CORS path.
-2. The adapter currently supports only the Surah metadata list and single-Surah metadata endpoints; it does not fetch ayahs.
+2. The adapter currently supports only the Surah metadata list and single-Surah metadata endpoints; it does not fetch ayahs. No Ayah route or text payload may be exposed until an exact production edition is independently authenticated, checksum-verified, rights-cleared, and explicitly approved.
 3. Add edition selection and ayah retrieval only after the exact source artifact, checksums, completeness, attribution, license, and redistribution permissions are reviewed.
 4. Run end-to-end browser tests against a controlled approved-source fixture; never use generated scripture as test content.
