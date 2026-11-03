@@ -80,6 +80,9 @@ Aligned directly with the frontend error mapper (`src/lib/content-api-errors.ts`
 ### `GET /api/v1/health`
 Returns system health, server timestamp, and unique `requestId`.
 
+### `GET /api/v1/ready`
+Checks database connectivity, the required catalogue tables, the migration ledger, and the recorded initial schema migration. Returns HTTP 503 `UNAVAILABLE` until all required schema migrations are recorded; liveness remains available independently.
+
 ### `GET /api/v1/quran/surahs`
 - Query params:
   - `limit` (integer, min 1, max 50, default 20)
