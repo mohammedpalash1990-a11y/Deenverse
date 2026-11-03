@@ -20,22 +20,26 @@ export const ContentProvenanceSchema = z.object({
   checksum: z.string().min(1, 'Checksum is required')
 });
 
+const isValidCursor = (cursor: string): boolean => {
+  if (!/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(cursor)) return false;
+  const decoded = Buffer.from(cursor, 'base64').toString('utf-8');
+  return /^(0|[1-9]\d*)$/.test(decoded) && Number.isSafeInteger(Number(decoded));
+};
+
 export const PaginationQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(50).default(20),
-  cursor: z.string().optional()
+  cursor: z.string().optional().refine((value) => value === undefined || isValidCursor(value), {
+    message: 'Cursor must be a valid non-negative pagination offset'
+  })
 });
 
 export function decodeCursor(cursor?: string): number {
   if (!cursor) return 0;
-  try {
-    const raw = Buffer.from(cursor, 'base64').toString('utf-8');
-    const offset = parseInt(raw, 10);
-    return Number.isNaN(offset) || offset < 0 ? 0 : offset;
-  } catch {
-    return 0;
-  }
+  if (!isValidCursor(cursor)) throw new Error('Invalid pagination cursor');
+  return Number(Buffer.from(cursor, 'base64').toString('utf-8'));
 }
 
 export function encodeCursor(offset: number): string {
+  if (!Number.isSafeInteger(offset) || offset < 0) throw new Error('Cursor offset must be a non-negative safe integer');
   return Buffer.from(offset.toString(), 'utf-8').toString('base64');
 }
