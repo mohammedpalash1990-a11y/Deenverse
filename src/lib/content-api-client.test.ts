@@ -109,6 +109,35 @@ describe("createRestContentSource", () => {
     expect(result.ok).toBe(false);
   });
 
+  it("follows backend page limits to satisfy the UI's 114-record catalogue request", async () => {
+    const fetcher = vi.fn()
+      .mockResolvedValueOnce(response(200, {
+        data: Array.from({ length: 50 }, (_, index) => ({ ...record, id: `quran:surah:${index + 1}` })),
+        meta: { requestId: "req-page-1", nextCursor: "cursor-page-2" }
+      }))
+      .mockResolvedValueOnce(response(200, {
+        data: Array.from({ length: 50 }, (_, index) => ({ ...record, id: `quran:surah:${index + 51}` })),
+        meta: { requestId: "req-page-2", nextCursor: "cursor-page-3" }
+      }))
+      .mockResolvedValueOnce(response(200, {
+        data: Array.from({ length: 14 }, (_, index) => ({ ...record, id: `quran:surah:${index + 101}` })),
+        meta: { requestId: "req-page-3", nextCursor: null }
+      }));
+    const source = createRestContentSource({ fetcher });
+
+    const result = await source.list({ type: "quran", locale: "ar", limit: 114 });
+
+    expect(fetcher).toHaveBeenCalledTimes(3);
+    expect(fetcher.mock.calls[0][0]).toBe("/api/v1/quran/surahs?limit=50");
+    expect(fetcher.mock.calls[1][0]).toBe("/api/v1/quran/surahs?limit=50&cursor=cursor-page-2");
+    expect(fetcher.mock.calls[2][0]).toBe("/api/v1/quran/surahs?limit=14&cursor=cursor-page-3");
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.items).toHaveLength(114);
+      expect(result.data.nextCursor).toBeNull();
+    }
+  });
+
   it("reports network failures as retryable without fabricating content", async () => {
     const fetcher = vi.fn().mockRejectedValue(new Error("socket details"));
     const source = createRestContentSource({ fetcher });
