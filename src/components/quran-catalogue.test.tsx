@@ -38,6 +38,7 @@ describe("QuranCatalogue", () => {
     };
     render(<QuranCatalogue source={source} />);
     expect(screen.getByText("Loading verified catalogue")).toBeInTheDocument();
+    expect(screen.getByRole("status", { name: "Quran catalogue" })).toHaveAttribute("aria-busy", "true");
   });
 
   it("fails closed when no approved provider is configured", async () => {
@@ -48,6 +49,7 @@ describe("QuranCatalogue", () => {
   it("shows an explicit empty state", async () => {
     render(<QuranCatalogue source={sourceReturning({ ok: true, data: { items: [] } })} />);
     expect(await screen.findByText("No approved Surah records yet")).toBeInTheDocument();
+    expect(screen.getByRole("status", { name: "Quran catalogue" })).toHaveAttribute("aria-live", "polite");
   });
 
   it("renders only records that pass provenance validation", async () => {
