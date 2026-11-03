@@ -3,8 +3,10 @@ import { createDatabaseConnection } from './connection.js';
 import * as initialSchema from './migrations/20261102_000001_initial_schema.js';
 import { fileURLToPath } from 'url';
 
+export const INITIAL_SCHEMA_MIGRATION = '20261102_000001_initial_schema';
+
 const MIGRATIONS = [
-  { name: '20261102_000001_initial_schema', run: initialSchema.up }
+  { name: INITIAL_SCHEMA_MIGRATION, run: initialSchema.up }
 ];
 
 export async function runMigrations(db: Knex = createDatabaseConnection()): Promise<Knex> {
