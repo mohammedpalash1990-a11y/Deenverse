@@ -2,9 +2,9 @@ import {
   validateContentRecord,
   type ContentPage,
   type ContentSourceResult,
-  type ContentRecord,
-  type ReligiousContentType
+  type ContentRecord
 } from "./content-source";
+import type { ReligiousContentType } from "./content-safety";
 
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
