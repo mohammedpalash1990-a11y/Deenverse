@@ -96,9 +96,9 @@ describe('Bengali translation client', () => {
     }
   );
 
-  it('returns structured API errors without treating them as source text', async () => {
+  it('maps API errors to safe messages without exposing server-provided text', async () => {
     const { client } = clientFor({ error: { message: 'Synthetic upstream unavailable' } }, 503);
-    expect(await client.getAyah(1, 2)).toEqual({ ok: false, message: 'Synthetic upstream unavailable' });
+    expect(await client.getAyah(1, 2)).toEqual({ ok: false, message: 'Verified content is currently unavailable.' });
   });
 
   it('handles malformed JSON and network failures', async () => {
