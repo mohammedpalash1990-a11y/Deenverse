@@ -13,7 +13,8 @@ const editionList = [{
   key: 'bengali_zakaria',
   version: 'V1.1.1',
   last_update: 1621641600,
-  title: 'Bengali Translation - Abu Bakr Zakaria'
+  title: 'Bengali Translation - Abu Bakr Zakaria',
+  description: 'Bengali Translation of Dr. Abu Bakr Muhammad Zakaria'
 }];
 
 test('returns publisher text, footnotes, and live edition provenance unchanged', async () => {
