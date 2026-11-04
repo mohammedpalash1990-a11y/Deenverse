@@ -322,7 +322,7 @@ async function importValidatedTanzilUthmani(
       source_id: sourceId
     })));
 
-    const batchSize = 200;
+    const batchSize = 150;
     for (let offset = 0; offset < validated.ayahs.length; offset += batchSize) {
       const batch = validated.ayahs.slice(offset, offset + batchSize);
       await trx('quran_ayahs').insert(batch.map((ayah) => ({
