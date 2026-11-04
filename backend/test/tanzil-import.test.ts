@@ -131,7 +131,7 @@ test('imports only after exact artifact checksum and independent approval are re
       reviewer_id: 'independent-reviewer',
       approved_at: now,
       artifact_sha256: validated.report.artifactSha256,
-      review_notes: 'Synthetic test fixture only; no Quran content.'
+      review_notes: `Synthetic test fixture only; no Quran content. metadata_sha256=${createHash('sha256').update(fixture.metadata).digest('hex')}`
     });
 
     const report = await importTanzilUthmani(db, sourceId, fixture.text, fixture.metadata);
