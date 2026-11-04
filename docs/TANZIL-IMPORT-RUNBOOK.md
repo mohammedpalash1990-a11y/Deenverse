@@ -38,7 +38,7 @@ Before `--apply`, the database must contain:
 
 - A `content_sources` row with `content_type=quran`, edition exactly `Tanzil Quran Text (Uthmani, Version 1.1)`, source URL exactly `https://tanzil.net/download/`, license ID `CC-BY-3.0`, verbatim Tanzil/CC BY 3.0 attribution, redistribution explicitly allowed, and `checksum` equal to the downloaded text artifact's SHA-256.
 - The same source row must remain `is_active=false` until import completes.
-- A separate `content_source_approvals` row with decision `approved`, reviewer, date, review notes, and `artifact_sha256` equal to the exact same artifact digest.
+- A separate `content_source_approvals` row with decision `approved`, reviewer, date, review notes, and `artifact_sha256` equal to the exact same artifact digest. The human review notes must also include `metadata_sha256=<exact SHA-256 of quran-data.xml>` so the metadata file is bound to the review.
 
 Do not create an approval merely to make the importer run. The approval must represent a completed independent review. If source identity, licence, or approval is uncertain, do not import.
 
