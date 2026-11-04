@@ -11,6 +11,7 @@ import { quranAyahRoutes } from './routes/quran-ayah.js';
 import { quranTranslationRoutes } from './routes/quran-translation.js';
 import { QuranEncBengaliTranslationService } from './services/quran-translation.js';
 import { ApiErrorResponse } from './types/content.js';
+import { quranReviewRoutes } from './routes/quran-review.js';
 
 export interface BuildAppOptions {
   db: Knex;
@@ -126,7 +127,7 @@ export function buildApp(opts: BuildAppOptions): FastifyInstance {
     api.get('/api/v1/ready', async (request, reply) => {
       try {
         await db.raw('SELECT 1');
-        const requiredTables = ['content_sources', 'content_source_approvals', 'quran_surahs', 'quran_ayahs', 'quran_ayah_reviews'];
+        const requiredTables = ['content_sources', 'content_source_approvals', 'quran_surahs', 'quran_ayahs', 'quran_ayah_reviews', 'quran_review_batches', 'quran_review_invites', 'quran_review_submissions'];
         const present = await Promise.all(requiredTables.map((table) => db.schema.hasTable(table)));
         if (!present.every(Boolean)) {
           const response: ApiErrorResponse = {
@@ -170,6 +171,7 @@ export function buildApp(opts: BuildAppOptions): FastifyInstance {
       prefix: '/api/v1/ayah',
       ayahService: quranAyahService
     });
+    api.register(quranReviewRoutes, { prefix: '/api/v1/quran', db });
     api.register(quranTranslationRoutes, {
       prefix: '/api/v1/translation',
       translationService: quranTranslationService
