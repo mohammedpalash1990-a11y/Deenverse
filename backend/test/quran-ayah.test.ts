@@ -69,7 +69,7 @@ test('returns an ayah only from an approved source with matching text digest', a
   assert.equal(response.json().data.payload.surahNumber, 1);
   assert.equal(response.json().data.payload.ayahNumber, 1);
   assert.equal(response.json().data.provenance.approvalStatus, 'approved');
-  assert.equal(response.json().data.provenance.approvalReviewerId, 'test-reviewer');
+  assert.equal(response.json().data.provenance.approvedByAuthority, 'test-reviewer');
   assert.equal(response.json().data.provenance.redistributionAllowed, true);
   assert.equal(response.json().data.provenance.sourceId, sourceId);
 });
