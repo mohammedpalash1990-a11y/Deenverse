@@ -1,4 +1,5 @@
-import type { ContentProvenance, ContentSourceError } from "./content-source";
+import type { ContentSourceError } from "./content-source";
+import type { ContentProvenance } from "./content-safety";
 import { mapContentApiError } from "./content-api-errors";
 
 export interface QuranAyahPayload {
