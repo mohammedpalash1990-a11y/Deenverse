@@ -5,6 +5,7 @@ import {
   SurahPayload
 } from '../types/content.js';
 import { ContentProvenanceSchema } from './validation.js';
+import { findSingleApprovedQuranSource } from './approved-quran-source.js';
 
 export interface SurahListQuery {
   limit: number;
@@ -24,23 +25,7 @@ export class QuranCatalogueService {
     total: number;
     hasApprovedSource: boolean;
   }> {
-    const source = await this.db('content_sources')
-      .join('content_source_approvals', 'content_source_approvals.source_id', 'content_sources.id')
-      .where({
-        'content_sources.content_type': 'quran',
-        'content_sources.is_active': true,
-        'content_sources.redistribution_allowed': true,
-        'content_source_approvals.decision': 'approved'
-      })
-      .whereRaw('content_source_approvals.artifact_sha256 = content_sources.checksum')
-      .select(
-        'content_sources.*',
-        'content_source_approvals.id as approval_id',
-        'content_source_approvals.decision as approval_decision',
-        'content_source_approvals.reviewer_id as approval_reviewer',
-        'content_source_approvals.approved_at as approval_date'
-      )
-      .first();
+    const source = await findSingleApprovedQuranSource(this.db);
 
     if (!source) return { items: [], total: 0, hasApprovedSource: false };
 
@@ -100,23 +85,7 @@ export class QuranCatalogueService {
     item: ContentRecord<SurahPayload> | null;
     hasApprovedSource: boolean;
   }> {
-    const source = await this.db('content_sources')
-      .join('content_source_approvals', 'content_source_approvals.source_id', 'content_sources.id')
-      .where({
-        'content_sources.content_type': 'quran',
-        'content_sources.is_active': true,
-        'content_sources.redistribution_allowed': true,
-        'content_source_approvals.decision': 'approved'
-      })
-      .whereRaw('content_source_approvals.artifact_sha256 = content_sources.checksum')
-      .select(
-        'content_sources.*',
-        'content_source_approvals.id as approval_id',
-        'content_source_approvals.decision as approval_decision',
-        'content_source_approvals.reviewer_id as approval_reviewer',
-        'content_source_approvals.approved_at as approval_date'
-      )
-      .first();
+    const source = await findSingleApprovedQuranSource(this.db);
 
     if (!source) return { item: null, hasApprovedSource: false };
 
