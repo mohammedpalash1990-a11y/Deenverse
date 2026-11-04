@@ -25,13 +25,16 @@ export async function up(knex: Knex): Promise<void> {
     table.string('edition').notNullable();
     table.integer('sort_order').notNullable().defaultTo(0);
     table.unique(['source_id', 'slug']);
+    table.unique(['id', 'source_id']);
     table.index(['sort_order', 'slug'], 'hadith_books_sort_idx');
   });
 
   await knex.schema.createTable('hadith_chapters', (table) => {
     table.string('id').primary();
-    table.string('book_id').notNullable().references('id').inTable('hadith_books').onDelete('RESTRICT');
+    table.string('book_id').notNullable();
     table.string('source_id').notNullable().references('id').inTable('content_sources').onDelete('RESTRICT');
+    table.foreign(['book_id', 'source_id']).references(['id', 'source_id']).inTable('hadith_books').onDelete('RESTRICT');
+    table.unique(['id', 'book_id']);
     table.string('chapter_number').notNullable();
     table.string('title_arabic').nullable();
     table.string('title_english').nullable();
@@ -43,9 +46,12 @@ export async function up(knex: Knex): Promise<void> {
 
   await knex.schema.createTable('hadith_records', (table) => {
     table.string('id').primary();
-    table.string('book_id').notNullable().references('id').inTable('hadith_books').onDelete('RESTRICT');
-    table.string('chapter_id').nullable().references('id').inTable('hadith_chapters').onDelete('RESTRICT');
+    table.string('book_id').notNullable();
+    table.string('chapter_id').nullable();
     table.string('source_id').notNullable().references('id').inTable('content_sources').onDelete('RESTRICT');
+    table.foreign(['book_id', 'source_id']).references(['id', 'source_id']).inTable('hadith_books').onDelete('RESTRICT');
+    table.foreign(['chapter_id', 'book_id']).references(['id', 'book_id']).inTable('hadith_chapters').onDelete('RESTRICT');
+    table.unique(['id', 'source_id']);
     table.string('hadith_number').notNullable();
     table.string('numbering_system').notNullable();
     table.text('arabic_text').notNullable();
@@ -60,8 +66,9 @@ export async function up(knex: Knex): Promise<void> {
 
   await knex.schema.createTable('hadith_translations', (table) => {
     table.string('id').primary();
-    table.string('hadith_id').notNullable().references('id').inTable('hadith_records').onDelete('RESTRICT');
+    table.string('hadith_id').notNullable();
     table.string('source_id').notNullable().references('id').inTable('content_sources').onDelete('RESTRICT');
+    table.foreign(['hadith_id', 'source_id']).references(['id', 'source_id']).inTable('hadith_records').onDelete('RESTRICT');
     table.string('locale', 12).notNullable();
     table.string('translator_name').notNullable();
     table.text('translation_text').notNullable();
