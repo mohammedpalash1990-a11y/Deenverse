@@ -28,8 +28,8 @@ branch's baseline. Open review/content/reporting PRs are not blindly merged.
 - Backend: typecheck and production build pass; **78 tests pass, 1 skipped**.
 - Skipped test: live PostgreSQL migration/production runtime test; no PostgreSQL
   service or `TEST_DATABASE_URL` was available here. It remains configured in CI.
-- Frontend: typecheck and Next.js production build pass; **162 tests pass** across
-  17 files. This is not a manual mobile, browser-audio, or screen-reader audit.
+- Frontend: typecheck and Next.js production build pass; **171 tests pass** across
+  18 files. This is not a manual mobile, browser-audio, or screen-reader audit.
 - `npm audit --json`: zero reported vulnerabilities in each dependency graph
   (including critical/high). This does not establish absence of application-level
   vulnerabilities or future advisories. No new dependency upgrades were needed.
@@ -46,7 +46,7 @@ branch's baseline. Open review/content/reporting PRs are not blindly merged.
 | Hadith | Source-gated schema, APIs, search, references, reader | Verified/licensed populated collections and translations; editorial review |
 | Audio | Playback intentionally disabled | Approved recording/source/license, playback implementation, navigation and device tests |
 | Dua/Adhkar | Product/navigation foundation | Approved sourced library and functional reader |
-| Learning/Hifz | Product foundation only | Learning content, practice tools, and acceptance tests |
+| Learning/Hifz | Basic self-guided conceal/reveal practice on an accepted Ayah | Learning content, multi-Ayah tools, audio/teacher workflows, saved progress and full acceptance QA |
 | Responsive UI | Existing app shell, RTL and accessibility component tests | Manual device, keyboard and assistive-technology QA |
 | Authentication | Environment placeholders | No completed auth/session/database integration established by this audit; protect future write/admin routes without restricting public readers |
 | PostgreSQL | pg driver, DATABASE_URL/DB_CLIENT resolver, additive migrations, production SQLite rejection, readiness, CI service test | This PR's exact-head CI and hosted production connection/migrations, backup/restore validation |
@@ -81,7 +81,7 @@ contributions and content remain intact.
 **No defensible overall verified percentage yet.** The twelve product requirements
 have neither weighted acceptance criteria nor complete live-content/end-to-end
 verification. Passing tests and existing scaffolding are not feature completion.
-Local executed tests: **240/240 pass (100%); one PostgreSQL test skipped**. That
+Local executed tests: **249/249 pass (100%); one PostgreSQL test skipped**. That
 percentage measures only executed tests, not product readiness. Deployment remains
 blocked by the gates above; no production-ready claim is made.
 
@@ -137,3 +137,18 @@ blocked by the gates above; no production-ready claim is made.
 - Deployment environment was not changed. Existing deployments must retain the
   correct NEXT_PUBLIC_API_BASE_URL in their build environment and rebuild when
   it changes. The backend must separately allow the frontend origin through CORS.
+
+
+## Hifz recall continuation
+
+- Added basic, transient self-guided recall to the existing source-validating Ayah
+  reader. It conceals Arabic, translation and footnotes from the DOM while keeping
+  edition, attribution and Ayah reference visible; reveal restores exact strings.
+- No content/source changes, generated scripture, audio, recording, grading,
+  progress persistence, extra practice requests, or publication bypass was added.
+- Six standalone component tests plus three reader integration tests cover recall,
+  reveal, repeated practice, focus restoration, remount/new-Ayah reset, late
+  translations, exact strings and visible attribution. Existing reader rejection
+  tests assert practice is unavailable before accepted content.
+- Frontend typecheck, 171 tests and production build pass locally. Exact-head CI
+  is required before merge. See docs/HIFZ-RECALL-PRACTICE.md for scope/limitations.

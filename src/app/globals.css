@@ -233,3 +233,13 @@ h1{font-size:clamp(31px,4vw,47px);letter-spacing:-1.2px;margin-bottom:10px;color
 .hadith-load-more{display:flex;justify-content:center;padding:8px 0 22px}
 .hadith-load-more button{min-height:40px;padding:0 20px;border:1px solid #d8dfd6;border-radius:4px;background:#fff;color:#30463b;font-size:10px}
 .hadith-load-more button:disabled{opacity:.55;cursor:wait}
+
+/* Hifz recall operates only on an already verified, in-memory reader response. */
+.ayah-recall-practice{margin-top:16px;padding-top:14px;border-top:1px solid #e8e3d6}
+.ayah-recall-actions{display:flex;flex-wrap:wrap;gap:10px}
+.ayah-recall-actions button{min-height:44px;padding:10px 14px;border:1px solid #687c6b;border-radius:5px;background:#fffdf7;color:#30463a;font:inherit;font-size:12px;cursor:pointer}
+.ayah-recall-actions button:hover{background:#f0f3ea}
+.ayah-recall-actions button:focus-visible{outline:3px solid #426c54;outline-offset:3px}
+.ayah-recall-status{font-size:13px;line-height:1.7;color:#34483e;margin:12px 0 6px}
+.ayah-recall-note{font-size:12px;line-height:1.7;color:#59685f;margin:0 0 16px}
+@media(max-width:480px){.ayah-recall-actions button{flex:1 1 150px}}
