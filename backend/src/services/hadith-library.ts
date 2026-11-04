@@ -358,7 +358,7 @@ export class HadithLibraryService {
     const clean = queryText.trim().replace(/[%_]/g, '');
     if (!clean) return { status: 'not_found' };
     const pattern = `%${clean.toLowerCase()}%`;
-    const normalizedArabicTerm = clean.normalize('NFKC').replace(/[\\u0640-\\u065f\\u0670]/g, '').toLowerCase();
+    const normalizedArabicTerm = ARABIC_DIACRITICS.reduce((value, mark) => value.split(mark).join(''), clean.normalize('NFKC')).toLowerCase();
     const arabicPattern = `%${normalizedArabicTerm}%`;
     const base = this.verifiedRecordsQuery().where(function () {
       const searchArabic = !locale || locale === 'ar';
