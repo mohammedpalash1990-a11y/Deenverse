@@ -11,7 +11,9 @@ export default function QuranReviewCoordinatorPage() {
   const [ayah, setAyah] = useState("1");
   const [createdBy, setCreatedBy] = useState("");
   const [reviewers, setReviewers] = useState(["", "", ""]);
-  const [links, setLinks] = useState<{ reviewer: string; url: string | null; token?: string }[]>([]);
+  const [links, setLinks] = useState<{ reviewer: string; url: string }[]>([]);
+  const [batchId, setBatchId] = useState("");
+  const [report, setReport] = useState<{ reviews: { reviewer_label: string; reviewer_name: string | null; decision: string | null; issue_note: string | null; review_submitted_at: string | null }[]; allSubmitted: boolean } | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -30,9 +32,22 @@ export default function QuranReviewCoordinatorPage() {
       const body = await response.json();
       if (!response.ok) throw new Error(body?.error?.message || "Review links could not be created.");
       setLinks(body.data.invites);
+      setBatchId(body.data.batchId);
+      setReport(null);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Review links could not be created.");
     } finally { setLoading(false); }
+  }
+
+  async function loadStatus() {
+    if (!batchId) return;
+    setError("");
+    try {
+      const response = await fetch(apiBase + "/quran/review-batches/" + encodeURIComponent(batchId), { headers: { "X-Review-Admin-Token": adminToken } });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body?.error?.message || "Review status could not be loaded.");
+      setReport(body.data);
+    } catch (cause) { setError(cause instanceof Error ? cause.message : "Review status could not be loaded."); }
   }
 
   return <main style={{maxWidth:760,margin:"40px auto",padding:"24px",color:"#20342d"}}>
@@ -57,6 +72,7 @@ export default function QuranReviewCoordinatorPage() {
       <button disabled={loading} style={primary}>{loading?"Creating secure links…":"Create individual review links"}</button>
     </form>
     {error&&<p role="alert" style={{color:"#a33",marginTop:18}}>{error}</p>}
+    {batchId&&<section style={{marginTop:24,padding:18,border:"1px solid #d9dfd8",borderRadius:8}}><strong>Review batch: {batchId}</strong><p>Use the button to see reviewer submission status.</p><button type="button" style={secondary} onClick={loadStatus}>Refresh team review status</button>{report&&<div style={{marginTop:14}}><strong>{report.allSubmitted?"All reviewers submitted":"Waiting for reviewer submissions"}</strong>{report.reviews.map((item,index)=><p key={index} style={{borderTop:"1px solid #d9dfd8",paddingTop:10}}><strong>{item.reviewer_label}</strong> — {item.review_submitted_at ? item.reviewer_name + ": " + item.decision : "Not submitted"}{item.issue_note&&<span> · {item.issue_note}</span>}</p>)}</div>}</section>}
     {links.length>0&&<section style={{marginTop:28,padding:20,background:"#edf0e9",borderRadius:8}}>
       <h2 style={{fontFamily:"Georgia,serif",fontWeight:500}}>Private reviewer links</h2>
       <p>Send each reviewer only their own link. Links expire after 14 days and can be submitted once.</p>
