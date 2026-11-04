@@ -28,7 +28,7 @@ branch's baseline. Open review/content/reporting PRs are not blindly merged.
 - Backend: typecheck and production build pass; **78 tests pass, 1 skipped**.
 - Skipped test: live PostgreSQL migration/production runtime test; no PostgreSQL
   service or `TEST_DATABASE_URL` was available here. It remains configured in CI.
-- Frontend: typecheck and Next.js production build pass; **121 tests pass** across
+- Frontend: typecheck and Next.js production build pass; **124 tests pass** across
   15 files. This is not a manual mobile, browser-audio, or screen-reader audit.
 - `npm audit --json`: zero reported vulnerabilities in each dependency graph
   (including critical/high). This does not establish absence of application-level
@@ -81,7 +81,7 @@ contributions and content remain intact.
 **No defensible overall verified percentage yet.** The twelve product requirements
 have neither weighted acceptance criteria nor complete live-content/end-to-end
 verification. Passing tests and existing scaffolding are not feature completion.
-Local executed tests: **199/199 pass (100%); one PostgreSQL test skipped**. That
+Local executed tests: **202/202 pass (100%); one PostgreSQL test skipped**. That
 percentage measures only executed tests, not product readiness. Deployment remains
 blocked by the gates above; no production-ready claim is made.
 
@@ -103,3 +103,15 @@ blocked by the gates above; no production-ready claim is made.
   malformed responses and exact-string preservation using synthetic content.
 - PostgreSQL CI runtime coverage now also exercises concurrent migrations and
   rollback/lock release after a late migration failure.
+
+- Commit `8b6d9f3` passed all three PR checks, including the PostgreSQL 16
+  service job with concurrent-migration and rollback coverage. Evidence:
+  https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/41776821674
+  This verifies CI PostgreSQL, not the hosted production database. Raw Actions
+  log download was blocked by this workspace network; check status was obtained
+  through GitHub CLI.
+- Added three reader-level translation tests: exact text/footnotes and publisher
+  links, translation failure without hiding verified Arabic, and no translation
+  fetch after Arabic integrity rejection. Translation dependency injection makes
+  these component tests deterministic without fetching an external publisher.
+- Removed a visible literal backslash-n between translation attribution links.

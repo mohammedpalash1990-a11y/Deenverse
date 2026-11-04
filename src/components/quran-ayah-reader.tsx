@@ -28,9 +28,10 @@ type TranslationState =
 
 interface QuranAyahReaderProps {
   client?: AyahClient;
+  translationClient?: Pick<ReturnType<typeof createQuranBengaliTranslationClient>, "getAyah">;
 }
 
-export function QuranAyahReader({ client = defaultClient }: QuranAyahReaderProps) {
+export function QuranAyahReader({ client = defaultClient, translationClient = defaultTranslationClient }: QuranAyahReaderProps) {
   const [surah, setSurah] = useState("1");
   const [ayah, setAyah] = useState("1");
   const [state, setState] = useState<ReaderState>({ status: "idle" });
@@ -65,7 +66,7 @@ export function QuranAyahReader({ client = defaultClient }: QuranAyahReaderProps
     }
 
     setState({ status: "ready", record: result.data });
-    const translation = await defaultTranslationClient.getAyah(surahNumber, ayahNumber);
+    const translation = await translationClient.getAyah(surahNumber, ayahNumber);
     setTranslationState(translation.ok
       ? { status: "ready", data: translation.data }
       : { status: "error", message: translation.message });
@@ -145,7 +146,8 @@ export function QuranAyahReader({ client = defaultClient }: QuranAyahReaderProps
                 <p className="ayah-reader-attribution">
                   {translationState.data.provenance.translator} · {translationState.data.provenance.publisher} · {translationState.data.provenance.sourceTitle} · {translationState.data.provenance.editionVersion}
                 </p>
-                <a href={translationState.data.provenance.sourceUrl} target="_blank" rel="noreferrer">QuranEnc-এর মূল অনুবাদ</a>{" · "}\n                <a href={translationState.data.provenance.termsUrl} target="_blank" rel="noreferrer">প্রকাশের শর্ত</a>
+                <a href={translationState.data.provenance.sourceUrl} target="_blank" rel="noreferrer">QuranEnc-এর মূল অনুবাদ</a>{" · "}
+                <a href={translationState.data.provenance.termsUrl} target="_blank" rel="noreferrer">প্রকাশের শর্ত</a>
               </>
             )}
           </section>
