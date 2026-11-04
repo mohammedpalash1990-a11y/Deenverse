@@ -6,7 +6,12 @@ import { Knex } from 'knex';
  * translation, grading, or sample religious content.
  */
 export async function up(knex: Knex): Promise<void> {
-  if (await knex.schema.hasTable('hadith_books')) return;
+  const tables = ['hadith_books', 'hadith_chapters', 'hadith_records', 'hadith_translations', 'hadith_grade_assessments', 'hadith_record_reviews'];
+  const existing = await Promise.all(tables.map((name) => knex.schema.hasTable(name)));
+  if (existing.every(Boolean)) return;
+  if (existing.some(Boolean)) {
+    throw new Error('Partial Hadith schema detected. Inspect hadith_* tables before retrying migration.');
+  }
 
   await knex.schema.createTable('hadith_books', (table) => {
     table.string('id').primary();
