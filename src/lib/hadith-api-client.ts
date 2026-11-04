@@ -247,8 +247,8 @@ export function createHadithClient(options: HadithClientOptions = {}) {
   }
 
   return {
-    listBooks(limit = 50): Promise<HadithClientResult<HadithPage<HadithBook>>> {
-      return readPage(`/books${pagePath({ limit: String(limit) })}`, parseBook);
+    listBooks(limit = 50, cursor?: string): Promise<HadithClientResult<HadithPage<HadithBook>>> {
+      return readPage(`/books${pagePath({ limit: String(limit), cursor })}`, parseBook);
     },
 
     listChapters(bookId: string): Promise<HadithClientResult<HadithChapter[]>> {
@@ -256,11 +256,12 @@ export function createHadithClient(options: HadithClientOptions = {}) {
         Array.isArray(value) && value.every(parseChapter));
     },
 
-    listRecords(bookId: string, options: { chapterId?: string; locale?: "ar" | "bn" | "en"; limit?: number } = {}): Promise<HadithClientResult<HadithPage<HadithRecord>>> {
+    listRecords(bookId: string, options: { chapterId?: string; locale?: "ar" | "bn" | "en"; limit?: number; cursor?: string } = {}): Promise<HadithClientResult<HadithPage<HadithRecord>>> {
       const query = pagePath({
         chapterId: options.chapterId,
         locale: options.locale,
-        limit: String(options.limit ?? 20)
+        limit: String(options.limit ?? 20),
+        cursor: options.cursor
       });
       return readPage(`/books/${encodeURIComponent(bookId)}/records${query}`, parseRecord);
     },
@@ -269,8 +270,8 @@ export function createHadithClient(options: HadithClientOptions = {}) {
       return read(`/records/${encodeURIComponent(recordId)}${pagePath({ locale })}`, parseRecord);
     },
 
-    search(query: string, locale?: "ar" | "bn" | "en", limit = 20): Promise<HadithClientResult<HadithPage<HadithRecord>>> {
-      return readPage(`/search${pagePath({ q: query, locale, limit: String(limit) })}`, parseRecord);
+    search(query: string, locale?: "ar" | "bn" | "en", limit = 20, cursor?: string): Promise<HadithClientResult<HadithPage<HadithRecord>>> {
+      return readPage(`/search${pagePath({ q: query, locale, limit: String(limit), cursor })}`, parseRecord);
     }
   };
 }
