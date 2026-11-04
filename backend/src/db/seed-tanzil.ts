@@ -134,7 +134,7 @@ export async function seedTanzilUthmaniFromOfficialSource(db: Knex): Promise<voi
     }, 1_000)
   ]);
 
-  const diagnosticLines = new TextDecoder('utf-8', { fatal: true }).decode(textBytes).split(/\\r?\\n/u);
+  const diagnosticLines = new TextDecoder('utf-8', { fatal: true }).decode(textBytes).split(/\r?\n/u);
   if (diagnosticLines.at(-1) === '') diagnosticLines.pop();
   console.info(JSON.stringify({
     tanzilArtifactDiagnostics: {
