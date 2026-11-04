@@ -10,8 +10,6 @@ import {
 } from './import-tanzil.js';
 
 const SOURCE_ID = 'tanzil-uthmani-v1';
-const SOURCE_CODE = 'tanzil-uthmani-v1';
-const SOURCE_NAME = 'Tanzil Quran Text (Uthmani)';
 const ATTRIBUTION =
   'Tanzil Quran Text (Uthmani), Tanzil Project. Creative Commons Attribution 3.0 (CC BY 3.0). Verbatim and unmodified. Source: https://tanzil.net/.';
 
@@ -30,7 +28,7 @@ async function assertIndependentlyApprovedSource(
     !String(source.attribution ?? '').includes('Tanzil Project') ||
     !String(source.attribution ?? '').includes('Creative Commons Attribution 3.0') ||
     !String(source.attribution ?? '').includes('https://tanzil.net/') ||
-    source.redistribution_allowed !== true ||
+    !(source.redistribution_allowed === true || source.redistribution_allowed === 1 || source.redistribution_allowed === '1') ||
     !source.reviewer ||
     source.reviewer === 'project-owner-chat-authorization' ||
     !source.reviewed_at ||
