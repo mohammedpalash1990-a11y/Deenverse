@@ -99,3 +99,20 @@ test('serves the QuranEnc translation route with attribution and rejects invalid
     await app.close();
   }
 });
+
+
+test('fails closed when QuranEnc changes the pinned translation edition', async () => {
+  const calls: string[] = [];
+  const fetcher: typeof fetch = async (input) => {
+    const url = String(input);
+    calls.push(url);
+    if (url.includes('/translations/list/')) {
+      return jsonResponse([{ ...editionList[0], version: 'V1.1.2' }]);
+    }
+    return jsonResponse({ sura: 1, aya: 1, translation: 'অনুবাদ', footnotes: [] });
+  };
+
+  const result = await new QuranEncBengaliTranslationService(fetcher).getAyah(1, 1);
+  assert.equal(result.status, 'invalid_source_response');
+  assert.equal(calls.length, 1, 'must not fetch translation text from an unreviewed edition');
+});
