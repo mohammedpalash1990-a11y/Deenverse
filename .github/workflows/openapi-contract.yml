@@ -1,0 +1,41 @@
+name: DEENVERSE OpenAPI contract validation
+
+on:
+  pull_request:
+    paths:
+      - "docs/OPENAPI-DRAFT.yaml"
+      - "scripts/verify-openapi-routes.rb"
+      - ".github/workflows/openapi-contract.yml"
+      - "backend/src/app.ts"
+      - "backend/src/routes/**"
+  push:
+    branches:
+      - integration/platform-foundation
+    paths:
+      - "docs/OPENAPI-DRAFT.yaml"
+      - "scripts/verify-openapi-routes.rb"
+      - ".github/workflows/openapi-contract.yml"
+      - "backend/src/app.ts"
+      - "backend/src/routes/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deenverse-openapi-contract-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-implemented-contract:
+    name: Validate OpenAPI against registered backend routes
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+      - name: Parse OpenAPI and compare route registrations
+        run: ruby scripts/verify-openapi-routes.rb
