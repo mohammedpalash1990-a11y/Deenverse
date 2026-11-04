@@ -62,7 +62,6 @@ export const quranReviewRoutes: FastifyPluginAsync<ReviewRoutesOptions> = async 
           created_at: now.toISOString(), expires_at: expires.toISOString()
         })));
       });
-      const origin = (process.env.PUBLIC_APP_URL || '').replace(/\/$/, '');
       return reply.status(201).send({
         data: {
           batchId, surahNumber, ayahNumber, expiresAt: expires.toISOString(),
