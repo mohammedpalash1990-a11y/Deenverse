@@ -110,6 +110,36 @@ describe("Hadith API client", () => {
     );
   });
 
+  it("passes pagination cursors through to record and search endpoints", async () => {
+    const fetcher = vi.fn<typeof fetch>()
+      .mockResolvedValueOnce(jsonResponse({
+        meta: { requestId: "req_fixture", nextCursor: "NDA=" },
+        data: [record]
+      }))
+      .mockResolvedValueOnce(jsonResponse({
+        meta: { requestId: "req_fixture", nextCursor: null },
+        data: [record]
+      }));
+    const client = createHadithClient({ fetcher });
+
+    const recordPage = await client.listRecords("fixture-book", { limit: 20, cursor: "MjA=" });
+    const searchPage = await client.search("fixture", "en", 20, "NDA=");
+
+    expect(recordPage.ok).toBe(true);
+    if (recordPage.ok) expect(recordPage.data.nextCursor).toBe("NDA=");
+    expect(searchPage.ok).toBe(true);
+    expect(fetcher).toHaveBeenNthCalledWith(
+      1,
+      "/api/v1/hadith/books/fixture-book/records?limit=20&cursor=MjA=",
+      expect.objectContaining({ method: "GET" })
+    );
+    expect(fetcher).toHaveBeenNthCalledWith(
+      2,
+      "/api/v1/hadith/search?q=fixture&locale=en&limit=20&cursor=NDA=",
+      expect.objectContaining({ method: "GET" })
+    );
+  });
+
   it("rejects records without approved source provenance", async () => {
     const fetcher = vi.fn<typeof fetch>().mockResolvedValue(jsonResponse({
       meta: { requestId: "req_fixture", nextCursor: null },
