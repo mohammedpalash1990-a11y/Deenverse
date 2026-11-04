@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useState, type CSSProperties } from "react";
 
 const apiBase = (process.env.NEXT_PUBLIC_API_BASE_URL || "/api/v1").replace(/\/$/, "");
 type ReviewData = { reviewerLabel:string; surahNumber:number; ayahNumber:number; arabic:string; source:{edition:string;url:string;attribution:string;licenseId:string;checksum:string}; instructions:string };
@@ -42,11 +42,11 @@ export default function QuranAyahReviewPage({ params }: { params: Promise<{ toke
     </form>}
   </main>;
 }
-const wrap:React.CSSProperties={maxWidth:760,margin:"36px auto",padding:"24px",color:"#20342d"};
-const eyebrow:React.CSSProperties={marginTop:34,color:"#a18a5f",letterSpacing:2,fontSize:11};
-const heading:React.CSSProperties={fontFamily:"Georgia,serif",fontWeight:500,fontSize:38};
-const arabic:React.CSSProperties={padding:30,margin:"24px 0",background:"#edf0e9",borderRadius:8,fontSize:32,lineHeight:2.2,textAlign:"right"};
-const sourceBox:React.CSSProperties={padding:20,background:"#f3f4ef",borderRadius:8,overflowWrap:"anywhere",fontSize:13};
-const field:React.CSSProperties={display:"block",width:"100%",padding:12,marginTop:6,border:"1px solid #d9dfd8",borderRadius:5,background:"#fff",color:"#20342d"};
-const check:React.CSSProperties={display:"flex",gap:10,alignItems:"flex-start",lineHeight:1.6};
-const primary:React.CSSProperties={padding:14,background:"#1c382f",color:"#fff",border:0,borderRadius:5,fontWeight:600};
+const wrap:CSSProperties={maxWidth:760,margin:"36px auto",padding:"24px",color:"#20342d"};
+const eyebrow:CSSProperties={marginTop:34,color:"#a18a5f",letterSpacing:2,fontSize:11};
+const heading:CSSProperties={fontFamily:"Georgia,serif",fontWeight:500,fontSize:38};
+const arabic:CSSProperties={padding:30,margin:"24px 0",background:"#edf0e9",borderRadius:8,fontSize:32,lineHeight:2.2,textAlign:"right"};
+const sourceBox:CSSProperties={padding:20,background:"#f3f4ef",borderRadius:8,overflowWrap:"anywhere",fontSize:13};
+const field:CSSProperties={display:"block",width:"100%",padding:12,marginTop:6,border:"1px solid #d9dfd8",borderRadius:5,background:"#fff",color:"#20342d"};
+const check:CSSProperties={display:"flex",gap:10,alignItems:"flex-start",lineHeight:1.6};
+const primary:CSSProperties={padding:14,background:"#1c382f",color:"#fff",border:0,borderRadius:5,fontWeight:600};
