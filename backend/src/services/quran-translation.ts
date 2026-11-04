@@ -96,7 +96,7 @@ export class QuranEncBengaliTranslationService {
         Number(body.aya) !== ayahNumber ||
         typeof body.translation !== 'string' ||
         body.translation.length === 0 ||
-        !(body.footnotes === null || typeof body.footnotes === 'string' || Array.isArray(body.footnotes))) {
+        body.footnotes === undefined) {
       return { status: 'invalid_source_response' };
     }
 
