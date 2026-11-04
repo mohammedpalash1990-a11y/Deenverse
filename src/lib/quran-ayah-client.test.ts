@@ -73,7 +73,7 @@ describe("createQuranAyahClient", () => {
       await client.getAyah(2, 255);
 
       expect(fetcher).toHaveBeenCalledWith(
-        "https://api.deenverse.example/api/v1/quran/surahs/2/ayahs/255",
+        "https://api.deenverse.example/api/v1/ayah/2/255",
         { method: "GET", headers: { Accept: "application/json" } }
       );
     } finally {
@@ -90,7 +90,7 @@ describe("createQuranAyahClient", () => {
       await client.getAyah(2, 255);
 
       expect(fetcher).toHaveBeenCalledWith(
-        "/api/v1/quran/surahs/2/ayahs/255",
+        "/api/v1/ayah/2/255",
         { method: "GET", headers: { Accept: "application/json" } }
       );
     } finally {
