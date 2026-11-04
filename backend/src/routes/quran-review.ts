@@ -21,7 +21,7 @@ export const quranReviewRoutes: FastifyPluginAsync<ReviewRoutesOptions> = async 
         return reply.status(401).send({ error: { code: 'UNAUTHENTICATED', message: 'Review administrator access is not configured or valid.' } });
       }
       const { sourceId, surahNumber, ayahNumber, reviewers, createdBy } = request.body || {};
-      if (!sourceId || !createdBy || !Number.isInteger(surahNumber) || !Number.isInteger(ayahNumber)
+      if (typeof sourceId !== 'string' || !sourceId.trim() || typeof createdBy !== 'string' || !createdBy.trim() || !Number.isInteger(surahNumber) || !Number.isInteger(ayahNumber)
         || surahNumber < 1 || surahNumber > 114 || ayahNumber < 1 || ayahNumber > 286
         || !Array.isArray(reviewers) || reviewers.length < 3 || reviewers.length > 5
         || reviewers.some((name) => typeof name !== 'string' || !name.trim() || name.length > 100)
@@ -96,7 +96,7 @@ export const quranReviewRoutes: FastifyPluginAsync<ReviewRoutesOptions> = async 
       const token = request.params.token;
       const tokenHash = hash(token);
       const { reviewerName, decision, textMatch, referenceMatch, issueNote } = request.body || {};
-      if (!/^[A-Za-z0-9_-]{40,60}$/.test(token) || !reviewerName?.trim() || reviewerName.length > 100
+      if (!/^[A-Za-z0-9_-]{40,60}$/.test(token) || typeof reviewerName !== 'string' || !reviewerName.trim() || reviewerName.length > 100
         || !['passed', 'failed', 'needs_correction'].includes(decision)
         || typeof textMatch !== 'boolean' || typeof referenceMatch !== 'boolean'
         || (decision === 'passed' && (!textMatch || !referenceMatch))
