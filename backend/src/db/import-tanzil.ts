@@ -262,6 +262,9 @@ async function assertImportApproval(
   if (!isTruthyDatabaseBoolean(source.redistribution_allowed)) {
     throw new Error('The registered source must explicitly allow verbatim redistribution.');
   }
+  if (!source.reviewer || !source.reviewed_at || Number.isNaN(new Date(source.reviewed_at).getTime())) {
+    throw new Error('The source record is missing a valid reviewer or source-review date.');
+  }
   if (String(source.checksum).toLowerCase() !== artifactSha256) {
     throw new Error('Downloaded artifact SHA-256 does not match the registered source checksum.');
   }
@@ -283,7 +286,7 @@ async function assertImportApproval(
   return source;
 }
 
-export async function importValidatedTanzilUthmani(
+async function importValidatedTanzilUthmani(
   db: Knex,
   sourceId: string,
   validated: ValidatedTanzilImport
@@ -344,6 +347,16 @@ export async function importValidatedTanzilUthmani(
   return validated.report;
 }
 
+export async function importTanzilUthmani(
+  db: Knex,
+  sourceId: string,
+  textBytes: Uint8Array,
+  metadataBytes: Uint8Array
+): Promise<TanzilValidationReport> {
+  const validated = validateTanzilUthmaniArtifacts(textBytes, metadataBytes);
+  return importValidatedTanzilUthmani(db, sourceId, validated);
+}
+
 function readOption(args: string[], option: string): string | undefined {
   const index = args.indexOf(option);
   if (index === -1) return undefined;
@@ -402,7 +415,7 @@ async function runCli(): Promise<void> {
 
   const db = createDatabaseConnection();
   try {
-    const report = await importValidatedTanzilUthmani(db, sourceId, validated);
+    const report = await importTanzilUthmani(db, sourceId, artifactBytes, metadataBytes);
     console.log(JSON.stringify({ mode: 'imported', sourceId, ...report, databaseChanged: true }, null, 2));
   } finally {
     await db.destroy();
