@@ -207,12 +207,35 @@ export function createHadithClient(options: HadithClientOptions = {}) {
     return { ok: true, data: body.data };
   }
 
-  const parsePage = <T>(parser: (value: unknown) => value is T) => (value: unknown): value is HadithPage<T> => {
-    return isObject(value) &&
-      Array.isArray(value.items) &&
-      value.items.every(parser) &&
-      (value.nextCursor === null || typeof value.nextCursor === "string");
-  };
+
+  async function readPage<T>(path: string, validate: (value: unknown) => value is T): Promise<HadithClientResult<HadithPage<T>>> {
+    let response: Response;
+    try {
+      response = await fetcher(`${baseUrl}/hadith${path}`, {
+        method: "GET",
+        headers: { Accept: "application/json" }
+      });
+    } catch {
+      return { ok: false, error: { code: "UNAVAILABLE", message: "The Hadith service could not be reached.", retryable: true } };
+    }
+
+    let body: unknown;
+    try {
+      body = await response.json();
+    } catch {
+      body = null;
+    }
+    if (!response.ok) return { ok: false, error: mapContentApiError(response.status, body) };
+    if (!isObject(body) || !isObject(body.meta) || !isNonEmptyString(body.meta.requestId) ||
+        !Array.isArray(body.data) || !body.data.every(validate) ||
+        !(body.meta.nextCursor === null || typeof body.meta.nextCursor === "string")) {
+      return invalid("The Hadith service returned an invalid or unapproved page.");
+    }
+    return {
+      ok: true,
+      data: { items: body.data as T[], nextCursor: body.meta.nextCursor as string | null }
+    };
+  }
 
   function pagePath(params: Record<string, string | undefined>): string {
     const query = new URLSearchParams();
@@ -225,7 +248,7 @@ export function createHadithClient(options: HadithClientOptions = {}) {
 
   return {
     listBooks(limit = 50): Promise<HadithClientResult<HadithPage<HadithBook>>> {
-      return read(pagePath({ limit: String(limit) }), parsePage(parseBook));
+      return readPage(pagePath({ limit: String(limit) }), parseBook);
     },
 
     listChapters(bookId: string): Promise<HadithClientResult<HadithChapter[]>> {
@@ -239,7 +262,7 @@ export function createHadithClient(options: HadithClientOptions = {}) {
         locale: options.locale,
         limit: String(options.limit ?? 20)
       });
-      return read(`/books/${encodeURIComponent(bookId)}/records${query}`, parsePage(parseRecord));
+      return readPage(`/books/${encodeURIComponent(bookId)}/records${query}`, parseRecord);
     },
 
     getRecord(recordId: string, locale?: "ar" | "bn" | "en"): Promise<HadithClientResult<HadithRecord>> {
@@ -247,7 +270,7 @@ export function createHadithClient(options: HadithClientOptions = {}) {
     },
 
     search(query: string, locale?: "ar" | "bn" | "en", limit = 20): Promise<HadithClientResult<HadithPage<HadithRecord>>> {
-      return read(`/search${pagePath({ q: query, locale, limit: String(limit) })}`, parsePage(parseRecord));
+      return readPage(`/search${pagePath({ q: query, locale, limit: String(limit) })}`, parseRecord);
     }
   };
 }
