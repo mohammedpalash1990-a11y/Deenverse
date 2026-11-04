@@ -64,7 +64,7 @@ function decodeUtf8(bytes: Uint8Array, label: string): string {
   try {
     return new TextDecoder('utf-8', { fatal: true }).decode(bytes);
   } catch {
-    throw new Error(\` ${label} is not valid UTF-8.\`.trim());
+    throw new Error(`${label} is not valid UTF-8.`);
   }
 }
 
@@ -125,7 +125,7 @@ export function parseTanzilMetadata(metadataBytes: Uint8Array): TanzilSurahMetad
       !nameSimple ||
       !nameEnglish
     ) {
-      throw new Error(\`Tanzil metadata has invalid fields for Surah ${attributes.index ?? 'unknown'}.\`);
+      throw new Error(`Tanzil metadata has invalid fields for Surah ${attributes.index ?? 'unknown'}.`);
     }
 
     surahs.push({
@@ -140,7 +140,7 @@ export function parseTanzilMetadata(metadataBytes: Uint8Array): TanzilSurahMetad
   }
 
   if (surahs.length !== 114) {
-    throw new Error(\`Tanzil metadata must contain exactly 114 Surahs; found ${surahs.length}.\`);
+    throw new Error(`Tanzil metadata must contain exactly 114 Surahs; found ${surahs.length}.`);
   }
 
   for (let index = 0; index < surahs.length; index += 1) {
@@ -148,11 +148,11 @@ export function parseTanzilMetadata(metadataBytes: Uint8Array): TanzilSurahMetad
     const expectedNumber = index + 1;
     const expectedAyahs = EXPECTED_AYAH_COUNTS[index];
     if (surah.surahNumber !== expectedNumber) {
-      throw new Error(\`Tanzil metadata Surahs are missing, duplicated, or reordered at position ${expectedNumber}.\`);
+      throw new Error(`Tanzil metadata Surahs are missing, duplicated, or reordered at position ${expectedNumber}.`);
     }
     if (surah.versesCount !== expectedAyahs) {
       throw new Error(
-        \`Tanzil metadata reports ${surah.versesCount} Ayahs for Surah ${expectedNumber}; expected ${expectedAyahs}.\`
+        `Tanzil metadata reports ${surah.versesCount} Ayahs for Surah ${expectedNumber}; expected ${expectedAyahs}.`
       );
     }
   }
@@ -167,7 +167,7 @@ export function parseTanzilUthmaniText(textBytes: Uint8Array): TanzilAyahRecord[
   const lines = text.split('\n');
   if (lines.at(-1) === '') lines.pop();
   if (lines.length !== EXPECTED_TOTAL_AYAHS) {
-    throw new Error(\`Tanzil Uthmani text must contain exactly ${EXPECTED_TOTAL_AYAHS} verse rows; found ${lines.length}.\`);
+    throw new Error(`Tanzil Uthmani text must contain exactly ${EXPECTED_TOTAL_AYAHS} verse rows; found ${lines.length}.`);
   }
 
   const ayahs: TanzilAyahRecord[] = [];
@@ -177,7 +177,7 @@ export function parseTanzilUthmaniText(textBytes: Uint8Array): TanzilAyahRecord[
   for (let index = 0; index < lines.length; index += 1) {
     const line = lines[index].endsWith('\r') ? lines[index].slice(0, -1) : lines[index];
     const match = /^([1-9]\d*)\|([1-9]\d*)\|(.+)$/u.exec(line);
-    if (!match) throw new Error(\`Tanzil Uthmani row ${index + 1} is not in surah|ayah|text format.\`);
+    if (!match) throw new Error(`Tanzil Uthmani row ${index + 1} is not in surah|ayah|text format.`);
 
     const surahNumber = Number(match[1]);
     const ayahNumber = Number(match[2]);
@@ -185,11 +185,11 @@ export function parseTanzilUthmaniText(textBytes: Uint8Array): TanzilAyahRecord[
 
     if (surahNumber !== expectedSurah || ayahNumber !== expectedAyah) {
       throw new Error(
-        \`Tanzil Uthmani row ${index + 1} is ${surahNumber}:${ayahNumber}; expected ${expectedSurah}:${expectedAyah}.\`
+        `Tanzil Uthmani row ${index + 1} is ${surahNumber}:${ayahNumber}; expected ${expectedSurah}:${expectedAyah}.`
       );
     }
     if (arabic.length === 0 || arabic.includes('\u0000')) {
-      throw new Error(\`Tanzil Uthmani row ${index + 1} contains empty or invalid verse text.\`);
+      throw new Error(`Tanzil Uthmani row ${index + 1} contains empty or invalid verse text.`);
     }
 
     ayahs.push({
@@ -247,13 +247,13 @@ async function assertImportApproval(
   artifactSha256: string
 ): Promise<Record<string, unknown>> {
   const source = await db('content_sources').where({ id: sourceId }).first();
-  if (!source) throw new Error(\`Quran source ${sourceId} is not registered in content_sources.\`);
+  if (!source) throw new Error(`Quran source ${sourceId} is not registered in content_sources.`);
   if (source.content_type !== 'quran') throw new Error('Registered source content_type must be quran.');
   if (source.edition !== TANZIL_UTHMANI_EDITION) {
-    throw new Error(\`Registered source edition must be exactly "${TANZIL_UTHMANI_EDITION}".\`);
+    throw new Error(`Registered source edition must be exactly "${TANZIL_UTHMANI_EDITION}".`);
   }
   if (source.source_url !== TANZIL_TEXT_URL) throw new Error('Registered source URL must be the official Tanzil download page.');
-  if (source.license_id !== TANZIL_LICENSE_ID) throw new Error(\`Registered license_id must be ${TANZIL_LICENSE_ID}.\`);
+  if (source.license_id !== TANZIL_LICENSE_ID) throw new Error(`Registered license_id must be ${TANZIL_LICENSE_ID}.`);
   if (!String(source.attribution ?? '').includes('Tanzil Project') ||
       !String(source.attribution ?? '').includes('Creative Commons Attribution 3.0') ||
       !String(source.attribution ?? '').includes('https://tanzil.net/')) {
@@ -348,7 +348,7 @@ function readOption(args: string[], option: string): string | undefined {
   const index = args.indexOf(option);
   if (index === -1) return undefined;
   const value = args[index + 1];
-  if (!value || value.startsWith('--')) throw new Error(\`${option} requires a value.\`);
+  if (!value || value.startsWith('--')) throw new Error(`${option} requires a value.`);
   return value;
 }
 
@@ -379,14 +379,14 @@ async function runCli(): Promise<void> {
   }
   const allowed = new Set(['--artifact', '--metadata', '--source-id', '--expected-sha256', '--apply', '--help']);
   for (const argument of args) {
-    if (argument.startsWith('--') && !allowed.has(argument)) throw new Error(\`Unknown option: ${argument}\`);
+    if (argument.startsWith('--') && !allowed.has(argument)) throw new Error(`Unknown option: ${argument}`);
   }
 
   const artifactBytes = await readFile(resolve(artifactPath));
   const metadataBytes = await readFile(resolve(metadataPath));
   const validated = validateTanzilUthmaniArtifacts(artifactBytes, metadataBytes);
   if (validated.report.artifactSha256 !== expectedSha256) {
-    throw new Error(\`Artifact SHA-256 mismatch. Actual digest: ${validated.report.artifactSha256}\`);
+    throw new Error(`Artifact SHA-256 mismatch. Actual digest: ${validated.report.artifactSha256}`);
   }
 
   if (!apply) {
