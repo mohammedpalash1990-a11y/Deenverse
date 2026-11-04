@@ -22,11 +22,7 @@ export interface VerifiedAyah {
     approvedByAuthority: string;
     approvedAt: string;
   };
-  payload: {
-    surahNumber: number;
-    ayahNumber: number;
-    textArabic: string;
-  };
+  payload: { surahNumber: number; ayahNumber: number; textArabic: string };
 }
 
 export type AyahLookupResult =
@@ -42,6 +38,10 @@ const sha256 = (value: string): string =>
 function isoDate(value: string | Date): string {
   const date = value instanceof Date ? value : new Date(value);
   return Number.isNaN(date.getTime()) ? '' : date.toISOString();
+}
+
+function isTrue(value: unknown): boolean {
+  return value === true || Number(value) === 1;
 }
 
 export class QuranAyahService {
@@ -82,32 +82,37 @@ export class QuranAyahService {
     const reviewedAt = isoDate(source.reviewed_at);
     const approvedAt = isoDate(source.approved_at);
     let sourceUrlIsHttps = false;
-    try {
-      sourceUrlIsHttps = new URL(String(source.source_url)).protocol === 'https:';
-    } catch {
-      sourceUrlIsHttps = false;
-    }
+    try { sourceUrlIsHttps = new URL(String(source.source_url)).protocol === 'https:'; }
+    catch { sourceUrlIsHttps = false; }
+
     if (
-      !/^[a-f0-9]{64}$/i.test(checksum) ||
-      Number(source.is_active) !== 1 ||
+      !/^[a-f0-9]{64}$/i.test(checksum) || !isTrue(source.is_active) ||
       !source.edition || !source.license_id || !source.attribution ||
       !source.reviewer || !reviewedAt || !approvedAt ||
       !source.approval_id || !source.approval_reviewer_id || !sourceUrlIsHttps ||
-      (source.redistribution_allowed !== true && Number(source.redistribution_allowed) !== 1)
-    ) {
-      return { status: 'source_unavailable' };
-    }
+      !isTrue(source.redistribution_allowed)
+    ) return { status: 'source_unavailable' };
 
     const record = await this.db('quran_ayahs')
-      .where({
-        source_id: source.source_id,
-        surah_number: surah,
-        ayah_number: ayah
-      })
+      .where({ source_id: source.source_id, surah_number: surah, ayah_number: ayah })
       .select('arabic', 'text_sha256')
       .first();
-
     if (!record) return { status: 'not_found' };
+
+    const review = await this.db('quran_ayah_reviews')
+      .where({ source_id: source.source_id, surah_number: surah, ayah_number: ayah })
+      .select('review_status', 'artifact_sha256', 'reviewer_id', 'reviewed_at',
+        'text_match', 'boundary_match', 'second_review_status')
+      .first();
+
+    if (
+      !review || review.review_status !== 'passed' ||
+      String(review.artifact_sha256).toLowerCase() !== checksum.toLowerCase() ||
+      !review.reviewer_id || !isoDate(review.reviewed_at) ||
+      !isTrue(review.text_match) || !isTrue(review.boundary_match) ||
+      (review.second_review_status != null && review.second_review_status !== 'passed')
+    ) return { status: 'integrity_rejected' };
+
     if (!/^[a-f0-9]{64}$/.test(record.text_sha256) || sha256(record.arabic) !== record.text_sha256) {
       return { status: 'integrity_rejected' };
     }
@@ -120,26 +125,13 @@ export class QuranAyahService {
         title: `Ayah ${surah}:${ayah}`,
         locale: 'ar',
         provenance: {
-          contentType: 'quran',
-          sourceId: source.source_id,
-          edition: source.edition,
-          sourceUrl: source.source_url,
-          attribution: source.attribution,
-          licenseId: source.license_id,
-          redistributionAllowed: true,
-          reviewer: source.reviewer,
-          reviewedAt,
-          checksum,
-          approvalStatus: 'approved',
-          reviewDecisionId: source.approval_id,
-          approvedByAuthority: source.approval_reviewer_id,
-          approvedAt
+          contentType: 'quran', sourceId: source.source_id, edition: source.edition,
+          sourceUrl: source.source_url, attribution: source.attribution, licenseId: source.license_id,
+          redistributionAllowed: true, reviewer: source.reviewer, reviewedAt, checksum,
+          approvalStatus: 'approved', reviewDecisionId: source.approval_id,
+          approvedByAuthority: source.approval_reviewer_id, approvedAt
         },
-        payload: {
-          surahNumber: surah,
-          ayahNumber: ayah,
-          textArabic: record.arabic
-        }
+        payload: { surahNumber: surah, ayahNumber: ayah, textArabic: record.arabic }
       }
     };
   }

@@ -57,7 +57,7 @@ export const quranAyahRoutes: FastifyPluginAsync<QuranAyahRoutesOptions> = async
       const response: ApiErrorResponse = {
         error: {
           code: 'INTEGRITY_REJECTED',
-          message: 'The stored ayah failed its SHA-256 integrity check.',
+          message: 'The ayah is not eligible for publication: text integrity or per-ayah review gate failed.',
           requestId: request.id,
           details: [],
           retryable: false

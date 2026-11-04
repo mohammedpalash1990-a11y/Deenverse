@@ -126,7 +126,7 @@ export function buildApp(opts: BuildAppOptions): FastifyInstance {
     api.get('/api/v1/ready', async (request, reply) => {
       try {
         await db.raw('SELECT 1');
-        const requiredTables = ['content_sources', 'content_source_approvals', 'quran_surahs', 'quran_ayahs'];
+        const requiredTables = ['content_sources', 'content_source_approvals', 'quran_surahs', 'quran_ayahs', 'quran_ayah_reviews'];
         const present = await Promise.all(requiredTables.map((table) => db.schema.hasTable(table)));
         if (!present.every(Boolean)) {
           const response: ApiErrorResponse = {
