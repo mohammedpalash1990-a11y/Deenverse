@@ -5,8 +5,13 @@ import {
   createQuranAyahClient,
   type QuranAyahRecord
 } from "@/lib/quran-ayah-client";
+import {
+  createQuranBengaliTranslationClient,
+  type QuranBengaliTranslation
+} from "@/lib/quran-translation-client";
 
-const defaultClient = createQuranAyahClient();\nconst defaultTranslationClient = createQuranBengaliTranslationClient();
+const defaultClient = createQuranAyahClient();
+const defaultTranslationClient = createQuranBengaliTranslationClient();
 
 type AyahClient = Pick<ReturnType<typeof createQuranAyahClient>, "getAyah">;
 
@@ -16,6 +21,11 @@ type ReaderState =
   | { status: "error"; message: string; retryable: boolean }
   | { status: "ready"; record: QuranAyahRecord };
 
+type TranslationState =
+  | { status: "idle" | "loading" }
+  | { status: "error"; message: string }
+  | { status: "ready"; data: QuranBengaliTranslation };
+
 interface QuranAyahReaderProps {
   client?: AyahClient;
 }
@@ -23,7 +33,8 @@ interface QuranAyahReaderProps {
 export function QuranAyahReader({ client = defaultClient }: QuranAyahReaderProps) {
   const [surah, setSurah] = useState("1");
   const [ayah, setAyah] = useState("1");
-  const [state, setState] = useState<ReaderState>({ status: "idle" });\n  const [translationState, setTranslationState] = useState<TranslationState>({ status: "idle" });
+  const [state, setState] = useState<ReaderState>({ status: "idle" });
+  const [translationState, setTranslationState] = useState<TranslationState>({ status: "idle" });
 
   async function loadAyah(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -36,10 +47,12 @@ export function QuranAyahReader({ client = defaultClient }: QuranAyahReaderProps
         message: "Enter whole-number Surah and Ayah coordinates.",
         retryable: false
       });
+      setTranslationState({ status: "idle" });
       return;
     }
 
     setState({ status: "loading" });
+    setTranslationState({ status: "loading" });
     const result = await client.getAyah(surahNumber, ayahNumber);
     if (!result.ok) {
       setState({
@@ -47,9 +60,15 @@ export function QuranAyahReader({ client = defaultClient }: QuranAyahReaderProps
         message: result.error.message,
         retryable: result.error.retryable
       });
+      setTranslationState({ status: "idle" });
       return;
     }
+
     setState({ status: "ready", record: result.data });
+    const translation = await defaultTranslationClient.getAyah(surahNumber, ayahNumber);
+    setTranslationState(translation.ok
+      ? { status: "ready", data: translation.data }
+      : { status: "error", message: translation.message });
   }
 
   return (
@@ -108,6 +127,28 @@ export function QuranAyahReader({ client = defaultClient }: QuranAyahReaderProps
           <p className="ayah-reader-reference">
             Surah {state.record.payload.surahNumber} · Ayah {state.record.payload.ayahNumber}
           </p>
+          <section className="ayah-translation" aria-label="বাংলা অনুবাদ">
+            <h4>বাংলা অনুবাদ — আবু বকর মুহাম্মাদ যাকারিয়া</h4>
+            {translationState.status === "loading" && <p role="status">অনুবাদ লোড হচ্ছে…</p>}
+            {translationState.status === "error" && <p role="alert">{translationState.message}</p>}
+            {translationState.status === "ready" && (
+              <>
+                <p lang="bn">{translationState.data.translation}</p>
+                {translationState.data.footnotes !== null && translationState.data.footnotes !== undefined && (
+                  <details>
+                    <summary>অনুবাদকের টীকা</summary>
+                    <pre>{typeof translationState.data.footnotes === "string"
+                      ? translationState.data.footnotes
+                      : JSON.stringify(translationState.data.footnotes, null, 2)}</pre>
+                  </details>
+                )}
+                <p className="ayah-reader-attribution">
+                  {translationState.data.provenance.translator} · {translationState.data.provenance.publisher} · {translationState.data.provenance.editionVersion}
+                </p>
+                <a href={translationState.data.provenance.sourceUrl} target="_blank" rel="noreferrer">QuranEnc-এর মূল অনুবাদ</a>
+              </>
+            )}
+          </section>
         </article>
       )}
     </section>
