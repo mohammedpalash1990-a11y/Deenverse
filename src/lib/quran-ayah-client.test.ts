@@ -111,6 +111,16 @@ describe("createQuranAyahClient", () => {
     }
   );
 
+  it("normalizes the current backend approvalReviewerId alias to approvedByAuthority", async () => {
+    const backendProvenance = { ...provenance, approvalReviewerId: provenance.approvedByAuthority };
+    delete (backendProvenance as Record<string, unknown>).approvedByAuthority;
+    const fetcher = vi.fn().mockResolvedValue(response(200, success({ provenance: backendProvenance })));
+    const result = await createQuranAyahClient({ fetcher }).getAyah(2, 255);
+
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.data.provenance.approvedByAuthority).toBe("test-authority-only");
+  });
+
   it("rejects an ID that does not match the requested coordinates", async () => {
     const fetcher = vi.fn().mockResolvedValue(response(200, success({
       id: "quran:ayah:2:256"
