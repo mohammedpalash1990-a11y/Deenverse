@@ -71,9 +71,14 @@ The pagination cursor is an opaque, base64-encoded non-negative offset in the cu
 ```
 
 Standard Error Codes:
-- `CONTENT_UNAVAILABLE`: Service or approved source is not configured/available.
-- `VALIDATION_ERROR`: Query parameters or payload failed validation.
-- `INTEGRITY_REJECTED`: Content failed provenance or verification review.
-- `NOT_FOUND`: Requested entity does not exist.
-- `RATE_LIMITED`: Too many requests (retryable: true).
-- `INTERNAL_ERROR`: Internal server failure.
+- `CONTENT_UNAVAILABLE`: No eligible approved source is available, or Quran edition selection is ambiguous.
+- `UNAVAILABLE`: A service/readiness dependency is unavailable.
+- `VALIDATION_ERROR`: Query parameters or payload failed validation (HTTP 400).
+- `UNAUTHENTICATED`: Authentication is required (HTTP 401 where a route policy applies).
+- `FORBIDDEN`: The caller is not permitted to access the resource (HTTP 403).
+- `NOT_FOUND`: Requested entity does not exist (HTTP 404).
+- `RATE_LIMITED`: Too many requests (HTTP 429; retryable).
+- `INTEGRITY_REJECTED`: Content failed provenance or stored-record integrity checks (HTTP 502).
+- `INTERNAL_ERROR`: Internal server failure (HTTP 500).
+
+The current backend uses HTTP 400 for validation errors, 401/403 for authentication/authorization errors when applicable, 404 for missing resources, 429 for rate limiting, 502 for integrity rejection, and 503 for `CONTENT_UNAVAILABLE` or `UNAVAILABLE`. Read-only route registration does not imply that any religious corpus is approved or populated.
