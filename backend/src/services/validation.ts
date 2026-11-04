@@ -10,12 +10,12 @@ export const ContentProvenanceSchema = z.object({
   }),
   attribution: z.string().min(1, 'Attribution is required'),
   licenseId: z.string().min(1, 'License ID is required'),
-  redistributionAllowed: z.literal(true),
+  redistributionAllowed: z.literal(true, { error: 'Redistribution permission has not been explicitly approved' }),
   reviewer: z.string().min(1, 'Approval reviewer is required'),
   reviewedAt: z.string().refine((val) => !Number.isNaN(Date.parse(val)), {
     message: 'Review date is invalid'
   }),
-  approvalStatus: z.literal('approved'),
+  approvalStatus: z.literal('approved', { error: 'Source must have an explicit approved status' }),
   reviewDecisionId: z.string().min(1, 'Review decision ID is required'),
   approvedByAuthority: z.string().min(1, 'Approved by authority is required'),
   approvedAt: z.string().refine((val) => !Number.isNaN(Date.parse(val)), {
