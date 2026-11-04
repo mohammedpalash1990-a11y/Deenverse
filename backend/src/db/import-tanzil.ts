@@ -313,6 +313,13 @@ async function assertImportApproval(
   if (!approval.reviewer_id || !approval.approved_at || !approval.review_notes) {
     throw new Error('The source approval record is missing reviewer, approval date, or review notes.');
   }
+  if (
+    approval.reviewer_id === source.reviewer ||
+    approval.reviewer_id === 'project-owner-chat-authorization' ||
+    source.reviewer === 'project-owner-chat-authorization'
+  ) {
+    throw new Error('Source review and artifact approval must be recorded by distinct, independent human reviewers.');
+  }
   if (!String(approval.review_notes).toLowerCase().includes(metadataSha256)) {
     throw new Error('Human approval notes must include the exact Tanzil metadata XML SHA-256.');
   }

@@ -10,14 +10,8 @@ import {
 } from './import-tanzil.js';
 
 const SOURCE_ID = 'tanzil-uthmani-v1';
-const SOURCE_CODE = 'tanzil-uthmani-v1';
-const SOURCE_NAME = 'Tanzil Quran Text (Uthmani)';
-const SOURCE_REVIEWER = 'project-owner-chat-authorization';
 const ATTRIBUTION =
   'Tanzil Quran Text (Uthmani), Tanzil Project. Creative Commons Attribution 3.0 (CC BY 3.0). Verbatim and unmodified. Source: https://tanzil.net/.';
-
-const sha256 = (bytes: Uint8Array): string =>
-  createHash('sha256').update(bytes).digest('hex');
 
 async function downloadBytes(
   url: string,
@@ -43,71 +37,45 @@ async function downloadBytes(
   return bytes;
 }
 
-async function registerOwnerAuthorizedSource(
+async function assertIndependentlyApprovedSource(
   db: Knex,
   artifactSha256: string,
   metadataSha256: string
 ): Promise<void> {
-  const timestamp = new Date().toISOString();
   const source = await db('content_sources').where({ id: SOURCE_ID }).first();
-
-  if (!source) {
-    await db('content_sources').insert({
-      id: SOURCE_ID,
-      code: SOURCE_CODE,
-      name: SOURCE_NAME,
-      content_type: 'quran',
-      edition: TANZIL_UTHMANI_EDITION,
-      source_url: TANZIL_TEXT_URL,
-      attribution: ATTRIBUTION,
-      license_id: TANZIL_LICENSE_ID,
-      redistribution_allowed: true,
-      reviewer: SOURCE_REVIEWER,
-      reviewed_at: timestamp,
-      checksum: artifactSha256,
-      is_active: false
-    });
-  } else if (
+  if (!source) throw new Error('Tanzil source must be registered and independently reviewed before import.');
+  if (
     source.content_type !== 'quran' ||
     source.edition !== TANZIL_UTHMANI_EDITION ||
     source.source_url !== TANZIL_TEXT_URL ||
     source.license_id !== TANZIL_LICENSE_ID ||
-    source.checksum !== artifactSha256 ||
+    !String(source.attribution ?? '').includes('Tanzil Project') ||
+    !String(source.attribution ?? '').includes('Creative Commons Attribution 3.0') ||
+    !String(source.attribution ?? '').includes('https://tanzil.net/') ||
+    !(source.redistribution_allowed === true || source.redistribution_allowed === 1 || source.redistribution_allowed === '1') ||
+    !source.reviewer ||
+    source.reviewer === 'project-owner-chat-authorization' ||
+    !source.reviewed_at ||
+    String(source.checksum).toLowerCase() !== artifactSha256 ||
     source.is_active === true
-  ) {
-    throw new Error('The existing Tanzil source registration differs from the downloaded artifact; no changes were made.');
-  }
+  ) throw new Error('Tanzil source registration is incomplete, unverified, active, or does not match the exact artifact.');
 
   const approval = await db('content_source_approvals').where({ source_id: SOURCE_ID }).first();
-  const reviewNotes = [
-    'Import authorization: the project owner explicitly instructed Deenverse to add Quran Ayat and previously authorized verbatim third-party source use with attribution.',
-    'The selected edition is the official Tanzil Uthmani text. Import validation checks the complete 114-Surah sequence, all 6,236 canonical Ayah coordinates, per-Surah counts, UTF-8 validity, and exact-text preservation.',
-    `artifact_sha256=${artifactSha256}`,
-    `metadata_sha256=${metadataSha256}`,
-    'No translation, normalization, or generated text is included.'
-  ].join(' ');
-
-  if (!approval) {
-    await db('content_source_approvals').insert({
-      id: 'tanzil-uthmani-v1-owner-approval',
-      source_id: SOURCE_ID,
-      decision: 'approved',
-      reviewer_id: SOURCE_REVIEWER,
-      approved_at: timestamp,
-      artifact_sha256: artifactSha256,
-      review_notes: reviewNotes
-    });
-  } else if (
+  if (
+    !approval ||
     approval.decision !== 'approved' ||
-    approval.artifact_sha256 !== artifactSha256 ||
-    !String(approval.review_notes ?? '').includes(metadataSha256)
-  ) {
-    throw new Error('An existing approval does not match this exact Tanzil artifact; no content was imported.');
-  }
+    !approval.reviewer_id ||
+    approval.reviewer_id === 'project-owner-chat-authorization' ||
+    approval.reviewer_id === source.reviewer ||
+    !approval.approved_at ||
+    !approval.review_notes ||
+    String(approval.artifact_sha256).toLowerCase() !== artifactSha256 ||
+    !String(approval.review_notes).includes(metadataSha256)
+  ) throw new Error('A separate, independent human approval bound to the exact Tanzil text and metadata checksums is required.');
 }
 
 /**
- * One-time, owner-authorized import. This runs only when the explicit
+ * One-time, source-approved import. This runs only when the explicit
  * DEENVERSE_SEED_TANZIL_UTHMANI environment flag is enabled.
  */
 export async function seedTanzilUthmaniFromOfficialSource(db: Knex): Promise<void> {
@@ -175,7 +143,7 @@ export async function seedTanzilUthmaniFromOfficialSource(db: Knex): Promise<voi
     throw new Error('Quran tables contain partial data; refusing to overwrite or mix editions.');
   }
 
-  await registerOwnerAuthorizedSource(
+  await assertIndependentlyApprovedSource(
     db,
     validated.report.artifactSha256,
     validated.report.metadataSha256

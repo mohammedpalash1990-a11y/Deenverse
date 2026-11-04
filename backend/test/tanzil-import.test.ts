@@ -185,7 +185,7 @@ test('imports only after exact artifact checksum and independent approval are re
       attribution: 'Tanzil Project. License: Creative Commons Attribution 3.0. Source: https://tanzil.net/',
       license_id: TANZIL_LICENSE_ID,
       redistribution_allowed: true,
-      reviewer: 'independent-reviewer',
+      reviewer: 'source-reviewer',
       reviewed_at: now,
       checksum: validated.report.artifactSha256,
       is_active: false
@@ -200,11 +200,19 @@ test('imports only after exact artifact checksum and independent approval are re
       id: 'tanzil-test-approval',
       source_id: sourceId,
       decision: 'approved',
-      reviewer_id: 'independent-reviewer',
+      reviewer_id: 'source-reviewer',
       approved_at: now,
       artifact_sha256: validated.report.artifactSha256,
       review_notes: `Synthetic test fixture only; no Quran content. metadata_sha256=${createHash('sha256').update(fixture.metadata).digest('hex')}`
     });
+
+    await assert.rejects(
+      () => importTanzilUthmani(db, sourceId, fixture.text, fixture.metadata),
+      /distinct, independent human reviewers/
+    );
+    await db('content_source_approvals')
+      .where({ source_id: sourceId })
+      .update({ reviewer_id: 'independent-approval-reviewer' });
 
     const report = await importTanzilUthmani(db, sourceId, fixture.text, fixture.metadata);
     assert.equal(report.surahCount, 114);
