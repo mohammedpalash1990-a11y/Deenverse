@@ -20,17 +20,17 @@ function buildOfficialShapeFixture(): { text: Buffer; metadata: Buffer } {
   EXPECTED_AYAH_COUNTS.forEach((ayahCount, surahIndex) => {
     const surahNumber = surahIndex + 1;
     metadataRows.push(
-      \`<sura index="${surahNumber}" name="سورة اختبار ${surahNumber}" tname="Test-${surahNumber}" ename="Test Chapter ${surahNumber}" type="${surahNumber % 2 === 0 ? 'Medinan' : 'Meccan'}" order="${surahNumber}" rukus="1" ayas="${ayahCount}" />\`
+      `<sura index="${surahNumber}" name="سورة اختبار ${surahNumber}" tname="Test-${surahNumber}" ename="Test Chapter ${surahNumber}" type="${surahNumber % 2 === 0 ? 'Medinan' : 'Meccan'}" order="${surahNumber}" rukus="1" ayas="${ayahCount}" />`
     );
 
     for (let ayahNumber = 1; ayahNumber <= ayahCount; ayahNumber += 1) {
-      textRows.push(\`${surahNumber}|${ayahNumber}|نص اختبار غير قرآني ${surahNumber}:${ayahNumber}\`);
+      textRows.push(`${surahNumber}|${ayahNumber}|نص اختبار غير قرآني ${surahNumber}:${ayahNumber}`);
     }
   });
 
   return {
-    text: Buffer.from(\`${textRows.join('\n')}\n\`, 'utf8'),
-    metadata: Buffer.from(\`<?xml version="1.0" encoding="utf-8"?>\n<quran><suras>\n${metadataRows.join('\n')}\n</suras></quran>\n\`, 'utf8')
+    text: Buffer.from(`${textRows.join('\n')}\n`, 'utf8'),
+    metadata: Buffer.from(`<?xml version="1.0" encoding="utf-8"?>\n<quran><suras>\n${metadataRows.join('\n')}\n</suras></quran>\n`, 'utf8')
   };
 }
 
