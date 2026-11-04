@@ -11,6 +11,7 @@ test('database migration creates the complete schema and is safe to rerun', asyn
     assert.equal(await db.schema.hasTable('content_sources'), true);
     assert.equal(await db.schema.hasTable('quran_surahs'), true);
     assert.equal(await db.schema.hasTable('content_source_approvals'), true);
+    assert.equal(await db.schema.hasTable('problem_reports'), true);
 
     await assert.doesNotReject(() => runMigrations(db));
   } finally {
@@ -30,6 +31,7 @@ test('database migration upgrades an existing base schema with the approval tabl
     await runMigrations(db);
 
     assert.equal(await db.schema.hasTable('content_source_approvals'), true);
+    assert.equal(await db.schema.hasTable('problem_reports'), true);
     await assert.doesNotReject(() => runMigrations(db));
   } finally {
     await db.destroy();
