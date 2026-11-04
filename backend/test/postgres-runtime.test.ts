@@ -42,6 +42,12 @@ test('PostgreSQL migrations and production runtime are verified against a real P
 
   try {
     await db.raw('SELECT 1');
+    await db.schema.dropTableIfExists('hadith_record_reviews');
+    await db.schema.dropTableIfExists('hadith_grade_assessments');
+    await db.schema.dropTableIfExists('hadith_translations');
+    await db.schema.dropTableIfExists('hadith_records');
+    await db.schema.dropTableIfExists('hadith_chapters');
+    await db.schema.dropTableIfExists('hadith_books');
     await db.schema.dropTableIfExists('quran_ayahs');
     await db.schema.dropTableIfExists('content_source_approvals');
     await db.schema.dropTableIfExists('quran_surahs');
@@ -107,6 +113,12 @@ test('PostgreSQL migrations and production runtime are verified against a real P
         await once(child, 'exit');
       }
     }
+    await db.schema.dropTableIfExists('hadith_record_reviews');
+    await db.schema.dropTableIfExists('hadith_grade_assessments');
+    await db.schema.dropTableIfExists('hadith_translations');
+    await db.schema.dropTableIfExists('hadith_records');
+    await db.schema.dropTableIfExists('hadith_chapters');
+    await db.schema.dropTableIfExists('hadith_books');
     await db.schema.dropTableIfExists('quran_ayahs');
     await db.schema.dropTableIfExists('content_source_approvals');
     await db.schema.dropTableIfExists('quran_surahs');
