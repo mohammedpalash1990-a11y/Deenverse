@@ -28,7 +28,7 @@ test('production backend startup fails closed before opening a SQLite database',
     assert.notEqual(result.status, 0, 'production startup must be rejected');
     assert.match(
       result.stderr,
-      /Production startup is blocked: DEENVERSE PostgreSQL runtime is not implemented; SQLite is development\/test only\./
+      /Production requires PostgreSQL. Set DATABASE_URL to a PostgreSQL connection string/
     );
     assert.equal(existsSync(databasePath), false, 'SQLite database must not be opened or created');
     assert.doesNotMatch(result.stdout + result.stderr, /DEENVERSE backend listening/);

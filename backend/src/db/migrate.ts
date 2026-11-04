@@ -1,6 +1,6 @@
 import { pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
-import { createDatabaseConnection } from './connection.js';
+import { createDatabaseConnection, resolveDatabaseConfig, DatabaseConfig } from './connection.js';
 import * as initialSchema from './migrations/20261102_000001_initial_schema.js';
 import * as sourceApprovalGate from './migrations/20261103_000002_source_approval_gate.js';
 import * as quranAyahs from './migrations/20261104_000003_quran_ayahs.js';
@@ -38,16 +38,17 @@ export async function runMigrations(db = createDatabaseConnection()): Promise<vo
   }
 }
 
-async function main(): Promise<void> {
-  const client = process.env.DB_CLIENT || 'sqlite3';
-  if (client !== 'sqlite3') {
-    throw new Error('The migration CLI currently supports SQLite only; PostgreSQL support is not configured.');
+function createDatabaseConfigForMigration(): DatabaseConfig {
+  const config = resolveDatabaseConfig();
+  if (process.env.NODE_ENV === 'production' && config.client !== 'pg') {
+    throw new Error('Production migrations require PostgreSQL. Set DATABASE_URL to a PostgreSQL connection string.');
   }
+  return config;
+}
 
-  const db = createDatabaseConnection({
-    client: 'sqlite3',
-    connection: process.env.DB_FILENAME || './deenverse.sqlite'
-  });
+async function main(): Promise<void> {
+  const config = createDatabaseConfigForMigration();
+  const db = createDatabaseConnection(config);
 
   try {
     await runMigrations(db);

@@ -1,5 +1,5 @@
 import { buildApp } from './app.js';
-import { createDatabaseConnection } from './db/connection.js';
+import { createDatabaseConnection, resolveDatabaseConfig } from './db/connection.js';
 
 function readPositiveInteger(name: string, fallback: number): number {
   const raw = process.env[name];
@@ -22,19 +22,12 @@ const CORS_ORIGIN = (process.env.CORS_ALLOWED_ORIGINS || process.env.CORS_ORIGIN
   .filter(Boolean);
 
 async function main(): Promise<void> {
-  if (process.env.NODE_ENV === 'production') {
-    throw new Error('Production startup is blocked: DEENVERSE PostgreSQL runtime is not implemented; SQLite is development/test only.');
+  const databaseConfig = resolveDatabaseConfig();
+  if (process.env.NODE_ENV === 'production' && databaseConfig.client !== 'pg') {
+    throw new Error('Production requires PostgreSQL. Set DATABASE_URL to a PostgreSQL connection string; SQLite is development/test only.');
   }
 
-  const dbClient = process.env.DB_CLIENT || 'sqlite3';
-  if (dbClient !== 'sqlite3') {
-    throw new Error('PostgreSQL runtime is not configured yet. Use DB_CLIENT=sqlite3 until the PostgreSQL driver, connection handling, and migrations are implemented.');
-  }
-
-  const db = createDatabaseConnection({
-    client: 'sqlite3',
-    connection: process.env.DB_FILENAME || './deenverse.sqlite'
-  });
+  const db = createDatabaseConnection(databaseConfig);
   const app = buildApp({
     db,
     allowedOrigins: CORS_ORIGIN,
