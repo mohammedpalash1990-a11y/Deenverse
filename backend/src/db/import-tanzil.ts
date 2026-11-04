@@ -167,18 +167,43 @@ export function parseTanzilUthmaniText(textBytes: Uint8Array): TanzilAyahRecord[
   const lines = text.split('\n');
   if (lines.at(-1) === '') lines.pop();
   const normalizedLines = lines.map((line) => line.endsWith('\r') ? line.slice(0, -1) : line);
-  if (normalizedLines.length !== EXPECTED_TOTAL_AYAHS) {
-    throw new Error('Tanzil Uthmani text must contain exactly ' + EXPECTED_TOTAL_AYAHS + ' verse rows; found ' + normalizedLines.length + '.');
+
+  if (normalizedLines.length < EXPECTED_TOTAL_AYAHS) {
+    throw new Error('Tanzil Uthmani text must contain at least ' + EXPECTED_TOTAL_AYAHS + ' verse rows; found ' + normalizedLines.length + '.');
   }
 
+  const appendix = normalizedLines.slice(EXPECTED_TOTAL_AYAHS);
+  if (appendix.length > 0) {
+    const hasExactOfficialFooterShape =
+      appendix.length === 30 &&
+      appendix[0].trim() === '' &&
+      appendix[1].trim() === '' &&
+      appendix.slice(2).every((line) => line.startsWith('#'));
+    const footerText = appendix.slice(2).join('\n').toLowerCase();
+    const requiredFooterTerms = [
+      'please do not remove this copyright notice',
+      'tanzil quran text',
+      'copyright (c) 2007-2021 tanzil project',
+      'license: creative commons attribution 3.0',
+      'terms of use',
+      'permission is granted',
+      'not allowed',
+      'tanzil.net'
+    ];
+    if (!hasExactOfficialFooterShape || !requiredFooterTerms.every((term) => footerText.includes(term))) {
+      throw new Error('Tanzil Uthmani export has unexpected trailing lines; refusing to discard non-Ayah content.');
+    }
+  }
+
+  const verseLines = normalizedLines.slice(0, EXPECTED_TOTAL_AYAHS);
   const ayahs: TanzilAyahRecord[] = [];
-  const numbered = /^([1-9]\d*)\|([1-9]\d*)\|/u.test(normalizedLines[0] ?? '');
+  const numbered = /^([1-9]\d*)\|([1-9]\d*)\|/u.test(verseLines[0] ?? '');
   let lineIndex = 0;
 
   for (let surahIndex = 0; surahIndex < EXPECTED_AYAH_COUNTS.length; surahIndex += 1) {
     const surahNumber = surahIndex + 1;
     for (let ayahNumber = 1; ayahNumber <= EXPECTED_AYAH_COUNTS[surahIndex]; ayahNumber += 1) {
-      const line = normalizedLines[lineIndex];
+      const line = verseLines[lineIndex];
       let arabic = line;
 
       if (numbered) {
@@ -200,7 +225,7 @@ export function parseTanzilUthmaniText(textBytes: Uint8Array): TanzilAyahRecord[
     }
   }
 
-  if (lineIndex !== normalizedLines.length || ayahs.length !== EXPECTED_TOTAL_AYAHS) {
+  if (lineIndex !== verseLines.length || ayahs.length !== EXPECTED_TOTAL_AYAHS) {
     throw new Error('Tanzil Uthmani text ended before the canonical Surah/Ayah sequence was complete.');
   }
   return ayahs;

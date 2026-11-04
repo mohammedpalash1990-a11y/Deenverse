@@ -65,13 +65,68 @@ test('validates the official unnumbered one-verse-per-line Tanzil export', () =>
   assert.equal(validated.ayahs.at(-1)?.ayahNumber, 6);
 });
 
+test('accepts only the exact Tanzil copyright and license footer after all Ayahs', () => {
+  const fixture = buildOfficialShapeFixture();
+  const numberedRows = fixture.text.toString('utf8').trimEnd().split('\n');
+  const plainText = numberedRows.map((row) => row.replace(/^\d+\|\d+\|/u, '')).join('\n') + '\n';
+  const footer = [
+    '',
+    '',
+    '# PLEASE DO NOT REMOVE THIS COPYRIGHT NOTICE.',
+    '#==================================================',
+    '#',
+    '#  Tanzil Quran Text',
+    '#  Copyright (C) 2007-2021 Tanzil Project',
+    '#  License: Creative Commons Attribution 3.0 (CC BY 3.0)',
+    '#',
+    '#  TERMS OF USE:',
+    '#',
+    '# - Permission is granted to copy and distribute verbatim copies.',
+    '#   Changing the text is not allowed.',
+    '# - This Quran text can be used in any website or application.',
+    '#   The source must be indicated and linked to Tanzil.net.',
+    '#',
+    '# Please check Tanzil.net for updates.',
+    '#==================================================',
+    '#',
+    '#',
+    '#',
+    '#',
+    '#',
+    '#',
+    '#',
+    '#',
+    '#',
+    '#',
+    '#',
+    '#',
+  ].join('\n') + '\n';
+  const artifact = Buffer.from(plainText + footer, 'utf8');
+  const validated = validateTanzilUthmaniArtifacts(artifact, fixture.metadata);
+
+  assert.equal(validated.report.ayahCount, 6236);
+  assert.equal(validated.ayahs[0].arabic, 'نص اختبار غير قرآني 1:1');
+  assert.equal(validated.ayahs.at(-1)?.ayahNumber, 6);
+  assert.equal(validated.report.artifactSha256, createHash('sha256').update(artifact).digest('hex'));
+});
+
+test('rejects unexpected extra lines after the canonical Ayah sequence', () => {
+  const fixture = buildOfficialShapeFixture();
+  const numberedRows = fixture.text.toString('utf8').trimEnd().split('\n');
+  const plainText = numberedRows.map((row) => row.replace(/^\d+\|\d+\|/u, '')).join('\n') + '\n';
+  assert.throws(
+    () => validateTanzilUthmaniArtifacts(Buffer.from(plainText + '\n# unrelated trailing content\n', 'utf8'), fixture.metadata),
+    /unexpected trailing lines/
+  );
+});
+
 test('rejects a missing Ayah row', () => {
   const fixture = buildOfficialShapeFixture();
   const lines = fixture.text.toString('utf8').trimEnd().split('\n');
   lines.splice(7, 1);
   assert.throws(
     () => validateTanzilUthmaniArtifacts(Buffer.from(lines.join('\n'), 'utf8'), fixture.metadata),
-    /exactly 6236 verse rows/
+    /at least 6236 verse rows/
   );
 });
 
