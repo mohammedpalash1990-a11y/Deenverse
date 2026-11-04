@@ -111,7 +111,7 @@ describe("HadithReader", () => {
     expect(await screen.findByText("نص اختباري موثق")).toBeInTheDocument();
     expect(screen.getByText("পরীক্ষামূলক অনুবাদ")).toBeInTheDocument();
     expect(screen.getByText(/Translator: Fixture Translator/)).toBeInTheDocument();
-    expect(screen.getAllByText("Synthetic fixture source")).toHaveLength(2);
+    expect(screen.getByText("Synthetic fixture source")).toBeInTheDocument();
     expect(screen.getByText("Fixture reference 1")).toBeInTheDocument();
     expect(screen.getByText("Synthetic chain fixture")).toBeInTheDocument();
   });
