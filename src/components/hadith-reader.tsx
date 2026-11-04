@@ -1,6 +1,7 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import type { FormEvent } from "react";
 import {
   createHadithClient,
   type HadithBook,
@@ -113,8 +114,7 @@ export function HadithReader() {
   }
 
   function renderRecord(record: HadithRecord) {
-    const translation = record.translations.find((item) => item.locale === locale) ??
-      record.translations.find((item) => item.locale === "bn");
+    const translation = record.translations.find((item) => item.locale === locale);
     return (
       <article className="hadith-record" key={record.id}>
         <div className="hadith-record-heading">
