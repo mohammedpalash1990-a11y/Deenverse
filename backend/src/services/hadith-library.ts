@@ -25,6 +25,23 @@ function sha256(value: string): string {
   return createHash('sha256').update(value, 'utf8').digest('hex');
 }
 
+const ARABIC_DIACRITICS = [
+  '\u0640', '\u064B', '\u064C', '\u064D', '\u064E', '\u064F',
+  '\u0650', '\u0651', '\u0652', '\u0653', '\u0654', '\u0655',
+  '\u0656', '\u0657', '\u0658', '\u0659', '\u065A', '\u065B',
+  '\u065C', '\u065D', '\u065E', '\u065F', '\u0670'
+];
+
+function normalizedArabicSearch(column: string, pattern: string): { sql: string; bindings: string[] } {
+  let sql = 'LOWER(??)';
+  const bindings = [column];
+  for (const mark of ARABIC_DIACRITICS) {
+    sql = `REPLACE(${sql}, ?, '')`;
+    bindings.push(mark);
+  }
+  return { sql: `${sql} LIKE ?`, bindings: [...bindings, pattern] };
+}
+
 function provenanceFromRow(row: DbRow, prefix = '') {
   const field = (name: string) => row[`${prefix}${name}`];
   const candidate = {
@@ -341,13 +358,18 @@ export class HadithLibraryService {
     const clean = queryText.trim().replace(/[%_]/g, '');
     if (!clean) return { status: 'not_found' };
     const pattern = `%${clean.toLowerCase()}%`;
+    const normalizedArabicTerm = clean.normalize('NFKC').replace(/[\\u0640-\\u065f\\u0670]/g, '').toLowerCase();
+    const arabicPattern = `%${normalizedArabicTerm}%`;
     const base = this.verifiedRecordsQuery().where(function () {
       const searchArabic = !locale || locale === 'ar';
       const searchTranslation = !locale || locale === 'bn' || locale === 'en';
       if (searchArabic) {
-        this.whereRaw('LOWER(??) LIKE ?', ['hr.arabic_text', pattern])
-          .orWhereRaw('LOWER(??) LIKE ?', ['hr.narrator_text', pattern])
-          .orWhereRaw('LOWER(??) LIKE ?', ['hr.isnad_text', pattern]);
+        const columns = ['hr.arabic_text', 'hr.narrator_text', 'hr.isnad_text'];
+        columns.forEach((column, index) => {
+          const clause = normalizedArabicSearch(column, arabicPattern);
+          if (index === 0) this.whereRaw(clause.sql, clause.bindings);
+          else this.orWhereRaw(clause.sql, clause.bindings);
+        });
       }
       if (searchTranslation) {
         const addTranslationMatch = function (this: Knex.QueryBuilder) {
