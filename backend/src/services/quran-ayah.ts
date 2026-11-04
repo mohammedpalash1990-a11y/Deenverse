@@ -93,7 +93,7 @@ export class QuranAyahService {
       !source.edition || !source.license_id || !source.attribution ||
       !source.reviewer || !reviewedAt || !approvedAt ||
       !source.approval_id || !source.approval_reviewer_id || !sourceUrlIsHttps ||
-      source.redistribution_allowed !== true
+      (source.redistribution_allowed !== true && Number(source.redistribution_allowed) !== 1)
     ) {
       return { status: 'source_unavailable' };
     }
