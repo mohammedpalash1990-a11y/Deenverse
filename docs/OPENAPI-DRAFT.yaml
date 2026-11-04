@@ -61,8 +61,8 @@ paths:
       operationId: listSurahs
       summary: List approved-source-gated Surah metadata
       description: >
-        Metadata only; no Ayah text. Fails closed when no eligible source
-        passes the current database approval/provenance checks.
+        Metadata only; no Ayah text. Fails closed unless exactly one active,
+        redistribution-permitted Quran source has a matching approved decision.
       parameters:
         - $ref: '#/components/parameters/Limit'
         - $ref: '#/components/parameters/Cursor'
@@ -122,8 +122,8 @@ paths:
       description: >
         Returns the exact stored source string after source/provenance and
         per-record digest checks. The current route has no editionId parameter.
-        Do not enable multiple active Quran editions until source selection is
-        made explicit or a single-source invariant is enforced.
+        The service returns CONTENT_UNAVAILABLE unless exactly one eligible
+        active, approved Quran source exists; it never selects by row order.
       parameters:
         - name: surah
           in: path
