@@ -6,9 +6,11 @@ import { randomUUID } from 'crypto';
 import { Knex } from 'knex';
 import { QuranCatalogueService } from './services/quran-catalogue.js';
 import { QuranAyahService } from './services/quran-ayah.js';
+import { HadithLibraryService } from './services/hadith-library.js';
 import { quranRoutes } from './routes/quran.js';
 import { quranAyahRoutes } from './routes/quran-ayah.js';
 import { quranTranslationRoutes } from './routes/quran-translation.js';
+import { hadithRoutes } from './routes/hadith.js';
 import { QuranEncBengaliTranslationService } from './services/quran-translation.js';
 import { ApiErrorResponse } from './types/content.js';
 
@@ -95,6 +97,7 @@ export function buildApp(opts: BuildAppOptions): FastifyInstance {
   const quranCatalogueService = new QuranCatalogueService(db);
   const quranAyahService = new QuranAyahService(db);
   const quranTranslationService = new QuranEncBengaliTranslationService(opts.quranTranslationFetcher);
+  const hadithLibraryService = new HadithLibraryService(db);
 
   // Keep the rate limiter and its routes in one Fastify encapsulation scope.
   app.register(async function registerApiRoutes(api) {
@@ -173,6 +176,10 @@ export function buildApp(opts: BuildAppOptions): FastifyInstance {
     api.register(quranTranslationRoutes, {
       prefix: '/api/v1/translation',
       translationService: quranTranslationService
+    });
+    api.register(hadithRoutes, {
+      prefix: '/api/v1/hadith',
+      hadithService: hadithLibraryService
     });
   });
 
