@@ -123,3 +123,6 @@ jobs:
       - name: Build web application
         if: steps.web.outputs.present == 'true'
         run: npm run build
+      - name: Audit web dependencies
+        if: steps.web.outputs.present == 'true'
+        run: npm audit --audit-level=high
