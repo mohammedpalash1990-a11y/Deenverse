@@ -37,8 +37,6 @@ jobs:
   backend:
     name: Backend typecheck, tests and build
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     services:
       postgres:
         image: postgres:16
@@ -73,17 +71,6 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: backend/package-lock.json
-      - name: Regenerate and commit lockfile for the isolated remediation PR
-        if: steps.backend.outputs.present == 'true' && github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'security/dependency-audit-remediation-20261104' && github.event.pull_request.base.ref == 'qa/postgres-runtime-verification-20261103'
-        run: |
-          npm install --prefix backend --package-lock-only --ignore-scripts --no-audit --no-fund
-          if ! git diff --quiet -- backend/package-lock.json; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add backend/package-lock.json
-            git commit -m "chore(security): regenerate backend dependency lockfile"
-            git push
-          fi
       - name: Install locked dependencies
         if: steps.backend.outputs.present == 'true'
         run: npm ci --no-audit --no-fund
