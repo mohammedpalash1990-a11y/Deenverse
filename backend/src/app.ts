@@ -8,6 +8,8 @@ import { QuranCatalogueService } from './services/quran-catalogue.js';
 import { QuranAyahService } from './services/quran-ayah.js';
 import { quranRoutes } from './routes/quran.js';
 import { quranAyahRoutes } from './routes/quran-ayah.js';
+import { quranTranslationRoutes } from './routes/quran-translation.js';
+import { QuranEncBengaliTranslationService } from './services/quran-translation.js';
 import { ApiErrorResponse } from './types/content.js';
 
 export interface BuildAppOptions {
@@ -16,6 +18,7 @@ export interface BuildAppOptions {
   allowedOrigins?: string[];
   rateLimitMax?: number;
   rateLimitWindowMs?: number;
+  quranTranslationFetcher?: typeof fetch;
 }
 
 export function buildApp(opts: BuildAppOptions): FastifyInstance {
@@ -91,6 +94,7 @@ export function buildApp(opts: BuildAppOptions): FastifyInstance {
 
   const quranCatalogueService = new QuranCatalogueService(db);
   const quranAyahService = new QuranAyahService(db);
+  const quranTranslationService = new QuranEncBengaliTranslationService(opts.quranTranslationFetcher);
 
   // Keep the rate limiter and its routes in one Fastify encapsulation scope.
   app.register(async function registerApiRoutes(api) {
@@ -165,6 +169,10 @@ export function buildApp(opts: BuildAppOptions): FastifyInstance {
     api.register(quranAyahRoutes, {
       prefix: '/api/v1/ayah',
       ayahService: quranAyahService
+    });
+    api.register(quranTranslationRoutes, {
+      prefix: '/api/v1/translation',
+      translationService: quranTranslationService
     });
   });
 

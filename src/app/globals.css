@@ -176,3 +176,11 @@ h1{font-size:clamp(31px,4vw,47px);letter-spacing:-1.2px;margin-bottom:10px;color
 .ayah-reader-attribution{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 14px;font-size:9px;color:#89948b;text-align:center}
 .ayah-reader-reference{text-align:center;font-size:9px;color:#7d8982;margin:10px 0 0}
 @media(max-width:480px){.ayah-reader-panel{padding:13px}.ayah-reader-heading{align-items:flex-start;flex-direction:column}.ayah-reader-form{grid-template-columns:1fr 1fr}.ayah-reader-form button{grid-column:1/-1}.ayah-reader-text{font-size:21px}}
+
+.ayah-translation{margin-top:18px;padding-top:16px;border-top:1px solid #e8e3d6;color:#34483e}
+.ayah-translation h4{margin:0 0 10px;font-size:13px;font-weight:600;text-align:center;color:#23372f}
+.ayah-translation>p[lang="bn"]{font-size:15px;line-height:2;text-align:justify;white-space:pre-wrap;overflow-wrap:anywhere;margin:0 0 12px}
+.ayah-translation details{margin:10px 0;font-size:11px}
+.ayah-translation summary{cursor:pointer;color:#6c786f}
+.ayah-translation pre{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit;line-height:1.8;padding:10px;background:#f7f6f0;border-radius:4px}
+.ayah-translation a{display:inline-block;margin-top:8px;font-size:10px;color:#536d5e;text-decoration:underline;text-underline-offset:3px}
