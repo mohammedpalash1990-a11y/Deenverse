@@ -168,7 +168,7 @@ export function parseTanzilUthmaniText(textBytes: Uint8Array): TanzilAyahRecord[
   if (lines.at(-1) === '') lines.pop();
   const normalizedLines = lines.map((line) => line.endsWith('\r') ? line.slice(0, -1) : line);
   if (normalizedLines.length !== EXPECTED_TOTAL_AYAHS) {
-    throw new Error(\`Tanzil Uthmani text must contain exactly \${EXPECTED_TOTAL_AYAHS} verse rows; found \${normalizedLines.length}.\`);
+    throw new Error('Tanzil Uthmani text must contain exactly ' + EXPECTED_TOTAL_AYAHS + ' verse rows; found ' + normalizedLines.length + '.');
   }
 
   const ayahs: TanzilAyahRecord[] = [];
@@ -183,17 +183,17 @@ export function parseTanzilUthmaniText(textBytes: Uint8Array): TanzilAyahRecord[
 
       if (numbered) {
         const match = /^([1-9]\d*)\|([1-9]\d*)\|(.+)$/u.exec(line);
-        if (!match) throw new Error(\`Tanzil Uthmani row \${lineIndex + 1} is not in surah|ayah|text format.\`);
+        if (!match) throw new Error('Tanzil Uthmani row ' + (lineIndex + 1) + ' is not in surah|ayah|text format.');
         const actualSurah = Number(match[1]);
         const actualAyah = Number(match[2]);
         if (actualSurah !== surahNumber || actualAyah !== ayahNumber) {
-          throw new Error(\`Tanzil Uthmani row \${lineIndex + 1} is \${actualSurah}:\${actualAyah}; expected \${surahNumber}:\${ayahNumber}.\`);
+          throw new Error('Tanzil Uthmani row ' + (lineIndex + 1) + ' is ' + actualSurah + ':' + actualAyah + '; expected ' + surahNumber + ':' + ayahNumber + '.');
         }
         arabic = match[3];
       }
 
       if (arabic.length === 0 || arabic.includes('\u0000')) {
-        throw new Error(\`Tanzil Uthmani row \${lineIndex + 1} contains empty or invalid verse text.\`);
+        throw new Error('Tanzil Uthmani row ' + (lineIndex + 1) + ' contains empty or invalid verse text.');
       }
       ayahs.push({ surahNumber, ayahNumber, arabic, textSha256: sha256(arabic) });
       lineIndex += 1;
