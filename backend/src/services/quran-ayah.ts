@@ -52,13 +52,6 @@ export class QuranAyahService {
     const source = await findSingleApprovedQuranSource(this.db);
 
     if (!source) return { status: 'source_unavailable' };
-    const surahRecord = await this.db('quran_surahs')
-      .where({ source_id: source.id, surah_number: surah })
-      .select('verses_count')
-      .first();
-
-    if (!surahRecord) return { status: 'not_found' };
-    if (ayah > Number(surahRecord.verses_count)) return { status: 'out_of_range' };
 
     const checksum = String(source.checksum ?? '');
     const reviewedAt = isoDate(source.reviewed_at);
@@ -80,6 +73,13 @@ export class QuranAyahService {
       return { status: 'source_unavailable' };
     }
 
+    const surahRecord = await this.db('quran_surahs')
+      .where({ source_id: source.id, surah_number: surah })
+      .select('verses_count')
+      .first();
+
+    if (!surahRecord) return { status: 'not_found' };
+    if (ayah > Number(surahRecord.verses_count)) return { status: 'out_of_range' };
     const record = await this.db('quran_ayahs')
       .where({
         source_id: source.id,
