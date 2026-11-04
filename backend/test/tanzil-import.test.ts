@@ -124,7 +124,7 @@ test('rejects a missing Ayah row', () => {
   lines.splice(7, 1);
   assert.throws(
     () => validateTanzilUthmaniArtifacts(Buffer.from(lines.join('\n'), 'utf8'), fixture.metadata),
-    /exactly 6236 verse rows/
+    /at least 6236 verse rows/
   );
 });
 
