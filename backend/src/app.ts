@@ -18,6 +18,7 @@ export interface BuildAppOptions {
   allowedOrigins?: string[];
   rateLimitMax?: number;
   rateLimitWindowMs?: number;
+  quranTranslationFetcher?: typeof fetch;
 }
 
 export function buildApp(opts: BuildAppOptions): FastifyInstance {
@@ -93,7 +94,7 @@ export function buildApp(opts: BuildAppOptions): FastifyInstance {
 
   const quranCatalogueService = new QuranCatalogueService(db);
   const quranAyahService = new QuranAyahService(db);
-  const quranTranslationService = new QuranEncBengaliTranslationService();
+  const quranTranslationService = new QuranEncBengaliTranslationService(opts.quranTranslationFetcher);
 
   // Keep the rate limiter and its routes in one Fastify encapsulation scope.
   app.register(async function registerApiRoutes(api) {
