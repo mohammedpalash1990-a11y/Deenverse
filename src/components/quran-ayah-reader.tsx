@@ -6,7 +6,7 @@ import {
   type QuranAyahRecord
 } from "@/lib/quran-ayah-client";
 
-const defaultClient = createQuranAyahClient();
+const defaultClient = createQuranAyahClient();\nconst defaultTranslationClient = createQuranBengaliTranslationClient();
 
 type AyahClient = Pick<ReturnType<typeof createQuranAyahClient>, "getAyah">;
 
@@ -23,7 +23,7 @@ interface QuranAyahReaderProps {
 export function QuranAyahReader({ client = defaultClient }: QuranAyahReaderProps) {
   const [surah, setSurah] = useState("1");
   const [ayah, setAyah] = useState("1");
-  const [state, setState] = useState<ReaderState>({ status: "idle" });
+  const [state, setState] = useState<ReaderState>({ status: "idle" });\n  const [translationState, setTranslationState] = useState<TranslationState>({ status: "idle" });
 
   async function loadAyah(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
