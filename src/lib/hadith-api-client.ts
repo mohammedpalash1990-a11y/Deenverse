@@ -248,7 +248,7 @@ export function createHadithClient(options: HadithClientOptions = {}) {
 
   return {
     listBooks(limit = 50): Promise<HadithClientResult<HadithPage<HadithBook>>> {
-      return readPage(pagePath({ limit: String(limit) }), parseBook);
+      return readPage(`/books${pagePath({ limit: String(limit) })}`, parseBook);
     },
 
     listChapters(bookId: string): Promise<HadithClientResult<HadithChapter[]>> {
