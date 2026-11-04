@@ -13,14 +13,8 @@ const SOURCE_ID = 'tanzil-uthmani-v1';
 const SOURCE_CODE = 'tanzil-uthmani-v1';
 const SOURCE_NAME = 'Tanzil Quran Text (Uthmani)';
 const SOURCE_REVIEWER = 'project-owner-chat-authorization';
-const ATTRIBUTION = [
-  'Tanzil Quran Text (Uthmani, Version 1.1)',
-  'Copyright (C) 2007-2021 Tanzil Project',
-  'License: Creative Commons Attribution 3.0 (CC BY 3.0)',
-  'Source: https://tanzil.net/',
-  'Verbatim reproduction; the Quran text has not been modified.',
-  'The Tanzil copyright and license notice must remain with all redistributed copies.'
-].join(' ');
+const ATTRIBUTION =
+  'Tanzil Quran Text (Uthmani), Tanzil Project. CC BY 3.0. Verbatim and unmodified. Source: https://tanzil.net/.';
 
 const sha256 = (bytes: Uint8Array): string =>
   createHash('sha256').update(bytes).digest('hex');
