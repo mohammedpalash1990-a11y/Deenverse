@@ -2,15 +2,30 @@ import { createHash } from 'node:crypto';
 import { Knex } from 'knex';
 
 export interface VerifiedAyah {
-  surah: number;
-  ayah: number;
-  arabic: string;
+  id: string;
+  type: 'quran';
+  title: string;
+  locale: 'ar';
   provenance: {
+    contentType: 'quran';
     sourceId: string;
     edition: string;
-    license: string;
-    attribution: string;
     sourceUrl: string;
+    attribution: string;
+    licenseId: string;
+    redistributionAllowed: true;
+    reviewer: string;
+    reviewedAt: string;
+    checksum: string;
+    approvalStatus: 'approved';
+    reviewDecisionId: string;
+    approvalReviewerId: string;
+    approvedAt: string;
+  };
+  payload: {
+    surahNumber: number;
+    ayahNumber: number;
+    textArabic: string;
   };
 }
 
@@ -23,6 +38,11 @@ export type AyahLookupResult =
 
 const sha256 = (value: string): string =>
   createHash('sha256').update(value, 'utf8').digest('hex');
+
+function isoDate(value: string | Date): string {
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime()) ? '' : date.toISOString();
+}
 
 export class QuranAyahService {
   constructor(private readonly db: Knex) {}
@@ -45,12 +65,38 @@ export class QuranAyahService {
         'content_sources.edition',
         'content_sources.license_id',
         'content_sources.attribution',
-        'content_sources.source_url'
+        'content_sources.source_url',
+        'content_sources.redistribution_allowed',
+        'content_sources.reviewer',
+        'content_sources.reviewed_at',
+        'content_sources.checksum',
+        'content_source_approvals.id as approval_id',
+        'content_source_approvals.reviewer_id as approval_reviewer_id',
+        'content_source_approvals.approved_at'
       )
       .first();
 
     if (!source) return { status: 'source_unavailable' };
     if (ayah > Number(source.verses_count)) return { status: 'out_of_range' };
+
+    const checksum = String(source.checksum ?? '');
+    const reviewedAt = isoDate(source.reviewed_at);
+    const approvedAt = isoDate(source.approved_at);
+    let sourceUrlIsHttps = false;
+    try {
+      sourceUrlIsHttps = new URL(String(source.source_url)).protocol === 'https:';
+    } catch {
+      sourceUrlIsHttps = false;
+    }
+    if (
+      !/^[a-f0-9]{64}$/i.test(checksum) ||
+      !source.edition || !source.license_id || !source.attribution ||
+      !source.reviewer || !reviewedAt || !approvedAt ||
+      !source.approval_id || !source.approval_reviewer_id || !sourceUrlIsHttps ||
+      source.redistribution_allowed !== true
+    ) {
+      return { status: 'source_unavailable' };
+    }
 
     const record = await this.db('quran_ayahs')
       .where({
@@ -69,15 +115,30 @@ export class QuranAyahService {
     return {
       status: 'ok',
       value: {
-        surah,
-        ayah,
-        arabic: record.arabic,
+        id: `quran:ayah:${surah}:${ayah}`,
+        type: 'quran',
+        title: `Ayah ${surah}:${ayah}`,
+        locale: 'ar',
         provenance: {
+          contentType: 'quran',
           sourceId: source.source_id,
           edition: source.edition,
-          license: source.license_id,
+          sourceUrl: source.source_url,
           attribution: source.attribution,
-          sourceUrl: source.source_url
+          licenseId: source.license_id,
+          redistributionAllowed: true,
+          reviewer: source.reviewer,
+          reviewedAt,
+          checksum,
+          approvalStatus: 'approved',
+          reviewDecisionId: source.approval_id,
+          approvalReviewerId: source.approval_reviewer_id,
+          approvedAt
+        },
+        payload: {
+          surahNumber: surah,
+          ayahNumber: ayah,
+          textArabic: record.arabic
         }
       }
     };
