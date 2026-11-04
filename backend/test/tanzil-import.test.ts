@@ -7,7 +7,7 @@ import {
   TANZIL_METADATA_URL,
   TANZIL_TEXT_URL,
   TANZIL_UTHMANI_EDITION,
-  importValidatedTanzilUthmani,
+  importTanzilUthmani,
   validateTanzilUthmaniArtifacts
 } from '../src/db/import-tanzil.js';
 import { createDatabaseConnection } from '../src/db/connection.js';
@@ -118,6 +118,12 @@ test('imports only after exact artifact checksum and independent approval are re
       checksum: validated.report.artifactSha256,
       is_active: false
     });
+    await assert.rejects(
+      () => importTanzilUthmani(db, sourceId, fixture.text, fixture.metadata),
+      /separate human source approval/
+    );
+    assert.equal(Number((await db('quran_surahs').count('* as count').first())?.count), 0);
+
     await db('content_source_approvals').insert({
       id: 'tanzil-test-approval',
       source_id: sourceId,
@@ -128,7 +134,7 @@ test('imports only after exact artifact checksum and independent approval are re
       review_notes: 'Synthetic test fixture only; no Quran content.'
     });
 
-    const report = await importValidatedTanzilUthmani(db, sourceId, validated);
+    const report = await importTanzilUthmani(db, sourceId, fixture.text, fixture.metadata);
     assert.equal(report.surahCount, 114);
     assert.equal(report.ayahCount, 6236);
     assert.equal(Number((await db('quran_surahs').count('* as count').first())?.count), 114);
