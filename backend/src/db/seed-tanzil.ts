@@ -127,21 +127,42 @@ export async function seedTanzilUthmaniFromOfficialSource(db: Knex): Promise<voi
     rub: 'true'
   });
 
+  const downloadUrl = new URL('https://tanzil.net/pub/download/index.php');
+  for (const [key, value] of form.entries()) downloadUrl.searchParams.set(key, value);
+
   const [textBytes, metadataBytes] = await Promise.all([
-    downloadBytes('https://tanzil.net/pub/download/download.php', {
-      method: 'POST',
+    downloadBytes(downloadUrl.toString(), {
       headers: {
         'accept': 'text/plain, application/octet-stream;q=0.9, */*;q=0.8',
-        'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
-        'referer': 'https://tanzil.net/download/',
-        'origin': 'https://tanzil.net'
-      },
-      body: form.toString()
+        'referer': 'https://tanzil.net/download/'
+      }
     }, 100_000),
     downloadBytes(TANZIL_METADATA_URL, {
       headers: { 'accept': 'application/xml, text/xml;q=0.9, */*;q=0.8' }
     }, 1_000)
   ]);
+
+  const diagnosticLines = new TextDecoder('utf-8', { fatal: true }).decode(textBytes).split('\\n');
+  if (diagnosticLines.at(-1) === '') diagnosticLines.pop();
+  const coordinateRows = diagnosticLines.flatMap((line) => {
+    const match = /^(\\d+)\\|(\\d+)\\|/u.exec(line.endsWith('\\r') ? line.slice(0, -1) : line);
+    return match ? [`${match[1]}:${match[2]}`] : [];
+  });
+  const countsBySurah: Record<string, number> = {};
+  for (const coordinate of coordinateRows) {
+    const surahNumber = coordinate.split(':')[0];
+    countsBySurah[surahNumber] = (countsBySurah[surahNumber] ?? 0) + 1;
+  }
+  console.info(JSON.stringify({
+    tanzilArtifactDiagnostics: {
+      lineCount: diagnosticLines.length,
+      coordinateRowCount: coordinateRows.length,
+      nonCoordinateLineCount: diagnosticLines.length - coordinateRows.length,
+      firstCoordinates: coordinateRows.slice(0, 8),
+      lastCoordinates: coordinateRows.slice(-8),
+      countsBySurah
+    }
+  }));
 
   const validated = validateTanzilUthmaniArtifacts(textBytes, metadataBytes);
   if (
