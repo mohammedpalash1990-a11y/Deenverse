@@ -28,7 +28,7 @@ describe("DEENVERSE app shell", () => {
     render(<AppShell />);
     fireEvent.click(within(screen.getByRole("navigation", { name: "Main navigation" })).getByRole("button", { name: "Hadith" }));
     expect(screen.getByRole("heading", { name: "Hadith, thoughtfully." })).toBeInTheDocument();
-    expect(screen.getByText(/reviewed, source-attributed content/)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Hadith library" })).toBeInTheDocument();
   });
 
   it("announces mobile navigation expanded state", () => {
