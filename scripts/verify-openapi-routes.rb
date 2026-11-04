@@ -14,7 +14,7 @@ def abort_with(message)
 end
 
 def assert_unique_mapping_keys(node, location = "$")
-  return unless node.respond_to?(:children)
+  return unless node.respond_to?(:children) && !node.children.nil?
 
   if node.is_a?(Psych::Nodes::Mapping)
     pairs = node.children.each_slice(2).to_a
