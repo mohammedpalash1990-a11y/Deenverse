@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { getSection, sections, type SectionId } from "@/lib/navigation";
 import { QuranCatalogue } from "@/components/quran-catalogue";
 import { ReaderControls } from "@/components/reader-controls";
+import { QuranAyahReader } from "@/components/quran-ayah-reader";
 
 const symbols: Record<SectionId, string> = {
   quran: "۞",
@@ -113,6 +114,7 @@ export function AppShell() {
                   </div>
                 </section>
                 <ReaderControls />
+                <QuranAyahReader />
                 <QuranCatalogue />
                 <div className="quick-links" role="group" aria-label="Explore sections">
                   {filtered.map((item) => <button key={item.id} onClick={() => setActive(item.id)}><span>{symbols[item.id]}</span>{item.label}<b>↗</b></button>)}
