@@ -11,10 +11,11 @@ const arabic = 'بِسْمِ اللَّهِ';
 const digest = createHash('sha256').update(arabic, 'utf8').digest('hex');
 const artifact = 'a'.repeat(64);
 const sourceId = 'review-source';
-const adminToken = 'test-review-admin-token';
+const adminToken = 'test-review-admin-token-with-at-least-thirty-two-bytes';
 
 before(async () => {
   process.env.QURAN_REVIEW_ADMIN_TOKEN = adminToken;
+  process.env.PUBLIC_APP_URL = 'https://deenverse.example';
   await runMigrations(db);
   await db('content_sources').insert({
     id: sourceId, code: 'review-source', name: 'Review source', content_type: 'quran',
@@ -33,6 +34,7 @@ after(async () => {
   await app.close();
   await db.destroy();
   delete process.env.QURAN_REVIEW_ADMIN_TOKEN;
+  delete process.env.PUBLIC_APP_URL;
 });
 
 test('requires the configured administrator token to create review batches', async () => {
@@ -52,7 +54,8 @@ test('creates separate single-use links and records each reviewer decision', asy
   assert.equal(created.statusCode, 201);
   const batch = created.json().data;
   assert.equal(batch.invites.length, 3);
-  const token = batch.invites[0].token as string;
+  const inviteUrl = new URL(batch.invites[0].url as string);
+  const token = inviteUrl.pathname.split('/').pop() as string;
   assert.ok(token);
 
   const opened = await app.inject({ method: 'GET', url: `/api/v1/quran/review/${token}` });
@@ -87,7 +90,8 @@ test('rejects a passed decision without both exact-match checks', async () => {
     headers: { 'x-review-admin-token': adminToken },
     payload: { sourceId, surahNumber: 1, ayahNumber: 1, reviewers: ['D', 'E', 'F'], createdBy: 'Coordinator' }
   });
-  const token = created.json().data.invites[0].token as string;
+  const inviteUrl = new URL(created.json().data.invites[0].url as string);
+  const token = inviteUrl.pathname.split('/').pop() as string;
   const response = await app.inject({
     method: 'POST', url: `/api/v1/quran/review/${token}`,
     payload: { reviewerName: 'D', decision: 'passed', textMatch: true, referenceMatch: false }
