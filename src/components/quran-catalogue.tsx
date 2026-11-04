@@ -8,9 +8,7 @@ import {
 } from "@/lib/content-source";
 import { createRestContentSource } from "@/lib/content-api-client";
 
-const restContentSource = createRestContentSource({
-  baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL || "/api/v1"
-});
+const restContentSource = createRestContentSource();
 
 type CatalogueState =
   | { status: "loading" }

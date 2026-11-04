@@ -1,3 +1,4 @@
+import { resolveApiBaseUrl } from "./api-config";
 export interface QuranBengaliTranslation {
   surahNumber: number;
   ayahNumber: number;
@@ -11,7 +12,7 @@ export interface QuranBengaliTranslation {
     sourceTitle: string;
     sourceDescription: string;
     translationKey: 'bengali_zakaria';
-    editionVersion: string;
+    editionVersion: 'V1.1.1';
     sourceUrl: string;
     termsUrl: string;
     lastUpdated: string | number | null;
@@ -30,8 +31,7 @@ export function createQuranBengaliTranslationClient(options: {
   baseUrl?: string;
   fetcher?: typeof fetch;
 } = {}) {
-  const configuredBaseUrl = options.baseUrl ?? process.env.NEXT_PUBLIC_API_BASE_URL;
-  const baseUrl = (configuredBaseUrl?.trim() || '/api/v1').replace(/\/+$/, '');
+  const baseUrl = resolveApiBaseUrl(options.baseUrl);
   const fetcher = options.fetcher ?? fetch;
 
   return {
@@ -66,21 +66,22 @@ export function createQuranBengaliTranslationClient(options: {
       }
 
       if (!isObject(body) || !isObject(body.meta) ||
-          typeof body.meta.requestId !== 'string' || !isObject(body.data)) {
+          typeof body.meta.requestId !== 'string' || !body.meta.requestId.trim() || !isObject(body.data)) {
         return { ok: false, message: 'অনুবাদ সেবার উত্তর যাচাই করা যায়নি।' };
       }
 
       const data = body.data;
       const provenance = data.provenance;
       if (data.surahNumber !== surahNumber || data.ayahNumber !== ayahNumber ||
-          typeof data.translation !== 'string' || data.translation.length === 0 ||
+          typeof data.translation !== 'string' || !data.translation.trim() ||
+          data.footnotes === undefined ||
           !isObject(provenance) ||
           provenance.publisher !== 'QuranEnc.com' ||
           provenance.translator !== 'Abu Bakr Muhammad Zakaria' ||
           typeof provenance.sourceTitle !== 'string' || !provenance.sourceTitle.trim() ||
           typeof provenance.sourceDescription !== 'string' ||
           provenance.translationKey !== 'bengali_zakaria' ||
-          typeof provenance.editionVersion !== 'string' || !provenance.editionVersion.trim() ||
+          provenance.editionVersion !== 'V1.1.1' ||
           typeof provenance.sourceUrl !== 'string' ||
           provenance.sourceUrl !== 'https://quranenc.com/bn/browse/bengali_zakaria' ||
           typeof provenance.termsUrl !== 'string' ||

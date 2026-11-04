@@ -44,12 +44,36 @@ async function main(): Promise<void> {
     rateLimitWindowMs: RATE_LIMIT_WINDOW_MS
   });
 
+  // Drain HTTP requests before releasing the database pool.
+  app.addHook('onClose', async () => { await db.destroy(); });
+  let shuttingDown = false;
+  const shutdown = async (): Promise<void> => {
+    if (shuttingDown) return;
+    shuttingDown = true;
+    const deadline = setTimeout(() => {
+      console.error('DEENVERSE shutdown deadline exceeded.');
+      process.exit(1);
+    }, 10_000);
+    deadline.unref();
+    try {
+      await app.close();
+    } catch {
+      console.error('Failed to shut down DEENVERSE backend cleanly.');
+      process.exitCode = 1;
+    } finally {
+      clearTimeout(deadline);
+      process.removeListener('SIGTERM', shutdown);
+      process.removeListener('SIGINT', shutdown);
+    }
+  };
+  process.on('SIGTERM', shutdown);
+  process.on('SIGINT', shutdown);
+
   try {
     const address = await app.listen({ port: PORT, host: HOST });
     console.log(`DEENVERSE backend listening at ${address}`);
   } catch (error) {
-    await app.close();
-    await db.destroy();
+    await shutdown();
     console.error('Failed to start DEENVERSE backend:', error instanceof Error ? error.message : error);
     process.exitCode = 1;
   }

@@ -59,4 +59,15 @@ test('Liveness and Readiness Probes', async (t) => {
     assert.equal(body.database, 'connected');
     assert.equal(body.migrations, 'applied');
   });
+
+  await t.test('GET /api/v1/ready rejects a table whose required columns are missing', async () => {
+    await db.schema.dropTable('quran_ayahs');
+    await db.schema.createTable('quran_ayahs', (table) => { table.integer('id').primary(); });
+    const res = await app.inject({ method: 'GET', url: '/api/v1/ready' });
+    assert.equal(res.statusCode, 503);
+    assert.equal(res.json().error.code, 'UNAVAILABLE');
+    assert.equal(res.json().error.message, 'Database schema is not fully migrated.');
+    assert.equal((await app.inject({ method: 'GET', url: '/api/v1/health' })).statusCode, 200);
+  });
+
 });

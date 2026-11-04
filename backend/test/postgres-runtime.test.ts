@@ -53,7 +53,18 @@ test('PostgreSQL migrations and production runtime are verified against a real P
     await db.schema.dropTableIfExists('quran_surahs');
     await db.schema.dropTableIfExists('content_sources');
 
-    await runMigrations(db);
+    // A late schema failure must roll back transactional DDL in PostgreSQL,
+    // preserve pre-existing rows, and release the migration advisory lock.
+    await db.schema.createTable('hadith_chapters', (table) => { table.string('id').primary(); });
+    await db('hadith_chapters').insert({ id: 'synthetic-preserved-row' });
+    await assert.rejects(() => runMigrations(db), /Partial Hadith schema detected/);
+    assert.equal(await db.schema.hasTable('content_sources'), false);
+    assert.equal(await db.schema.hasTable('quran_ayahs'), false);
+    assert.deepEqual(await db('hadith_chapters').select('id'), [{ id: 'synthetic-preserved-row' }]);
+    await db.schema.dropTable('hadith_chapters');
+
+    // Concurrent release jobs serialize on the transaction-scoped PG lock.
+    await Promise.all([runMigrations(db), runMigrations(db)]);
     assert.equal(await db.schema.hasTable('content_sources'), true);
     assert.equal(await db.schema.hasTable('quran_surahs'), true);
     assert.equal(await db.schema.hasTable('quran_ayahs'), true);
