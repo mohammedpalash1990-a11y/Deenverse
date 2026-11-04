@@ -145,4 +145,47 @@ describe("HadithReader", () => {
     expect(await screen.findByRole("heading", { name: "Search results" })).toBeInTheDocument();
     expect(screen.getByText("পরীক্ষামূলক অনুবাদ")).toBeInTheDocument();
   });
+
+  it("loads the next narration page when the reader requests more", async () => {
+    const secondRecord = { ...record, id: "fixture-record-2", hadithNumber: "2" };
+    mockClient.listRecords
+      .mockReset()
+      .mockResolvedValueOnce({ ok: true, data: { items: [record], nextCursor: "MjA=" } })
+      .mockResolvedValueOnce({ ok: true, data: { items: [secondRecord], nextCursor: null } });
+
+    render(<HadithReader />);
+    expect(await screen.findByText("نص اختباري موثق")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Load more narrations" }));
+
+    await waitFor(() => {
+      expect(mockClient.listRecords).toHaveBeenNthCalledWith(2, "fixture-book", {
+        chapterId: undefined,
+        limit: 20,
+        cursor: "MjA="
+      });
+    });
+    expect(await screen.findByText("2 shown")).toBeInTheDocument();
+  });
+
+  it("loads the next search page without replacing the first results", async () => {
+    const secondRecord = { ...record, id: "fixture-record-2", hadithNumber: "2" };
+    mockClient.search
+      .mockReset()
+      .mockResolvedValueOnce({ ok: true, data: { items: [record], nextCursor: "MjA=" } })
+      .mockResolvedValueOnce({ ok: true, data: { items: [secondRecord], nextCursor: null } });
+
+    render(<HadithReader />);
+    await screen.findByText("نص اختباري موثق");
+    fireEvent.change(screen.getByRole("searchbox", { name: "Search Hadith text" }), {
+      target: { value: "পরীক্ষা" }
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Search" }));
+    expect(await screen.findByRole("button", { name: "Load more search results" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Load more search results" }));
+
+    await waitFor(() => {
+      expect(mockClient.search).toHaveBeenNthCalledWith(2, "পরীক্ষা", "bn", 20, "MjA=");
+    });
+    expect(await screen.findByText("2 reviewed narrations")).toBeInTheDocument();
+  });
 });
