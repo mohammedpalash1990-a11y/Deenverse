@@ -101,7 +101,7 @@ export function QuranAyahReader({ client = defaultClient }: QuranAyahReaderProps
             required
           />
         </label>
-        <button className="catalogue-action" type="submit" disabled={state.status === "loading"}>
+        <button className="catalogue-action" type="submit" disabled={state.status === "loading" || translationState.status === "loading"}>
           {state.status === "loading" ? "Loading…" : state.status === "error" && state.retryable ? "Try again" : "Load Ayah"}
         </button>
       </form>
