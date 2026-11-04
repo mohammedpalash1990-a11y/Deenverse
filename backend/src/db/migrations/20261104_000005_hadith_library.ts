@@ -95,8 +95,9 @@ export async function up(knex: Knex): Promise<void> {
 
   await knex.schema.createTable('hadith_record_reviews', (table) => {
     table.string('id').primary();
-    table.string('hadith_id').notNullable().references('id').inTable('hadith_records').onDelete('RESTRICT');
+    table.string('hadith_id').notNullable();
     table.string('source_id').notNullable().references('id').inTable('content_sources').onDelete('RESTRICT');
+    table.foreign(['hadith_id', 'source_id']).references(['id', 'source_id']).inTable('hadith_records').onDelete('RESTRICT');
     table.string('review_role', 20).notNullable().checkIn(['primary', 'independent']);
     table.string('review_status', 32).notNullable().checkIn(['in_review', 'passed', 'failed', 'needs_correction']);
     table.string('artifact_sha256', 64).notNullable();
