@@ -5,7 +5,9 @@ import rateLimit from '@fastify/rate-limit';
 import { randomUUID } from 'crypto';
 import { Knex } from 'knex';
 import { QuranCatalogueService } from './services/quran-catalogue.js';
+import { QuranAyahService } from './services/quran-ayah.js';
 import { quranRoutes } from './routes/quran.js';
+import { quranAyahRoutes } from './routes/quran-ayah.js';
 import { ApiErrorResponse } from './types/content.js';
 
 export interface BuildAppOptions {
@@ -88,6 +90,7 @@ export function buildApp(opts: BuildAppOptions): FastifyInstance {
   });
 
   const quranCatalogueService = new QuranCatalogueService(db);
+  const quranAyahService = new QuranAyahService(db);
 
   // Keep the rate limiter and its routes in one Fastify encapsulation scope.
   app.register(async function registerApiRoutes(api) {
@@ -119,10 +122,9 @@ export function buildApp(opts: BuildAppOptions): FastifyInstance {
     api.get('/api/v1/ready', async (request, reply) => {
       try {
         await db.raw('SELECT 1');
-        const hasContentSources = await db.schema.hasTable('content_sources');
-        const hasSourceApprovals = await db.schema.hasTable('content_source_approvals');
-        const hasQuranSurahs = await db.schema.hasTable('quran_surahs');
-        if (!hasContentSources || !hasSourceApprovals || !hasQuranSurahs) {
+        const requiredTables = ['content_sources', 'content_source_approvals', 'quran_surahs', 'quran_ayahs'];
+        const present = await Promise.all(requiredTables.map((table) => db.schema.hasTable(table)));
+        if (!present.every(Boolean)) {
           const response: ApiErrorResponse = {
             error: {
               code: 'UNAVAILABLE',
@@ -159,6 +161,10 @@ export function buildApp(opts: BuildAppOptions): FastifyInstance {
     api.register(quranRoutes, {
       prefix: '/api/v1/quran',
       catalogueService: quranCatalogueService
+    });
+    api.register(quranAyahRoutes, {
+      prefix: '/api/v1/ayah',
+      ayahService: quranAyahService
     });
   });
 
