@@ -109,4 +109,52 @@ describe('Bengali translation client', () => {
     expect((await client.getAyah(1, 2)).ok).toBe(false);
     expect((await client.getAyah(1, 2)).ok).toBe(false);
   });
+  it('reads a complete ordered Surah through the implemented full-Surah endpoint', async () => {
+    const single = envelope().data;
+    const body = {
+      meta: { requestId: 'req_synthetic_surah' },
+      data: {
+        surahNumber: 1,
+        provenance: single.provenance,
+        ayahs: [
+          { ...single, ayahNumber: 1, translation: 'SYNTHETIC first translation' },
+          { ...single, ayahNumber: 2, translation: 'SYNTHETIC second translation' }
+        ]
+      }
+    };
+    const { client, fetcher } = clientFor(body);
+    expect(await client.getSurah(1)).toEqual({ ok: true, data: body.data });
+    expect(fetcher).toHaveBeenCalledWith('/api/v1/translation/bn/1', {
+      method: 'GET', headers: { Accept: 'application/json' }
+    });
+  });
+
+  it('rejects gaps, reordered Ayahs, and mismatched edition provenance in full-Surah responses', async () => {
+    const single = envelope().data;
+    const body = {
+      meta: { requestId: 'req_synthetic_surah' },
+      data: {
+        surahNumber: 1,
+        provenance: single.provenance,
+        ayahs: [
+          { ...single, ayahNumber: 1 },
+          { ...single, ayahNumber: 3 }
+        ]
+      }
+    };
+    expect((await clientFor(body).client.getSurah(1)).ok).toBe(false);
+
+    Object.assign(body.data.ayahs[1], {
+      ayahNumber: 2,
+      provenance: { ...body.data.provenance, editionVersion: 'V1.1.2' }
+    });
+    expect((await clientFor(body).client.getSurah(1)).ok).toBe(false);
+  });
+
+  it('rejects invalid full-Surah coordinates without network access', async () => {
+    const { client, fetcher } = clientFor({ data: {} });
+    expect((await client.getSurah(115)).ok).toBe(false);
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
 });
