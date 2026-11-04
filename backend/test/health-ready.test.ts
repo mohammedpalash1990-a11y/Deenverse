@@ -4,6 +4,7 @@ import { buildApp } from '../src/app.js';
 import { createDatabaseConnection } from '../src/db/connection.js';
 import * as initialSchema from '../src/db/migrations/20261102_000001_initial_schema.js';
 import * as sourceApprovalGate from '../src/db/migrations/20261103_000002_source_approval_gate.js';
+import * as quranAyahs from '../src/db/migrations/20261104_000003_quran_ayahs.js';
 
 test('Liveness and Readiness Probes', async (t) => {
   const db = createDatabaseConnection({ connection: ':memory:' });
@@ -42,6 +43,7 @@ test('Liveness and Readiness Probes', async (t) => {
   await t.test('GET /api/v1/ready returns 200 ready when migrations are applied', async () => {
     await initialSchema.up(db);
     await sourceApprovalGate.up(db);
+    await quranAyahs.up(db);
 
     const res = await app.inject({
       method: 'GET',
