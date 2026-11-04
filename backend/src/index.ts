@@ -1,5 +1,6 @@
 import { buildApp } from './app.js';
 import { createDatabaseConnection, resolveDatabaseConfig } from './db/connection.js';
+import { seedTanzilUthmaniFromOfficialSource } from './db/seed-tanzil.js';
 
 function readPositiveInteger(name: string, fallback: number): number {
   const raw = process.env[name];
@@ -28,6 +29,14 @@ async function main(): Promise<void> {
   }
 
   const db = createDatabaseConnection(databaseConfig);
+  if (process.env.DEENVERSE_SEED_TANZIL_UTHMANI === 'true') {
+    try {
+      await seedTanzilUthmaniFromOfficialSource(db);
+    } catch (error) {
+      await db.destroy();
+      throw error;
+    }
+  }
   const app = buildApp({
     db,
     allowedOrigins: CORS_ORIGIN,
