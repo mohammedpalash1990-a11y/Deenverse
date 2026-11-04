@@ -24,7 +24,7 @@ export const quranRoutes: FastifyPluginAsync<QuranRoutesOptions> = async (
       const errResponse: ApiErrorResponse = {
         error: {
           code: 'VALIDATION_ERROR',
-          message: queryValidation.error.errors.map((e) => e.message).join(', '),
+          message: queryValidation.error.issues.map((issue) => issue.message).join(', '),
           requestId: request.id,
           details: [],
           retryable: false
