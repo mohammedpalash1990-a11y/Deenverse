@@ -1,3 +1,4 @@
+import { resolveApiBaseUrl } from "./api-config";
 export interface QuranBengaliTranslation {
   surahNumber: number;
   ayahNumber: number;
@@ -30,8 +31,7 @@ export function createQuranBengaliTranslationClient(options: {
   baseUrl?: string;
   fetcher?: typeof fetch;
 } = {}) {
-  const configuredBaseUrl = options.baseUrl ?? process.env.NEXT_PUBLIC_API_BASE_URL;
-  const baseUrl = (configuredBaseUrl?.trim() || '/api/v1').replace(/\/+$/, '');
+  const baseUrl = resolveApiBaseUrl(options.baseUrl);
   const fetcher = options.fetcher ?? fetch;
 
   return {

@@ -1,3 +1,4 @@
+import { resolveApiBaseUrl } from "./api-config";
 import {
   validateContentRecord,
   type ContentPage,
@@ -35,7 +36,7 @@ async function readJson(response: Response): Promise<unknown> {
  * authenticity or source-license verification.
  */
 export function createRestContentSource(options: RestContentSourceOptions = {}): ContentSource {
-  const baseUrl = (options.baseUrl ?? "/api/v1").replace(/\/$/, "");
+  const baseUrl = resolveApiBaseUrl(options.baseUrl);
   const fetcher = options.fetcher ?? fetch;
 
   return {

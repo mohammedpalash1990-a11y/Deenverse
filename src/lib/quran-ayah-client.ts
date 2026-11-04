@@ -1,3 +1,4 @@
+import { resolveApiBaseUrl } from "./api-config";
 import type { ContentSourceError } from "./content-source";
 import type { ContentProvenance } from "./content-safety";
 import { mapContentApiError } from "./content-api-errors";
@@ -125,8 +126,7 @@ function parseAyahResponse(
  * mandatory and cannot be replaced by client validation.
  */
 export function createQuranAyahClient(options: QuranAyahClientOptions = {}) {
-  const configuredBaseUrl = options.baseUrl ?? process.env.NEXT_PUBLIC_API_BASE_URL;
-  const baseUrl = (configuredBaseUrl?.trim() || "/api/v1").replace(/\/+$/, "");
+  const baseUrl = resolveApiBaseUrl(options.baseUrl);
   const fetcher = options.fetcher ?? fetch;
 
   return {

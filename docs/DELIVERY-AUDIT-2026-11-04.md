@@ -28,8 +28,8 @@ branch's baseline. Open review/content/reporting PRs are not blindly merged.
 - Backend: typecheck and production build pass; **78 tests pass, 1 skipped**.
 - Skipped test: live PostgreSQL migration/production runtime test; no PostgreSQL
   service or `TEST_DATABASE_URL` was available here. It remains configured in CI.
-- Frontend: typecheck and Next.js production build pass; **124 tests pass** across
-  15 files. This is not a manual mobile, browser-audio, or screen-reader audit.
+- Frontend: typecheck and Next.js production build pass; **162 tests pass** across
+  17 files. This is not a manual mobile, browser-audio, or screen-reader audit.
 - `npm audit --json`: zero reported vulnerabilities in each dependency graph
   (including critical/high). This does not establish absence of application-level
   vulnerabilities or future advisories. No new dependency upgrades were needed.
@@ -81,7 +81,7 @@ contributions and content remain intact.
 **No defensible overall verified percentage yet.** The twelve product requirements
 have neither weighted acceptance criteria nor complete live-content/end-to-end
 verification. Passing tests and existing scaffolding are not feature completion.
-Local executed tests: **202/202 pass (100%); one PostgreSQL test skipped**. That
+Local executed tests: **240/240 pass (100%); one PostgreSQL test skipped**. That
 percentage measures only executed tests, not product readiness. Deployment remains
 blocked by the gates above; no production-ready claim is made.
 
@@ -115,3 +115,25 @@ blocked by the gates above; no production-ready claim is made.
   fetch after Arabic integrity rejection. Translation dependency injection makes
   these component tests deterministic without fetching an external publisher.
 - Removed a visible literal backslash-n between translation attribution links.
+
+
+## API deployment-wiring continuation
+
+- All four read clients now use one validated public API-base resolver. The
+  catalogue adapter no longer depends on callers to supply the deployment URL;
+  trailing-slash behavior is consistent with the other readers.
+- CSP connect-src now derives only the exact configured API origin, instead of
+  allowing one hardcoded Render host regardless of the configured backend.
+  Same-origin configuration adds no external connection permission.
+- Added 38 tests for URL normalization/validation, all-reader routing consistency,
+  and CSP origin selection. Unsafe schemes, embedded credentials, ambiguous
+  protocol-relative destinations and CSP injection syntax fail closed.
+- Frontend typecheck, all 162 tests and production builds pass locally. A build
+  using a synthetic external API URL was started temporarily and checked over
+  real HTTP: response 200, application HTML, exact API origin in CSP, nosniff,
+  no framework identity header. The built client bundle also contained the same
+  configured API hostname. This is a local wiring smoke test, not a successful
+  call to a hosted API or a browser/device end-to-end content test.
+- Deployment environment was not changed. Existing deployments must retain the
+  correct NEXT_PUBLIC_API_BASE_URL in their build environment and rebuild when
+  it changes. The backend must separately allow the frontend origin through CORS.

@@ -24,3 +24,37 @@ The Next.js application sends a baseline set of browser security headers on all 
 - Verify headers on the deployed host and CDN; edge/CDN configuration can override application headers.
 - Add automated deployed-header checks to the release pipeline.
 - Security headers do not replace server-side authentication, authorization, input validation, rate limiting, CSRF protection, or secure secret handling.
+
+## API origin and build configuration
+
+All four read clients (Quran catalogue, Ayah, Bengali translation, and Hadith)
+resolve their API base through `src/lib/api-config.ts`. Set
+`NEXT_PUBLIC_API_BASE_URL` **before building the frontend**. For example:
+
+```sh
+NEXT_PUBLIC_API_BASE_URL=https://your-api.example/api/v1 npm run build
+```
+
+The same value determines CSP `connect-src`. Only its exact origin is allowed;
+its path is not added to the policy. The former fixed Render origin is no longer
+hardcoded. Existing Render deployments should keep their existing public API URL
+in the frontend build environment. Rebuild after changing it; a runtime-only
+change cannot replace the already-built browser bundle reliably.
+
+If the value is omitted, blank, or a same-origin path such as `/api/v1`, CSP stays
+`connect-src 'self'`. A same-origin deployment must actually route that API path
+to the backend using its hosting reverse proxy; this setting alone does not
+create a proxy or deploy a backend. Relative paths must start with one slash.
+Trailing slashes are removed consistently across all readers.
+
+Absolute values must use HTTP(S), with no embedded credentials, query, fragment,
+whitespace or backslashes. Protocol-relative URLs and path normalization that
+would produce a protocol-relative request are rejected. Invalid settings fail
+closed with a generic configuration error that does not echo accidental secrets.
+Use HTTPS in production. HTTP localhost values are local-development-only: a
+remote user's browser resolves localhost on their own device, not on the server.
+
+For separate frontend/backend services, also set the backend's
+`CORS_ALLOWED_ORIGINS` to the exact HTTPS **frontend origin**, without an API path.
+Frontend CSP and backend CORS are independent requirements. Neither is a source
+approval, authorization mechanism, or substitute for TLS.

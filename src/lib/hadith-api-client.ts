@@ -1,5 +1,7 @@
 "use client";
 
+import { resolveApiBaseUrl } from "./api-config";
+
 import type { ContentSourceError } from "./content-source";
 import { mapContentApiError } from "./content-api-errors";
 
@@ -179,8 +181,7 @@ function parseRecord(value: unknown): value is HadithRecord {
 }
 
 export function createHadithClient(options: HadithClientOptions = {}) {
-  const configuredBaseUrl = options.baseUrl ?? process.env.NEXT_PUBLIC_API_BASE_URL;
-  const baseUrl = (configuredBaseUrl?.trim() || "/api/v1").replace(/\/+$/, "");
+  const baseUrl = resolveApiBaseUrl(options.baseUrl);
   const fetcher = options.fetcher ?? fetch;
 
   async function read<T>(path: string, validate: (value: unknown) => value is T): Promise<HadithClientResult<T>> {
