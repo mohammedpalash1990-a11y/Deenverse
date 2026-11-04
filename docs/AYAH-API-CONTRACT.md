@@ -98,6 +98,6 @@ Until multi-edition selection is explicitly implemented, only a single configure
 
 ## Ownership
 
-- Backend owner (Jules): implement route, persistence, source/edition selection, and server-side artifact/record verification.
+- Backend owner (Jules): review and harden the existing `/api/v1/ayah/:surah/:ayah` route, ensure deterministic approved-edition selection, and complete independent source-artifact verification in addition to the existing stored-record digest check.
 - Frontend owner (Queen): consume this contract in the reader UI and provide loading/error/empty/unavailable states.
 - Integration owner: maintain contract tests and ensure frontend/backend schemas remain aligned.
