@@ -68,12 +68,8 @@ export function QuranAyahReader({ client = defaultClient }: QuranAyahReaderProps
           <input
             aria-label="Surah number"
             inputMode="numeric"
-            pattern="[0-9]*"
-            min="1"
-            max="114"
             value={surah}
             onChange={(event) => setSurah(event.target.value)}
-            required
           />
         </label>
         <label>
@@ -81,8 +77,6 @@ export function QuranAyahReader({ client = defaultClient }: QuranAyahReaderProps
           <input
             aria-label="Ayah number"
             inputMode="numeric"
-            pattern="[0-9]*"
-            min="1"
             value={ayah}
             onChange={(event) => setAyah(event.target.value)}
             required
