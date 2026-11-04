@@ -12,7 +12,7 @@ export interface QuranAyahPayload {
 export interface QuranAyahProvenance extends ContentProvenance {
   approvalStatus: "approved";
   reviewDecisionId: string;
-  approvalReviewerId: string;
+  approvedByAuthority: string;
   approvedAt: string;
 }
 
@@ -51,7 +51,7 @@ function isValidProvenance(value: unknown): value is QuranAyahProvenance {
   if (!isObject(value)) return false;
   const stringFields = [
     "sourceId", "edition", "sourceUrl", "attribution", "licenseId",
-    "reviewer", "reviewedAt", "reviewDecisionId", "approvalReviewerId", "approvedAt"
+    "reviewer", "reviewedAt", "reviewDecisionId", "approvedByAuthority", "approvedAt"
   ];
   if (stringFields.some((field) => typeof value[field] !== "string" || !(value[field] as string).trim())) {
     return false;
