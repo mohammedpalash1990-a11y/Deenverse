@@ -38,7 +38,7 @@ The frontend validates response structure and provenance as a second defensive l
 
 ## Web reader
 
-The Hadith navigation item opens the live reader component. Users can select an approved collection, browse its chapters and first page of reviewed narrations, select Arabic/Bengali/English translation, and search the selected language. The reader renders source Arabic without rewriting it and shows available narrator/isnad metadata and source attribution.
+The Hadith navigation item opens the live reader component. Users can select an approved collection, browse its chapters and paginated reviewed narrations, select Arabic/Bengali/English translation, and search the selected language. Collection browsing and search both expose a load-more control that follows the API continuation cursor without replacing already displayed records. The reader renders source Arabic without rewriting it and shows available narrator/isnad metadata and source attribution.
 
 No approved collections currently means an explicit empty/unavailable state. The reader must not populate itself with sample narrations or public content while the source and review gates remain empty.
 
