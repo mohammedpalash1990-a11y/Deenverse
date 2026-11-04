@@ -66,9 +66,8 @@ export async function up(knex: Knex): Promise<void> {
 
   await knex.schema.createTable('hadith_translations', (table) => {
     table.string('id').primary();
-    table.string('hadith_id').notNullable();
+    table.string('hadith_id').notNullable().references('id').inTable('hadith_records').onDelete('RESTRICT');
     table.string('source_id').notNullable().references('id').inTable('content_sources').onDelete('RESTRICT');
-    table.foreign(['hadith_id', 'source_id']).references(['id', 'source_id']).inTable('hadith_records').onDelete('RESTRICT');
     table.string('locale', 12).notNullable();
     table.string('translator_name').notNullable();
     table.text('translation_text').notNullable();
