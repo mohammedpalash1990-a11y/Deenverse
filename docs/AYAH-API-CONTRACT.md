@@ -4,7 +4,7 @@
 
 ## Route
 
-`GET /api/v1/quran/surahs/{surahNumber}/ayahs/{ayahNumber}`
+`GET /api/v1/ayah/{surahNumber}/{ayahNumber}`
 
 Both path parameters are decimal positive integers. `surahNumber` must be 1–114. The server validates the requested Ayah against the selected, approved edition and returns 404 when that Ayah does not exist in that edition.
 
@@ -36,7 +36,7 @@ HTTP 200:
       "reviewedAt": "2026-01-01T00:00:00.000Z",
       "approvalStatus": "approved",
       "reviewDecisionId": "approval-id",
-      "approvedByAuthority": "review-authority-id",
+      "approvalReviewerId": "review-authority-id",
       "approvedAt": "2026-01-01T00:00:00.000Z",
       "checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
     },
@@ -74,7 +74,7 @@ Use the common API error envelope:
 | 404 | `NOT_FOUND` | Ayah does not exist in the requested approved edition |
 | 429 | `RATE_LIMITED` | Request rate exceeded |
 | 503 | `CONTENT_UNAVAILABLE` | No approved, licensed, integrity-verified edition is available |
-| 503 | `INTEGRITY_REJECTED` | Source or record integrity check failed |
+| 502 | `INTEGRITY_REJECTED` | Stored Ayah record failed its SHA-256 integrity check |
 
 Do not expose internal provider diagnostics, storage paths, SQL errors, or secret values.
 
