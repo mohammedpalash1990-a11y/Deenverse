@@ -30,7 +30,7 @@ export type QuranAyahResult =
   | { ok: false; error: ContentSourceError };
 
 export interface QuranAyahClientOptions {
-  /** API root, for example https://api.example.com/api/v1. Defaults to /api/v1. */
+  /** API root, for example https://api.example.com/api/v1. Defaults to NEXT_PUBLIC_API_BASE_URL or /api/v1. */
   baseUrl?: string;
   /** Injectable fetch implementation for deterministic tests. */
   fetcher?: typeof fetch;
@@ -125,7 +125,8 @@ function parseAyahResponse(
  * mandatory and cannot be replaced by client validation.
  */
 export function createQuranAyahClient(options: QuranAyahClientOptions = {}) {
-  const baseUrl = (options.baseUrl ?? "/api/v1").replace(/\/$/, "");
+  const configuredBaseUrl = options.baseUrl ?? process.env.NEXT_PUBLIC_API_BASE_URL;
+  const baseUrl = (configuredBaseUrl?.trim() || "/api/v1").replace(/\/+$/, "");
   const fetcher = options.fetcher ?? fetch;
 
   return {
