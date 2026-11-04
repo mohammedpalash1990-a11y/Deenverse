@@ -19,7 +19,7 @@ const securityHeaders = [
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' data: https://fonts.gstatic.com",
       "img-src 'self' data: blob: https:",
-      "connect-src 'self'",
+      "connect-src 'self' https://deenverse-api.onrender.com",
       "upgrade-insecure-requests"
     ].join("; ")
   }
