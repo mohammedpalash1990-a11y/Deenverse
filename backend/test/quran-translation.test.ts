@@ -142,3 +142,24 @@ test('returns an ordered full-Surah translation and rejects gaps or reordered Ay
   const gapResult = await new QuranEncBengaliTranslationService(gapFetcher).getSurah(1);
   assert.equal(gapResult.status, 'invalid_source_response');
 });
+
+test('serves a complete ordered Surah through the public translation route', async () => {
+  const { buildApp } = await import('../src/app.js');
+  const fetcher: typeof fetch = async (input) => String(input).includes('/translations/list/')
+    ? jsonResponse(editionList)
+    : jsonResponse([
+        { sura: 1, aya: 1, translation: 'প্রথম আয়াত', footnotes: [] },
+        { sura: 1, aya: 2, translation: 'দ্বিতীয় আয়াত', footnotes: [] }
+      ]);
+  const app = buildApp({ db: {} as never, enableRateLimit: false, quranTranslationFetcher: fetcher });
+  try {
+    const response = await app.inject({ method: 'GET', url: '/api/v1/translation/bn/1' });
+    assert.equal(response.statusCode, 200);
+    const payload = response.json();
+    assert.equal(payload.data.surahNumber, 1);
+    assert.deepEqual(payload.data.ayahs.map((ayah: { ayahNumber: number }) => ayah.ayahNumber), [1, 2]);
+    assert.equal(payload.data.provenance.publisher, 'QuranEnc.com');
+  } finally {
+    await app.close();
+  }
+});
