@@ -4,9 +4,11 @@ import { createDatabaseConnection, resolveDatabaseConfig, DatabaseConfig } from 
 import * as initialSchema from './migrations/20261102_000001_initial_schema.js';
 import * as sourceApprovalGate from './migrations/20261103_000002_source_approval_gate.js';
 import * as quranAyahs from './migrations/20261104_000003_quran_ayahs.js';
+import * as hadithLibrary from './migrations/20261104_000005_hadith_library.js';
 
 const BASE_REQUIRED_TABLES = ['content_sources', 'quran_surahs'] as const;
-const REQUIRED_TABLES = [...BASE_REQUIRED_TABLES, 'content_source_approvals', 'quran_ayahs'] as const;
+const HADITH_TABLES = ['hadith_books', 'hadith_chapters', 'hadith_records', 'hadith_translations', 'hadith_grade_assessments', 'hadith_record_reviews'] as const;
+const REQUIRED_TABLES = [...BASE_REQUIRED_TABLES, 'content_source_approvals', 'quran_ayahs', ...HADITH_TABLES] as const;
 
 /**
  * Apply the base schema to a fresh database, then apply additive migrations.
