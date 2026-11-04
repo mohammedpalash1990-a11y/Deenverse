@@ -136,6 +136,7 @@ Do not guess the API schema beyond the official documentation. Before implementa
 - Treat Arabic Quran text and Bengali translation as separate content sources with independent provenance, versions, approvals, and checksums.
 - Store the translation key, publisher, translator, edition/version, source URL, retrieval timestamp, source response/artifact digest, and transcript metadata.
 - Preserve every verse coordinate and confirm complete coverage/order against the source's own Surah/Ayah boundaries; do not assume a total count without verifying the official payload.
+- The API adapter is pinned to publisher edition `V1.1.1`; if QuranEnc reports any other version, it must fail closed until the new edition is acquired, compared, and explicitly reviewed. A live version-list response is not permission to silently switch editions.
 - Compare every imported translation and footnote byte-for-byte (after a documented transport decoding only) with the official source response. Any mismatch blocks publication.
 - Retain the original source payload unchanged in restricted source storage and produce a reproducible import/validation report.
 - Show attribution in the reader and provide a direct link to QuranEnc.com and the edition page.

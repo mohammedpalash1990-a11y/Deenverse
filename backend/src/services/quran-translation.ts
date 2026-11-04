@@ -34,6 +34,8 @@ interface TranslationListEntry {
 
 const API_ROOT = 'https://quranenc.com/api/v1';
 const TRANSLATION_KEY = 'bengali_zakaria';
+// Keep the reader bound to the reviewed publisher edition; an upstream change must be reviewed explicitly.
+const EXPECTED_EDITION_VERSION = 'V1.1.1';
 const EDITION_URL = 'https://quranenc.com/bn/browse/bengali_zakaria';
 const TERMS_URL = 'https://quranenc.com/en/home';
 const TRANSLATION_LIST_URL = `${API_ROOT}/translations/list/bn/?localization=bn`;
@@ -77,7 +79,9 @@ export class QuranEncBengaliTranslationService {
       typeof entry.title === 'string' && entry.title.trim().length > 0 &&
       typeof entry.description === 'string'
     );
-    if (!edition) return { status: 'invalid_source_response' };
+    if (!edition || edition.version !== EXPECTED_EDITION_VERSION) {
+      return { status: 'invalid_source_response' };
+    }
 
     let ayahResponse: Response;
     try {
