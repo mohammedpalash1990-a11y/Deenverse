@@ -103,9 +103,20 @@ export const quranReviewRoutes: FastifyPluginAsync<ReviewRoutesOptions> = async 
         || (issueNote !== undefined && (typeof issueNote !== 'string' || issueNote.length > 2000))) {
         return reply.status(400).send({ error: { code: 'VALIDATION_ERROR', message: 'Review decision and exact-text/reference checks are required.' } });
       }
-      const invite = await opts.db('quran_review_invites').where({ token_hash: tokenHash }).first();
+      const invite = await opts.db('quran_review_invites as i')
+        .join('quran_review_batches as b', 'b.id', 'i.batch_id')
+        .where('i.token_hash', tokenHash)
+        .first('i.expires_at', 'i.submitted_at', 'b.source_id', 'b.surah_number', 'b.ayah_number', 'b.artifact_sha256');
       if (!invite || new Date(invite.expires_at).getTime() <= Date.now()) return reply.status(404).send({ error: { code: 'INVITE_EXPIRED', message: 'This review link is invalid or expired.' } });
       if (invite.submitted_at) return reply.status(409).send({ error: { code: 'ALREADY_SUBMITTED', message: 'This review has already been submitted.' } });
+      const [source, ayah] = await Promise.all([
+        opts.db('content_sources').where({ id: invite.source_id }).first('checksum'),
+        opts.db('quran_ayahs').where({ source_id: invite.source_id, surah_number: invite.surah_number, ayah_number: invite.ayah_number }).first('arabic', 'text_sha256')
+      ]);
+      if (!source || !ayah || String(source.checksum).toLowerCase() !== String(invite.artifact_sha256).toLowerCase()
+        || hash(String(ayah.arabic)) !== String(ayah.text_sha256).toLowerCase()) {
+        return reply.status(409).send({ error: { code: 'SOURCE_CHANGED', message: 'The source artifact changed; this review cannot be submitted.' } });
+      }
       const submittedAt = new Date().toISOString();
       await opts.db.transaction(async (trx) => {
         await trx('quran_review_submissions').insert({
