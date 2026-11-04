@@ -86,3 +86,69 @@ The source remains **CANDIDATE — NOT APPROVED/IMPORTED** until artifact acquis
 - Tanzil Text License: https://tanzil.net/docs/Text_License
 - Tanzil Download Documentation: https://tanzil.net/docs/download
 - Tanzil Updates: https://tanzil.net/updates/
+
+
+---
+
+# Bengali Translation — Abu Bakr Muhammad Zakaria
+
+**Status: CANDIDATE — OFFICIAL PUBLISHER TERMS IDENTIFIED; NOT YET ACQUIRED, IMPORTED, OR APPROVED**
+
+## Source identity
+
+- Work: Bengali translation of the meanings of the Noble Quran by Dr. Abu Bakr Muhammad Zakaria.
+- Official digital publisher and source: QuranEnc.com — Encyclopedia of the Noble Quran.
+- Official Bengali edition page: https://quranenc.com/bn/browse/bengali_zakaria
+- Official English edition page: https://quranenc.com/en/browse/bengali_zakaria/
+- Translation key: `bengali_zakaria` (from the official page route; verify against the official API response before use).
+- Publisher-listed edition: V1.1.1, dated 22 May 2021.
+- Publisher's terms: https://quranenc.com/en/home
+- Official publisher API documentation is displayed on the translation page.
+
+## Publisher's republication conditions
+
+QuranEnc states that translation contents may be downloaded and re-published subject to all of these conditions:
+
+1. No modification, addition, or deletion of the content.
+2. Clearly identify the publisher and source as QuranEnc.com.
+3. State the version number when republishing.
+4. Keep the transcript information inside the document.
+5. Notify QuranEnc about any note concerning the translation.
+6. Update the translation according to the latest version issued by the source.
+7. Do not display inappropriate advertisements alongside translations of the meanings of the Noble Quran.
+
+These are source-specific conditional republication terms, not a blanket open-source or public-domain license. Do not label this translation CC0, public domain, or CC BY. Keep the full publisher attribution and transcript metadata with every exported or cached copy. Before enabling redistribution beyond the stated terms, obtain a legal/rights review.
+
+## Official API contract
+
+The official page documents:
+
+- Whole Surah: `GET https://quranenc.com/api/v1/translation/sura/{translation_key}/{sura_number}`
+- Single Ayah: `GET https://quranenc.com/api/v1/translation/aya/{translation_key}/{sura_number}/{aya_number}`
+- `translation_key`: the currently selected translation key; candidate value is `bengali_zakaria`.
+- Surah number: 1–114.
+- Response fields documented by QuranEnc: `sura`, `aya`, `translation`, and `footnotes`.
+
+Do not guess the API schema beyond the official documentation. Before implementation, capture and validate real responses for Surah 1/Ayah 1, a verse with footnotes, and the final Ayah of a Surah. Preserve the publisher's translation and footnote text exactly; only render presentation markup safely and deterministically. Never merge footnotes into the translation field or silently omit them.
+
+## DEENVERSE integration requirements
+
+- Treat Arabic Quran text and Bengali translation as separate content sources with independent provenance, versions, approvals, and checksums.
+- Store the translation key, publisher, translator, edition/version, source URL, retrieval timestamp, source response/artifact digest, and transcript metadata.
+- Preserve every verse coordinate and confirm complete coverage/order against the source's own Surah/Ayah boundaries; do not assume a total count without verifying the official payload.
+- Compare every imported translation and footnote byte-for-byte (after a documented transport decoding only) with the official source response. Any mismatch blocks publication.
+- Retain the original source payload unchanged in restricted source storage and produce a reproducible import/validation report.
+- Show attribution in the reader and provide a direct link to QuranEnc.com and the edition page.
+- Do not paraphrase, edit, auto-correct, normalize, or AI-rewrite the translation or footnotes.
+- Do not publish the translation until acquisition, full coverage validation, rights-condition review, and independent human review are complete.
+- If the upstream API is unavailable or the approved edition cannot be verified, fail closed rather than substituting another Bengali translation.
+
+## Release decision
+
+The Abu Bakr Muhammad Zakaria translation is an **identified official source candidate**, not yet a production-approved dataset. The current dossier does not claim that its full text has been downloaded, hashed, checked, imported, or independently reviewed.
+
+## References
+
+- QuranEnc Bengali edition and API specification: https://quranenc.com/bn/browse/bengali_zakaria
+- QuranEnc English edition and republication conditions: https://quranenc.com/en/browse/bengali_zakaria/
+- QuranEnc Bengali translations index and edition version/date: https://quranenc.com/bn/home
