@@ -57,7 +57,7 @@ All values above are schema examples only. The placeholder in `textArabic` is no
 - Payload path numbers must exactly match the request path.
 - `type` must be `quran` and `locale` must be `ar`.
 - `textArabic` must be the exact approved source string. Do not trim, normalize, transliterate, rewrite, repair, or otherwise transform it.
-- Provenance must include source, edition, HTTPS source URL, attribution, license, explicit redistribution permission, reviewer, review time, approved decision ID/reviewer/time, and a 64-character hexadecimal SHA-256 checksum.
+- Provenance must include source, edition, HTTPS source URL, attribution, license, explicit redistribution permission, reviewer, review time, approved decision ID/reviewer/time, and a 64-character hexadecimal SHA-256 checksum. For compatibility with an in-flight backend patch, the client also accepts `approvedByAuthority` and normalizes it to `approvalReviewerId`.
 - The current backend verifies the stored Ayah text against its per-record SHA-256 and requires the approval digest to match the registered source checksum. This is a metadata and record-integrity gate, not independent verification of an immutable source artifact. Do not import or publish a production Quran corpus until immutable artifact retrieval, digest recomputation, and independent source review are implemented and evidenced.
 - A source/edition without valid approval, rights, or integrity verification must fail closed.
 - No synthetic fixtures, AI-generated text, alternate-edition fallback, or cached unapproved record may be returned.
@@ -74,7 +74,7 @@ Use the common API error envelope:
 | 404 | `NOT_FOUND` | Ayah does not exist in the requested approved edition |
 | 429 | `RATE_LIMITED` | Request rate exceeded |
 | 503 | `CONTENT_UNAVAILABLE` | No approved, licensed, integrity-verified edition is available |
-| 503 | `INTEGRITY_REJECTED` | Source or record integrity check failed |
+| 502 | `INTEGRITY_REJECTED` | Stored Ayah record failed its SHA-256 integrity check |
 
 Do not expose internal provider diagnostics, storage paths, SQL errors, or secret values.
 
@@ -98,6 +98,6 @@ Until multi-edition selection is explicitly implemented, only a single configure
 
 ## Ownership
 
-- Backend owner (Jules): implement route, persistence, source/edition selection, and server-side artifact/record verification.
+- Backend owner (Jules): harden the existing `/api/v1/ayah/:surah/:ayah` route and complete independent source-artifact verification; current code verifies the stored Ayah record digest but does not independently retrieve and hash the immutable upstream artifact.
 - Frontend owner (Queen): consume this contract in the reader UI and provide loading/error/empty/unavailable states.
 - Integration owner: maintain contract tests and ensure frontend/backend schemas remain aligned.
