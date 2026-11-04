@@ -48,6 +48,23 @@ test('validates a complete Tanzil-shaped corpus without changing verse text', ()
   assert.equal(validated.ayahs.at(-1)?.ayahNumber, 6);
 });
 
+test('validates the official unnumbered one-verse-per-line Tanzil export', () => {
+  const fixture = buildOfficialShapeFixture();
+  const numberedRows = fixture.text.toString('utf8').trimEnd().split('\n');
+  const plainText = numberedRows.map((row) => row.replace(/^\d+\|\d+\|/u, '')).join('\n') + '\n';
+  const plainBytes = Buffer.from(plainText, 'utf8');
+  const validated = validateTanzilUthmaniArtifacts(plainBytes, fixture.metadata);
+
+  assert.equal(validated.report.surahCount, 114);
+  assert.equal(validated.report.ayahCount, 6236);
+  assert.equal(validated.report.artifactSha256, createHash('sha256').update(plainBytes).digest('hex'));
+  assert.equal(validated.ayahs[0].surahNumber, 1);
+  assert.equal(validated.ayahs[0].ayahNumber, 1);
+  assert.equal(validated.ayahs[0].arabic, 'نص اختبار غير قرآني 1:1');
+  assert.equal(validated.ayahs.at(-1)?.surahNumber, 114);
+  assert.equal(validated.ayahs.at(-1)?.ayahNumber, 6);
+});
+
 test('rejects a missing Ayah row', () => {
   const fixture = buildOfficialShapeFixture();
   const lines = fixture.text.toString('utf8').trimEnd().split('\n');

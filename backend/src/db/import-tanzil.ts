@@ -166,47 +166,41 @@ export function parseTanzilUthmaniText(textBytes: Uint8Array): TanzilAyahRecord[
 
   const lines = text.split('\n');
   if (lines.at(-1) === '') lines.pop();
-  if (lines.length !== EXPECTED_TOTAL_AYAHS) {
-    throw new Error(`Tanzil Uthmani text must contain exactly ${EXPECTED_TOTAL_AYAHS} verse rows; found ${lines.length}.`);
+  const normalizedLines = lines.map((line) => line.endsWith('\r') ? line.slice(0, -1) : line);
+  if (normalizedLines.length !== EXPECTED_TOTAL_AYAHS) {
+    throw new Error('Tanzil Uthmani text must contain exactly ' + EXPECTED_TOTAL_AYAHS + ' verse rows; found ' + normalizedLines.length + '.');
   }
 
   const ayahs: TanzilAyahRecord[] = [];
-  let expectedSurah = 1;
-  let expectedAyah = 1;
+  const numbered = /^([1-9]\d*)\|([1-9]\d*)\|/u.test(normalizedLines[0] ?? '');
+  let lineIndex = 0;
 
-  for (let index = 0; index < lines.length; index += 1) {
-    const line = lines[index].endsWith('\r') ? lines[index].slice(0, -1) : lines[index];
-    const match = /^([1-9]\d*)\|([1-9]\d*)\|(.+)$/u.exec(line);
-    if (!match) throw new Error(`Tanzil Uthmani row ${index + 1} is not in surah|ayah|text format.`);
+  for (let surahIndex = 0; surahIndex < EXPECTED_AYAH_COUNTS.length; surahIndex += 1) {
+    const surahNumber = surahIndex + 1;
+    for (let ayahNumber = 1; ayahNumber <= EXPECTED_AYAH_COUNTS[surahIndex]; ayahNumber += 1) {
+      const line = normalizedLines[lineIndex];
+      let arabic = line;
 
-    const surahNumber = Number(match[1]);
-    const ayahNumber = Number(match[2]);
-    const arabic = match[3];
+      if (numbered) {
+        const match = /^([1-9]\d*)\|([1-9]\d*)\|(.+)$/u.exec(line);
+        if (!match) throw new Error('Tanzil Uthmani row ' + (lineIndex + 1) + ' is not in surah|ayah|text format.');
+        const actualSurah = Number(match[1]);
+        const actualAyah = Number(match[2]);
+        if (actualSurah !== surahNumber || actualAyah !== ayahNumber) {
+          throw new Error('Tanzil Uthmani row ' + (lineIndex + 1) + ' is ' + actualSurah + ':' + actualAyah + '; expected ' + surahNumber + ':' + ayahNumber + '.');
+        }
+        arabic = match[3];
+      }
 
-    if (surahNumber !== expectedSurah || ayahNumber !== expectedAyah) {
-      throw new Error(
-        `Tanzil Uthmani row ${index + 1} is ${surahNumber}:${ayahNumber}; expected ${expectedSurah}:${expectedAyah}.`
-      );
-    }
-    if (arabic.length === 0 || arabic.includes('\u0000')) {
-      throw new Error(`Tanzil Uthmani row ${index + 1} contains empty or invalid verse text.`);
-    }
-
-    ayahs.push({
-      surahNumber,
-      ayahNumber,
-      arabic,
-      textSha256: sha256(arabic)
-    });
-
-    expectedAyah += 1;
-    if (expectedAyah > EXPECTED_AYAH_COUNTS[expectedSurah - 1]) {
-      expectedSurah += 1;
-      expectedAyah = 1;
+      if (arabic.length === 0 || arabic.includes('\u0000')) {
+        throw new Error('Tanzil Uthmani row ' + (lineIndex + 1) + ' contains empty or invalid verse text.');
+      }
+      ayahs.push({ surahNumber, ayahNumber, arabic, textSha256: sha256(arabic) });
+      lineIndex += 1;
     }
   }
 
-  if (expectedSurah !== 115 || expectedAyah !== 1) {
+  if (lineIndex !== normalizedLines.length || ayahs.length !== EXPECTED_TOTAL_AYAHS) {
     throw new Error('Tanzil Uthmani text ended before the canonical Surah/Ayah sequence was complete.');
   }
   return ayahs;

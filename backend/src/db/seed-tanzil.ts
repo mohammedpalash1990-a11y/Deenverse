@@ -117,18 +117,10 @@ async function registerOwnerAuthorizedSource(
  * DEENVERSE_SEED_TANZIL_UTHMANI environment flag is enabled.
  */
 export async function seedTanzilUthmaniFromOfficialSource(db: Knex): Promise<void> {
-  const form = new URLSearchParams({
-    quranType: 'uthmani',
-    outType: 'txt-2',
-    marks: 'true',
-    sajdah: 'true',
-    tatweel: 'true',
-    agree: 'true',
-    rub: 'true'
-  });
-
   const downloadUrl = new URL('https://tanzil.net/pub/download/index.php');
-  for (const [key, value] of form.entries()) downloadUrl.searchParams.set(key, value);
+  downloadUrl.searchParams.set('quranType', 'uthmani');
+  downloadUrl.searchParams.set('outType', 'txt');
+  downloadUrl.searchParams.set('agree', 'true');
 
   const [textBytes, metadataBytes] = await Promise.all([
     downloadBytes(downloadUrl.toString(), {
@@ -142,25 +134,13 @@ export async function seedTanzilUthmaniFromOfficialSource(db: Knex): Promise<voi
     }, 1_000)
   ]);
 
-  const diagnosticLines = new TextDecoder('utf-8', { fatal: true }).decode(textBytes).split('\\n');
+  const diagnosticLines = new TextDecoder('utf-8', { fatal: true }).decode(textBytes).split(/\r?\n/u);
   if (diagnosticLines.at(-1) === '') diagnosticLines.pop();
-  const coordinateRows = diagnosticLines.flatMap((line) => {
-    const match = /^(\\d+)\\|(\\d+)\\|/u.exec(line.endsWith('\\r') ? line.slice(0, -1) : line);
-    return match ? [`${match[1]}:${match[2]}`] : [];
-  });
-  const countsBySurah: Record<string, number> = {};
-  for (const coordinate of coordinateRows) {
-    const surahNumber = coordinate.split(':')[0];
-    countsBySurah[surahNumber] = (countsBySurah[surahNumber] ?? 0) + 1;
-  }
   console.info(JSON.stringify({
     tanzilArtifactDiagnostics: {
-      lineCount: diagnosticLines.length,
-      coordinateRowCount: coordinateRows.length,
-      nonCoordinateLineCount: diagnosticLines.length - coordinateRows.length,
-      firstCoordinates: coordinateRows.slice(0, 8),
-      lastCoordinates: coordinateRows.slice(-8),
-      countsBySurah
+      format: 'plain-one-verse-per-line',
+      verseRowCount: diagnosticLines.length,
+      expectedVerseRowCount: 6236
     }
   }));
 
