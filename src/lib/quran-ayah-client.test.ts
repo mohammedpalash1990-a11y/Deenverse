@@ -111,14 +111,14 @@ describe("createQuranAyahClient", () => {
     }
   );
 
-  it("normalizes approvedByAuthority to the current approvalReviewerId contract", async () => {
+  it("normalizes the legacy approvalReviewerId field to approvedByAuthority", async () => {
     const alternateProvenance = { ...provenance, approvedByAuthority: provenance.approvalReviewerId };
     delete (alternateProvenance as Record<string, unknown>).approvalReviewerId;
     const fetcher = vi.fn().mockResolvedValue(response(200, success({ provenance: alternateProvenance })));
     const result = await createQuranAyahClient({ fetcher }).getAyah(2, 255);
 
     expect(result.ok).toBe(true);
-    if (result.ok) expect(result.data.provenance.approvalReviewerId).toBe("test-approval-reviewer");
+    if (result.ok) expect(result.data.provenance.approvedByAuthority).toBe("test-approval-reviewer");
   });
 
   it("rejects an ID that does not match the requested coordinates", async () => {
