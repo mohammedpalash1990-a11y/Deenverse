@@ -130,12 +130,12 @@ describe("Hadith API client", () => {
     expect(searchPage.ok).toBe(true);
     expect(fetcher).toHaveBeenNthCalledWith(
       1,
-      "/api/v1/hadith/books/fixture-book/records?limit=20&cursor=MjA=",
+      "/api/v1/hadith/books/fixture-book/records?limit=20&cursor=MjA%3D",
       expect.objectContaining({ method: "GET" })
     );
     expect(fetcher).toHaveBeenNthCalledWith(
       2,
-      "/api/v1/hadith/search?q=fixture&locale=en&limit=20&cursor=NDA=",
+      "/api/v1/hadith/search?q=fixture&locale=en&limit=20&cursor=NDA%3D",
       expect.objectContaining({ method: "GET" })
     );
   });
