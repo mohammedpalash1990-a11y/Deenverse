@@ -116,3 +116,50 @@ test('fails closed when QuranEnc changes the pinned translation edition', async 
   assert.equal(result.status, 'invalid_source_response');
   assert.equal(calls.length, 1, 'must not fetch translation text from an unreviewed edition');
 });
+
+test('returns an ordered full-Surah translation and rejects gaps or reordered Ayahs', async () => {
+  const validRows = [
+    { sura: 1, aya: 1, translation: 'প্রথম আয়াত', footnotes: [] },
+    { sura: 1, aya: 2, translation: 'দ্বিতীয় আয়াত', footnotes: [] }
+  ];
+  const fetcher: typeof fetch = async (input) => {
+    const url = String(input);
+    if (url.includes('/translations/list/')) return jsonResponse(editionList);
+    return jsonResponse(validRows);
+  };
+  const service = new QuranEncBengaliTranslationService(fetcher);
+  const result = await service.getSurah(1);
+  assert.equal(result.status, 'ok');
+  if (result.status === 'ok') {
+    assert.deepEqual(result.value.ayahs.map((ayah) => ayah.ayahNumber), [1, 2]);
+    assert.equal(result.value.ayahs[1].translation, 'দ্বিতীয় আয়াত');
+    assert.equal(result.value.provenance.editionVersion, 'V1.1.1');
+  }
+
+  const gapFetcher: typeof fetch = async (input) => String(input).includes('/translations/list/')
+    ? jsonResponse(editionList)
+    : jsonResponse([validRows[0], { ...validRows[1], aya: 3 }]);
+  const gapResult = await new QuranEncBengaliTranslationService(gapFetcher).getSurah(1);
+  assert.equal(gapResult.status, 'invalid_source_response');
+});
+
+test('serves a complete ordered Surah through the public translation route', async () => {
+  const { buildApp } = await import('../src/app.js');
+  const fetcher: typeof fetch = async (input) => String(input).includes('/translations/list/')
+    ? jsonResponse(editionList)
+    : jsonResponse([
+        { sura: 1, aya: 1, translation: 'প্রথম আয়াত', footnotes: [] },
+        { sura: 1, aya: 2, translation: 'দ্বিতীয় আয়াত', footnotes: [] }
+      ]);
+  const app = buildApp({ db: {} as never, enableRateLimit: false, quranTranslationFetcher: fetcher });
+  try {
+    const response = await app.inject({ method: 'GET', url: '/api/v1/translation/bn/1' });
+    assert.equal(response.statusCode, 200);
+    const payload = response.json();
+    assert.equal(payload.data.surahNumber, 1);
+    assert.deepEqual(payload.data.ayahs.map((ayah: { ayahNumber: number }) => ayah.ayahNumber), [1, 2]);
+    assert.equal(payload.data.provenance.publisher, 'QuranEnc.com');
+  } finally {
+    await app.close();
+  }
+});

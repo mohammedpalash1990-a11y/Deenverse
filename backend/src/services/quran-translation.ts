@@ -18,6 +18,18 @@ export interface QuranEncTranslation {
   };
 }
 
+export interface QuranEncSurahTranslation {
+  surahNumber: number;
+  ayahs: QuranEncTranslation[];
+  provenance: QuranEncTranslation['provenance'];
+}
+
+export type QuranEncSurahLookupResult =
+  | { status: 'ok'; value: QuranEncSurahTranslation }
+  | { status: 'unavailable' }
+  | { status: 'not_found' }
+  | { status: 'invalid_source_response' };
+
 export type QuranEncLookupResult =
   | { status: 'ok'; value: QuranEncTranslation }
   | { status: 'unavailable' }
@@ -132,4 +144,95 @@ export class QuranEncBengaliTranslationService {
       }
     };
   }
+  async getSurah(surahNumber: number): Promise<QuranEncSurahLookupResult> {
+    if (!Number.isSafeInteger(surahNumber) || surahNumber < 1 || surahNumber > 114) {
+      return { status: 'not_found' };
+    }
+
+    let listResponse: Response;
+    try {
+      listResponse = await this.fetcher(TRANSLATION_LIST_URL, {
+        method: 'GET',
+        headers: { Accept: 'application/json' },
+        signal: AbortSignal.timeout(8000)
+      });
+    } catch {
+      return { status: 'unavailable' };
+    }
+    if (!listResponse.ok) return { status: 'unavailable' };
+
+    let listBody: unknown;
+    try {
+      listBody = await listResponse.json();
+    } catch {
+      return { status: 'invalid_source_response' };
+    }
+    if (!Array.isArray(listBody)) return { status: 'invalid_source_response' };
+
+    const edition = listBody.find((entry): entry is TranslationListEntry =>
+      isObject(entry) && entry.key === TRANSLATION_KEY &&
+      typeof entry.version === 'string' && entry.version === EXPECTED_EDITION_VERSION &&
+      typeof entry.title === 'string' && entry.title.trim().length > 0 &&
+      typeof entry.description === 'string'
+    );
+    if (!edition) return { status: 'invalid_source_response' };
+
+    let surahResponse: Response;
+    try {
+      surahResponse = await this.fetcher(
+        `${API_ROOT}/translation/sura/${TRANSLATION_KEY}/${surahNumber}`,
+        { method: 'GET', headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(12000) }
+      );
+    } catch {
+      return { status: 'unavailable' };
+    }
+    if (surahResponse.status === 404) return { status: 'not_found' };
+    if (!surahResponse.ok) return { status: 'unavailable' };
+
+    let body: unknown;
+    try {
+      body = await surahResponse.json();
+    } catch {
+      return { status: 'invalid_source_response' };
+    }
+    if (!Array.isArray(body) || body.length === 0) {
+      return { status: 'invalid_source_response' };
+    }
+
+    const ayahs: QuranEncTranslation[] = [];
+    for (let index = 0; index < body.length; index += 1) {
+      const record = body[index];
+      if (!isObject(record) ||
+          Number(record.sura) !== surahNumber ||
+          Number(record.aya) !== index + 1 ||
+          typeof record.translation !== 'string' ||
+          record.translation.length === 0 ||
+          record.footnotes === undefined) {
+        return { status: 'invalid_source_response' };
+      }
+      ayahs.push({
+        surahNumber,
+        ayahNumber: index + 1,
+        translation: record.translation,
+        footnotes: record.footnotes,
+        provenance: {
+          publisher: 'QuranEnc.com',
+          translator: 'Abu Bakr Muhammad Zakaria',
+          sourceTitle: edition.title!,
+          sourceDescription: edition.description!,
+          translationKey: TRANSLATION_KEY,
+          editionVersion: edition.version,
+          sourceUrl: EDITION_URL,
+          termsUrl: TERMS_URL,
+          lastUpdated: edition.last_update ?? null
+        }
+      });
+    }
+
+    return {
+      status: 'ok',
+      value: { surahNumber, ayahs, provenance: ayahs[0].provenance }
+    };
+  }
+
 }
