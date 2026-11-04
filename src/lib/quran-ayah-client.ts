@@ -47,15 +47,17 @@ function rejected(message: string): QuranAyahResult {
   };
 }
 
-function isValidProvenance(value: unknown): value is QuranAyahProvenance {
+function isValidProvenance(value: unknown): value is Record<string, unknown> {
   if (!isObject(value)) return false;
   const stringFields = [
     "sourceId", "edition", "sourceUrl", "attribution", "licenseId",
-    "reviewer", "reviewedAt", "reviewDecisionId", "approvedByAuthority", "approvedAt"
+    "reviewer", "reviewedAt", "reviewDecisionId", "approvedAt"
   ];
   if (stringFields.some((field) => typeof value[field] !== "string" || !(value[field] as string).trim())) {
     return false;
   }
+  const approvalAuthority = value.approvedByAuthority ?? value.approvalReviewerId;
+  if (typeof approvalAuthority !== "string" || !approvalAuthority.trim()) return false;
   if (value.contentType !== "quran" || value.approvalStatus !== "approved" ||
       value.redistributionAllowed !== true ||
       typeof value.checksum !== "string" ||
@@ -108,7 +110,10 @@ function parseAyahResponse(
       type: "quran",
       title: record.title,
       locale: "ar",
-      provenance: record.provenance,
+      provenance: {
+        ...record.provenance,
+        approvedByAuthority: record.provenance.approvedByAuthority ?? record.provenance.approvalReviewerId
+      } as QuranAyahProvenance,
       // Preserve the source string exactly; deliberately do not normalize it.
       payload: {
         surahNumber: payload.surahNumber,
