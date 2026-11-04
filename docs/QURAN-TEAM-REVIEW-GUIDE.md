@@ -18,7 +18,7 @@ If the administrator token is absent, batch creation and status access fail clos
 1. Register the exact Quran source edition and its artifact SHA-256 in `content_sources`.
 2. Import the exact Ayah bytes without normalization and store their SHA-256 in `quran_ayahs`.
 3. Open `/quran/review`, enter the source ID, Surah/Ayah coordinates, coordinator name, and 3–5 distinct reviewer names.
-4. Send each reviewer only their own generated link. Each link is a random, single-use bearer credential; the database stores only its SHA-256 hash. Links expire after 14 days.
+4. Verify each reviewer's identity through a separate trusted channel before sending that person their individual link. Each link is a random, single-use bearer credential; the database stores only its SHA-256 hash. Links expire after 14 days.
 5. Reviewers open their link, compare the Arabic letters, diacritics, source reference and verse boundaries against the linked source, and submit their own decision.
 6. The coordinator checks the batch status through the authenticated review API.
 
@@ -28,6 +28,7 @@ If the administrator token is absent, batch creation and status access fail clos
 - The reviewer page re-checks the source checksum and stored Ayah text digest before showing the text.
 - A submitted invitation cannot be submitted again.
 - A positive decision requires both exact-text and reference/boundary checks.
+- The submitted reviewer name is checked against the invitation label, but this is **not identity authentication**. Anyone who obtains a review URL can act as that invite's bearer. The workflow does not prove who physically submitted a review; out-of-band identity verification is required.
 - Failed and uncertain decisions remain visible as separate records; they are not overwritten by other reviewers.
 - The review batch is an evidence-collection workflow only. It does not automatically approve the Quran source, alter the existing per-Ayah publication gate, or mark an Ayah as verified.
 - A qualified human authority must assess the full review evidence and record the required primary/independent publication approval separately.
