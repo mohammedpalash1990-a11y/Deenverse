@@ -314,7 +314,13 @@ export class HadithLibraryService {
     const rows = await base.clone().orderBy('hr.hadith_number', 'asc').limit(query.limit).offset(query.offset);
     const presented = await this.presentRecords(rows);
     if (presented.status !== 'ok') return presented;
-    return { status: 'ok', total: Number(countRow?.count ?? 0), value: { items: presented.value, total: Number(countRow?.count ?? 0) } };
+    const items = query.locale
+      ? presented.value.map((record) => ({
+          ...record,
+          translations: record.translations.filter((translation: DbRow) => translation.locale === query.locale)
+        }))
+      : presented.value;
+    return { status: 'ok', total: Number(countRow?.count ?? 0), value: { items, total: Number(countRow?.count ?? 0) } };
   }
 
   async getRecord(recordId: string, locale?: string): Promise<HadithServiceResult<DbRow>> {
@@ -336,13 +342,15 @@ export class HadithLibraryService {
     if (!clean) return { status: 'not_found' };
     const pattern = `%${clean.toLowerCase()}%`;
     const base = this.verifiedRecordsQuery().where(function () {
-      if (!locale || locale === 'ar') {
+      const searchArabic = !locale || locale === 'ar';
+      const searchTranslation = !locale || locale === 'bn' || locale === 'en';
+      if (searchArabic) {
         this.whereRaw('LOWER(??) LIKE ?', ['hr.arabic_text', pattern])
           .orWhereRaw('LOWER(??) LIKE ?', ['hr.narrator_text', pattern])
           .orWhereRaw('LOWER(??) LIKE ?', ['hr.isnad_text', pattern]);
       }
-      if (!locale || locale === 'bn' || locale === 'en') {
-        this.orWhereExists(function () {
+      if (searchTranslation) {
+        const addTranslationMatch = function (this: Knex.QueryBuilder) {
           this.select('*').from('hadith_translations as ht')
             .join('content_sources as ts', 'ts.id', 'ht.source_id')
             .join('content_source_approvals as tsa', 'tsa.source_id', 'ts.id')
@@ -357,7 +365,9 @@ export class HadithLibraryService {
             .whereRaw('ht.license_id = ts.license_id')
             .whereRaw('LOWER(??) LIKE ?', ['ht.translation_text', pattern]);
           if (locale) this.where('ht.locale', locale);
-        });
+        };
+        if (searchArabic) this.orWhereExists(addTranslationMatch);
+        else this.whereExists(addTranslationMatch);
       }
     });
     const countRow = await base.clone().clearSelect().count<{ count: number | string }>({ count: 'hr.id' }).first();
