@@ -64,6 +64,40 @@ describe("createQuranAyahClient", () => {
     if (result.ok) expect(result.data.payload.textArabic).toBe(fixtureText);
   });
 
+  it("uses NEXT_PUBLIC_API_BASE_URL when no explicit API base is supplied", async () => {
+    vi.stubEnv("NEXT_PUBLIC_API_BASE_URL", "https://api.deenverse.example/api/v1/");
+    try {
+      const fetcher = vi.fn().mockResolvedValue(response(503, {}));
+      const client = createQuranAyahClient({ fetcher });
+
+      await client.getAyah(2, 255);
+
+      expect(fetcher).toHaveBeenCalledWith(
+        "https://api.deenverse.example/api/v1/quran/surahs/2/ayahs/255",
+        { method: "GET", headers: { Accept: "application/json" } }
+      );
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+
+  it("keeps the same-origin API path when no public API base is configured", async () => {
+    vi.stubEnv("NEXT_PUBLIC_API_BASE_URL", "");
+    try {
+      const fetcher = vi.fn().mockResolvedValue(response(503, {}));
+      const client = createQuranAyahClient({ fetcher });
+
+      await client.getAyah(2, 255);
+
+      expect(fetcher).toHaveBeenCalledWith(
+        "/api/v1/quran/surahs/2/ayahs/255",
+        { method: "GET", headers: { Accept: "application/json" } }
+      );
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+
   it.each([[0, 1], [115, 1], [1.5, 1], [1, 0], [1, -1], [1, 2.5]])(
     "rejects invalid coordinates %s:%s without making a request",
     async (surah, ayah) => {
