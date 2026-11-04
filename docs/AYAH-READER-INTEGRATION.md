@@ -34,4 +34,4 @@ The existing service worker caches only the application shell and public immutab
 
 ## Current implementation boundary
 
-The frontend contract client and reader UI are implemented in this branch. This does not complete the backend Ayah route, source-artifact verification, independent source approval, real Quran corpus ingestion, authentication, or offline Quran content delivery. Those remain separate release gates.
+The frontend contract client and reader UI are implemented, and the backend Ayah route/service already exists. The backend verifies stored Ayah text against its per-record SHA-256 and compares the approval digest with the registered source checksum, but it does not yet independently retrieve and hash the immutable upstream artifact. Independent source approval, a licensed production Quran edition, authentication policy, and offline Quran content delivery remain separate release gates.
