@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useState, type CSSProperties } from "react";
 
 const apiBase = (process.env.NEXT_PUBLIC_API_BASE_URL || "/api/v1").replace(/\/$/, "");
 
@@ -69,6 +69,6 @@ export default function QuranReviewCoordinatorPage() {
   </main>;
 }
 
-const field: React.CSSProperties = {display:"block",width:"100%",padding:12,marginTop:6,border:"1px solid #d9dfd8",borderRadius:5,background:"#fff",color:"#20342d"};
-const primary: React.CSSProperties = {padding:14,background:"#1c382f",color:"#fff",border:0,borderRadius:5,fontWeight:600};
-const secondary: React.CSSProperties = {padding:"8px 12px",background:"#e7e9e1",color:"#20342d",border:0,borderRadius:5};
+const field: CSSProperties = {display:"block",width:"100%",padding:12,marginTop:6,border:"1px solid #d9dfd8",borderRadius:5,background:"#fff",color:"#20342d"};
+const primary: CSSProperties = {padding:14,background:"#1c382f",color:"#fff",border:0,borderRadius:5,fontWeight:600};
+const secondary: CSSProperties = {padding:"8px 12px",background:"#e7e9e1",color:"#20342d",border:0,borderRadius:5};
