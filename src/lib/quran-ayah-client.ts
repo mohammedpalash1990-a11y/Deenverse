@@ -146,7 +146,7 @@ export function createQuranAyahClient(options: QuranAyahClientOptions = {}) {
       let response: Response;
       try {
         response = await fetcher(
-          `${baseUrl}/quran/surahs/${surahNumber}/ayahs/${ayahNumber}`,
+          `${baseUrl}/ayah/${surahNumber}/${ayahNumber}`,
           { method: "GET", headers: { Accept: "application/json" } }
         );
       } catch {
