@@ -22,7 +22,7 @@ const fixture: QuranAyahRecord = {
     checksum: "a".repeat(64),
     approvalStatus: "approved",
     reviewDecisionId: "fixture-approval",
-    approvalReviewerId: "fixture-approval-reviewer",
+    approvedByAuthority: "fixture-approval-authority",
     approvedAt: "2026-11-01T00:00:00.000Z"
   },
   payload: { surahNumber: 2, ayahNumber: 255, textArabic: fixtureText }
