@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { QuranAyahReader } from "./quran-ayah-reader";
 import type { QuranBengaliTranslation } from "@/lib/quran-translation-client";
@@ -29,6 +29,24 @@ const fixture: QuranAyahRecord = {
   payload: { surahNumber: 2, ayahNumber: 255, textArabic: fixtureText }
 };
 
+const translationFixture: QuranBengaliTranslation = {
+  surahNumber: 2,
+  ayahNumber: 255,
+  translation: "  SYNTHETIC translation\nunchanged  ",
+  footnotes: "  SYNTHETIC footnote\nunchanged  ",
+  provenance: {
+    publisher: "QuranEnc.com",
+    translator: "Abu Bakr Muhammad Zakaria",
+    sourceTitle: "Synthetic edition title",
+    sourceDescription: "Synthetic description",
+    translationKey: "bengali_zakaria",
+    editionVersion: "V1.1.1",
+    sourceUrl: "https://quranenc.com/bn/browse/bengali_zakaria",
+    termsUrl: "https://quranenc.com/en/home",
+    lastUpdated: null
+  }
+};
+
 describe("QuranAyahReader", () => {
   it("does not display text before an approved API response is received", () => {
     const client = { getAyah: vi.fn() };
@@ -38,6 +56,7 @@ describe("QuranAyahReader", () => {
     expect(screen.getByRole("status")).toHaveTextContent(/valid approval, licensing and integrity metadata/);
     expect(screen.queryByText(fixtureText)).not.toBeInTheDocument();
     expect(client.getAyah).not.toHaveBeenCalled();
+    expect(screen.queryByRole("region", { name: "Hifz recall practice" })).not.toBeInTheDocument();
   });
 
   it("loads and displays only the returned record with RTL Arabic direction", async () => {
@@ -70,6 +89,7 @@ describe("QuranAyahReader", () => {
 
     expect(await screen.findByRole("alert")).toHaveTextContent("The record failed integrity checks.");
     expect(screen.queryByText(fixtureText)).not.toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "Hifz recall practice" })).not.toBeInTheDocument();
   });
 
   it("rejects non-numeric coordinates without calling the API", async () => {
@@ -97,23 +117,7 @@ describe("QuranAyahReader", () => {
   });
 
   it("retains publisher attribution, exact translation and footnotes in the reader", async () => {
-    const translation: QuranBengaliTranslation = {
-      surahNumber: 2,
-      ayahNumber: 255,
-      translation: "  SYNTHETIC translation\nunchanged  ",
-      footnotes: "  SYNTHETIC footnote\nunchanged  ",
-      provenance: {
-        publisher: "QuranEnc.com",
-        translator: "Abu Bakr Muhammad Zakaria",
-        sourceTitle: "Synthetic edition title",
-        sourceDescription: "Synthetic description",
-        translationKey: "bengali_zakaria",
-        editionVersion: "V1.1.1",
-        sourceUrl: "https://quranenc.com/bn/browse/bengali_zakaria",
-        termsUrl: "https://quranenc.com/en/home",
-        lastUpdated: null
-      }
-    };
+    const translation = translationFixture;
     const client = { getAyah: vi.fn().mockResolvedValue({ ok: true, data: fixture }) };
     const translationClient = { getAyah: vi.fn().mockResolvedValue({ ok: true, data: translation }) };
     render(<QuranAyahReader client={client} translationClient={translationClient} />);
@@ -152,6 +156,68 @@ describe("QuranAyahReader", () => {
     fireEvent.click(screen.getByRole("button", { name: "Load Ayah" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("Synthetic integrity failure");
     expect(translationClient.getAyah).not.toHaveBeenCalled();
+  });
+
+
+  it("keeps source attribution visible while concealing verified text for recall", async () => {
+    const client = { getAyah: vi.fn().mockResolvedValue({ ok: true, data: fixture }) };
+    const translationClient = { getAyah: vi.fn().mockResolvedValue({ ok: false, message: "Synthetic translation unavailable" }) };
+    render(<QuranAyahReader client={client} translationClient={translationClient} />);
+    fireEvent.click(screen.getByRole("button", { name: "Load Ayah" }));
+    await screen.findByText(fixtureText);
+    fireEvent.click(screen.getByRole("button", { name: "Start Hifz practice" }));
+    expect(screen.queryByText(fixtureText)).not.toBeInTheDocument();
+    expect(screen.getByText(fixture.provenance.attribution)).toBeInTheDocument();
+    expect(screen.getByText(fixture.provenance.edition)).toBeInTheDocument();
+    expect(screen.getByText(/Surah 2 · Ayah 255/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Reveal Ayah" }));
+    expect(screen.getByText(fixtureText).textContent).toBe(fixtureText);
+    expect(client.getAyah).toHaveBeenCalledTimes(1);
+    expect(translationClient.getAyah).toHaveBeenCalledTimes(1);
+  });
+
+  it("resets practice when another Ayah is loaded and removes the previous text", async () => {
+    const nextText = "SYNTHETIC_SECOND_AYAH_NOT_QURAN";
+    const nextRecord = {
+      ...fixture, id: "quran:ayah:2:256",
+      payload: { ...fixture.payload, ayahNumber: 256, textArabic: nextText }
+    };
+    const client = { getAyah: vi.fn()
+      .mockResolvedValueOnce({ ok: true, data: fixture })
+      .mockResolvedValueOnce({ ok: true, data: nextRecord }) };
+    const translationClient = { getAyah: vi.fn().mockResolvedValue({ ok: false, message: "Synthetic translation unavailable" }) };
+    render(<QuranAyahReader client={client} translationClient={translationClient} />);
+    fireEvent.change(screen.getByRole("textbox", { name: "Surah number" }), { target: { value: "2" } });
+    fireEvent.change(screen.getByRole("textbox", { name: "Ayah number" }), { target: { value: "255" } });
+    fireEvent.click(screen.getByRole("button", { name: "Load Ayah" }));
+    await screen.findByRole("alert");
+    fireEvent.click(screen.getByRole("button", { name: "Start Hifz practice" }));
+    fireEvent.change(screen.getByRole("textbox", { name: "Ayah number" }), { target: { value: "256" } });
+    fireEvent.click(screen.getByRole("button", { name: "Load Ayah" }));
+    expect(await screen.findByText(nextText)).toBeInTheDocument();
+    expect(screen.queryByText(fixtureText)).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Start Hifz practice" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Exit practice" })).not.toBeInTheDocument();
+    expect(client.getAyah).toHaveBeenLastCalledWith(2, 256);
+  });
+
+  it("does not expose a late translation response while recall is concealed", async () => {
+    const client = { getAyah: vi.fn().mockResolvedValue({ ok: true, data: fixture }) };
+    let finishTranslation: ((value: unknown) => void) | undefined;
+    const translationClient = { getAyah: vi.fn().mockImplementation(() => new Promise((resolve) => { finishTranslation = resolve; })) };
+    render(<QuranAyahReader client={client} translationClient={translationClient} />);
+    fireEvent.click(screen.getByRole("button", { name: "Load Ayah" }));
+    await screen.findByText(fixtureText);
+    fireEvent.click(screen.getByRole("button", { name: "Start Hifz practice" }));
+    await act(async () => {
+      finishTranslation?.({ ok: true, data: translationFixture });
+    });
+    expect(screen.queryByText("SYNTHETIC translation unchanged")).not.toBeInTheDocument();
+    expect(screen.queryByText("SYNTHETIC footnote unchanged")).not.toBeInTheDocument();
+    expect(screen.queryByText(fixtureText)).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Reveal Ayah" }));
+    expect(screen.getByText("SYNTHETIC translation unchanged").textContent).toBe(translationFixture.translation);
+    expect(screen.getByText("SYNTHETIC footnote unchanged").textContent).toBe(translationFixture.footnotes);
   });
 
 });

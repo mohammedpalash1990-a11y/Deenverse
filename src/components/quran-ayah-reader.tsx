@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { AyahRecallPractice } from "./ayah-recall-practice";
 import {
   createQuranAyahClient,
   type QuranAyahRecord
@@ -120,7 +121,6 @@ export function QuranAyahReader({ client = defaultClient, translationClient = de
       )}
       {state.status === "ready" && (
         <article className="ayah-reader-result" aria-label="Verified Ayah">
-          <p className="ayah-reader-text" dir="rtl" lang="ar">{state.record.payload.textArabic}</p>
           <div className="ayah-reader-attribution">
             <span>{state.record.provenance.edition}</span>
             <span>{state.record.provenance.attribution}</span>
@@ -128,29 +128,31 @@ export function QuranAyahReader({ client = defaultClient, translationClient = de
           <p className="ayah-reader-reference">
             Surah {state.record.payload.surahNumber} · Ayah {state.record.payload.ayahNumber}
           </p>
-          <section className="ayah-translation" aria-label="বাংলা অনুবাদ">
-            <h4>বাংলা অনুবাদ — আবু বকর মুহাম্মাদ যাকারিয়া</h4>
-            {translationState.status === "loading" && <p role="status">অনুবাদ লোড হচ্ছে…</p>}
-            {translationState.status === "error" && <p role="alert">{translationState.message}</p>}
-            {translationState.status === "ready" && (
-              <>
-                <p lang="bn">{translationState.data.translation}</p>
-                {translationState.data.footnotes !== null && translationState.data.footnotes !== undefined && (
-                  <details>
-                    <summary>অনুবাদকের টীকা</summary>
-                    <pre>{typeof translationState.data.footnotes === "string"
-                      ? translationState.data.footnotes
-                      : JSON.stringify(translationState.data.footnotes, null, 2)}</pre>
-                  </details>
-                )}
-                <p className="ayah-reader-attribution">
-                  {translationState.data.provenance.translator} · {translationState.data.provenance.publisher} · {translationState.data.provenance.sourceTitle} · {translationState.data.provenance.editionVersion}
-                </p>
-                <a href={translationState.data.provenance.sourceUrl} target="_blank" rel="noreferrer">QuranEnc-এর মূল অনুবাদ</a>{" · "}
-                <a href={translationState.data.provenance.termsUrl} target="_blank" rel="noreferrer">প্রকাশের শর্ত</a>
-              </>
-            )}
-          </section>
+          <AyahRecallPractice textArabic={state.record.payload.textArabic}>
+            <section className="ayah-translation" aria-label="বাংলা অনুবাদ">
+              <h4>বাংলা অনুবাদ — আবু বকর মুহাম্মাদ যাকারিয়া</h4>
+              {translationState.status === "loading" && <p role="status">অনুবাদ লোড হচ্ছে…</p>}
+              {translationState.status === "error" && <p role="alert">{translationState.message}</p>}
+              {translationState.status === "ready" && (
+                <>
+                  <p lang="bn">{translationState.data.translation}</p>
+                  {translationState.data.footnotes !== null && translationState.data.footnotes !== undefined && (
+                    <details>
+                      <summary>অনুবাদকের টীকা</summary>
+                      <pre>{typeof translationState.data.footnotes === "string"
+                        ? translationState.data.footnotes
+                        : JSON.stringify(translationState.data.footnotes, null, 2)}</pre>
+                    </details>
+                  )}
+                  <p className="ayah-reader-attribution">
+                    {translationState.data.provenance.translator} · {translationState.data.provenance.publisher} · {translationState.data.provenance.sourceTitle} · {translationState.data.provenance.editionVersion}
+                  </p>
+                  <a href={translationState.data.provenance.sourceUrl} target="_blank" rel="noreferrer">QuranEnc-এর মূল অনুবাদ</a>{" · "}
+                  <a href={translationState.data.provenance.termsUrl} target="_blank" rel="noreferrer">প্রকাশের শর্ত</a>
+                </>
+              )}
+            </section>
+          </AyahRecallPractice>
         </article>
       )}
     </section>
