@@ -190,8 +190,17 @@ export function parseTanzilUthmaniText(textBytes: Uint8Array): TanzilAyahRecord[
       'not allowed',
       'tanzil.net'
     ];
-    if (!hasExactOfficialFooterShape || !requiredFooterTerms.every((term) => footerText.includes(term))) {
-      throw new Error('Tanzil Uthmani export has unexpected trailing lines; refusing to discard non-Ayah content.');
+    const missingFooterTerms = requiredFooterTerms.filter((term) => !footerText.includes(term));
+    if (!hasExactOfficialFooterShape || missingFooterTerms.length > 0) {
+      throw new Error(
+        'Tanzil Uthmani export has unexpected trailing lines; refusing to discard non-Ayah content. ' +
+        JSON.stringify({
+          appendixLineCount: appendix.length,
+          firstTwoLinesBlank: appendix.length >= 2 && appendix[0].trim() === '' && appendix[1].trim() === '',
+          commentLineCount: appendix.slice(2).filter((line) => line.startsWith('#')).length,
+          missingFooterTerms
+        })
+      );
     }
   }
 
