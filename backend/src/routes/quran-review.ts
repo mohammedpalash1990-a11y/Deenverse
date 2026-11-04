@@ -6,7 +6,7 @@ interface ReviewRoutesOptions { db: Knex; }
 const hash = (value: string) => createHash('sha256').update(value, 'utf8').digest('hex');
 const adminAuthorized = (provided: string | undefined) => {
   const expected = process.env.QURAN_REVIEW_ADMIN_TOKEN || '';
-  if (!expected || !provided) return false;
+  if (!expected || Buffer.byteLength(expected, 'utf8') < 32 || !provided) return false;
   const left = Buffer.from(provided);
   const right = Buffer.from(expected);
   return left.length === right.length && timingSafeEqual(left, right);
@@ -35,6 +35,15 @@ export const quranReviewRoutes: FastifyPluginAsync<ReviewRoutesOptions> = async 
         || hash(String(ayah.arabic)) !== String(ayah.text_sha256).toLowerCase()) {
         return reply.status(409).send({ error: { code: 'SOURCE_NOT_REVIEWABLE', message: 'The exact source Ayah and matching text digest are not available for review.' } });
       }
+      const publicAppUrl = process.env.PUBLIC_APP_URL || '';
+      let publicOrigin = '';
+      try {
+        const parsed = new URL(publicAppUrl);
+        if (parsed.protocol !== 'https:' && parsed.hostname !== 'localhost' && parsed.hostname !== '127.0.0.1') throw new Error('Invalid public app origin.');
+        publicOrigin = parsed.origin;
+      } catch {
+        return reply.status(503).send({ error: { code: 'CONFIGURATION_REQUIRED', message: 'PUBLIC_APP_URL must be configured with the public HTTPS web origin before review links can be created.' } });
+      }
       const now = new Date();
       const expires = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
       const batchId = randomUUID();
@@ -57,7 +66,7 @@ export const quranReviewRoutes: FastifyPluginAsync<ReviewRoutesOptions> = async 
       return reply.status(201).send({
         data: {
           batchId, surahNumber, ayahNumber, expiresAt: expires.toISOString(),
-          invites: links.map((item) => ({ reviewer: item.label, url: origin ? origin + '/quran/review/' + item.token : null, token: origin ? undefined : item.token }))
+          invites: links.map((item) => ({ reviewer: item.label, url: publicOrigin + '/quran/review/' + item.token }))
         }
       });
     }
