@@ -12,6 +12,7 @@ import { quranAyahRoutes } from './routes/quran-ayah.js';
 import { quranTranslationRoutes } from './routes/quran-translation.js';
 import { hadithRoutes } from './routes/hadith.js';
 import { QuranEncBengaliTranslationService } from './services/quran-translation.js';
+import { hasRequiredSchema } from './db/schema-readiness.js';
 import { ApiErrorResponse } from './types/content.js';
 
 export interface BuildAppOptions {
@@ -129,9 +130,7 @@ export function buildApp(opts: BuildAppOptions): FastifyInstance {
     api.get('/api/v1/ready', { config: { rateLimit: false } }, async (request, reply) => {
       try {
         await db.raw('SELECT 1');
-        const requiredTables = ['content_sources', 'content_source_approvals', 'quran_surahs', 'quran_ayahs', 'hadith_books', 'hadith_chapters', 'hadith_records', 'hadith_translations', 'hadith_grade_assessments', 'hadith_record_reviews'];
-        const present = await Promise.all(requiredTables.map((table) => db.schema.hasTable(table)));
-        if (!present.every(Boolean)) {
+        if (!(await hasRequiredSchema(db))) {
           const response: ApiErrorResponse = {
             error: {
               code: 'UNAVAILABLE',

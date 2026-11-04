@@ -1,3 +1,4 @@
+import { hasRequiredSchema } from './schema-readiness.js';
 import { pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
 import { createDatabaseConnection, resolveDatabaseConfig, DatabaseConfig } from './connection.js';
@@ -7,8 +8,6 @@ import * as quranAyahs from './migrations/20261104_000003_quran_ayahs.js';
 import * as hadithLibrary from './migrations/20261104_000005_hadith_library.js';
 
 const BASE_REQUIRED_TABLES = ['content_sources', 'quran_surahs'] as const;
-const HADITH_TABLES = ['hadith_books', 'hadith_chapters', 'hadith_records', 'hadith_translations', 'hadith_grade_assessments', 'hadith_record_reviews'] as const;
-const REQUIRED_TABLES = [...BASE_REQUIRED_TABLES, 'content_source_approvals', 'quran_ayahs', ...HADITH_TABLES] as const;
 
 /**
  * Apply the base schema to a fresh database, then apply additive migrations.
@@ -16,6 +15,19 @@ const REQUIRED_TABLES = [...BASE_REQUIRED_TABLES, 'content_source_approvals', 'q
  * recreation. Unexpected partial base schemas fail closed for operator review.
  */
 export async function runMigrations(db = createDatabaseConnection()): Promise<void> {
+  // PostgreSQL and SQLite support transactional DDL. A failed release must not
+  // leave only the first tables of a multi-table migration behind.
+  await db.transaction(async (transaction) => {
+    if (db.client.config.client === 'pg') {
+      // Serialize release jobs on this database. Transaction-scoped locks are
+      // released on both commit and rollback, including connection loss.
+      await transaction.raw('SELECT pg_advisory_xact_lock(?, ?)', [20261104, 1]);
+    }
+    await applyMigrations(transaction);
+  });
+}
+
+async function applyMigrations(db: import('knex').Knex): Promise<void> {
   const basePresent = await Promise.all(BASE_REQUIRED_TABLES.map((table) => db.schema.hasTable(table)));
 
   if (basePresent.every((present) => !present)) {
@@ -34,13 +46,12 @@ export async function runMigrations(db = createDatabaseConnection()): Promise<vo
     await quranAyahs.up(db);
   }
 
-  if (!(await db.schema.hasTable('hadith_books'))) {
-    await hadithLibrary.up(db);
-  }
+  // Always invoke its preflight: a lone hadith_books table must not conceal
+  // missing companion tables, and orphan companion tables must not be ignored.
+  await hadithLibrary.up(db);
 
-  const complete = await Promise.all(REQUIRED_TABLES.map((table) => db.schema.hasTable(table)));
-  if (!complete.every(Boolean)) {
-    throw new Error('DEENVERSE migrations did not create the complete required schema.');
+  if (!(await hasRequiredSchema(db))) {
+    throw new Error('DEENVERSE migrations did not create the complete required schema. Inspect missing tables or columns before retrying.');
   }
 }
 

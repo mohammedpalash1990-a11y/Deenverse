@@ -25,11 +25,11 @@ branch's baseline. Open review/content/reporting PRs are not blindly merged.
 
 ## Verification performed locally
 
-- Backend: typecheck and production build pass; **73 tests pass, 1 skipped**.
+- Backend: typecheck and production build pass; **78 tests pass, 1 skipped**.
 - Skipped test: live PostgreSQL migration/production runtime test; no PostgreSQL
   service or `TEST_DATABASE_URL` was available here. It remains configured in CI.
-- Frontend: typecheck and Next.js production build pass; **93 tests pass** across
-  14 files. This is not a manual mobile, browser-audio, or screen-reader audit.
+- Frontend: typecheck and Next.js production build pass; **121 tests pass** across
+  15 files. This is not a manual mobile, browser-audio, or screen-reader audit.
 - `npm audit --json`: zero reported vulnerabilities in each dependency graph
   (including critical/high). This does not establish absence of application-level
   vulnerabilities or future advisories. No new dependency upgrades were needed.
@@ -81,6 +81,25 @@ contributions and content remain intact.
 **No defensible overall verified percentage yet.** The twelve product requirements
 have neither weighted acceptance criteria nor complete live-content/end-to-end
 verification. Passing tests and existing scaffolding are not feature completion.
-Local executed tests: **166/166 pass (100%); one PostgreSQL test skipped**. That
+Local executed tests: **199/199 pass (100%); one PostgreSQL test skipped**. That
 percentage measures only executed tests, not product readiness. Deployment remains
 blocked by the gates above; no production-ready claim is made.
+
+
+## Continued implementation after initial delivery
+
+- Initial PR #59 head passed all three CI checks, including PostgreSQL-backed
+  migrations/runtime. The updated head must pass again before merge.
+- Migration CLI now wraps additive DDL in one transaction and serializes
+  PostgreSQL release jobs with a transaction-scoped advisory lock. Synthetic
+  failure tests verify rollback without deleting pre-existing tables or rows.
+- Partial Hadith schemas are explicitly rejected even if hadith_books exists.
+- Readiness and migration completion share required-table/column validation;
+  merely creating tables with missing runtime columns cannot report ready.
+  This is not a full type/constraint/schema-drift audit.
+- The browser translation client now requires the backend-pinned V1.1.1 edition,
+  nonempty request identity/text and retained footnotes. 28 direct client tests
+  cover provenance tampering, coordinate mismatches, origin configuration,
+  malformed responses and exact-string preservation using synthetic content.
+- PostgreSQL CI runtime coverage now also exercises concurrent migrations and
+  rollback/lock release after a late migration failure.
