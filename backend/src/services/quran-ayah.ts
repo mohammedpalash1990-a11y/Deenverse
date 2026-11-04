@@ -54,8 +54,6 @@ export class QuranAyahService {
       .where({
         'quran_surahs.surah_number': surah,
         'content_sources.content_type': 'quran',
-        'content_sources.is_active': true,
-        'content_sources.redistribution_allowed': true,
         'content_source_approvals.decision': 'approved'
       })
       .whereRaw('content_source_approvals.artifact_sha256 = content_sources.checksum')
@@ -67,6 +65,7 @@ export class QuranAyahService {
         'content_sources.attribution',
         'content_sources.source_url',
         'content_sources.redistribution_allowed',
+        'content_sources.is_active',
         'content_sources.reviewer',
         'content_sources.reviewed_at',
         'content_sources.checksum',
@@ -90,6 +89,7 @@ export class QuranAyahService {
     }
     if (
       !/^[a-f0-9]{64}$/i.test(checksum) ||
+      Number(source.is_active) !== 1 ||
       !source.edition || !source.license_id || !source.attribution ||
       !source.reviewer || !reviewedAt || !approvedAt ||
       !source.approval_id || !source.approval_reviewer_id || !sourceUrlIsHttps ||
