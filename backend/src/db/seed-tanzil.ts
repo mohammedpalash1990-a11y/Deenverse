@@ -134,31 +134,12 @@ export async function seedTanzilUthmaniFromOfficialSource(db: Knex): Promise<voi
     }, 1_000)
   ]);
 
-  const diagnosticLines = new TextDecoder('utf-8', { fatal: true }).decode(textBytes).split(/\r?\n/u);
-  if (diagnosticLines.at(-1) === '') diagnosticLines.pop();
-  const unusualLines = diagnosticLines.flatMap((line, index) => {
-    const trimmed = line.trim();
-    const codePoints = Array.from(trimmed).slice(0, 16).map((character) =>
-      (character.codePointAt(0) ?? 0).toString(16).toUpperCase()
-    );
-    if (trimmed.length === 0 || Array.from(trimmed).length < 12 || !/\p{Script=Arabic}/u.test(trimmed)) {
-      return [{ line: index + 1, characterCount: Array.from(trimmed).length, codePoints }];
-    }
-    return [];
-  });
-  const lengthHistogram: Record<string, number> = {};
-  for (const line of diagnosticLines) {
-    const length = String(Array.from(line.trim()).length);
-    lengthHistogram[length] = (lengthHistogram[length] ?? 0) + 1;
-  }
+  const rawLineCount = new TextDecoder('utf-8', { fatal: true }).decode(textBytes).split(/\r?\n/u).length - 1;
   console.info(JSON.stringify({
     tanzilArtifactDiagnostics: {
-      format: 'plain-one-verse-per-line',
-      lineCount: diagnosticLines.length,
-      blankLineCount: diagnosticLines.filter((line) => line.trim().length === 0).length,
-      unusualLineCount: unusualLines.length,
-      unusualLines: unusualLines.slice(0, 60),
-      lengthHistogram
+      format: 'plain-one-verse-per-line-with-official-license-footer',
+      rawLineCount,
+      expectedAyahCount: 6236
     }
   }));
 
