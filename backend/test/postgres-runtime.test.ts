@@ -42,6 +42,7 @@ test('PostgreSQL migrations and production runtime are verified against a real P
 
   try {
     await db.raw('SELECT 1');
+    await db.schema.dropTableIfExists('quran_ayahs');
     await db.schema.dropTableIfExists('content_source_approvals');
     await db.schema.dropTableIfExists('quran_surahs');
     await db.schema.dropTableIfExists('content_sources');
@@ -49,6 +50,7 @@ test('PostgreSQL migrations and production runtime are verified against a real P
     await runMigrations(db);
     assert.equal(await db.schema.hasTable('content_sources'), true);
     assert.equal(await db.schema.hasTable('quran_surahs'), true);
+    assert.equal(await db.schema.hasTable('quran_ayahs'), true);
     assert.equal(await db.schema.hasTable('content_source_approvals'), true);
 
     await assert.doesNotReject(() => runMigrations(db), 'PostgreSQL migrations must be safe to rerun.');
