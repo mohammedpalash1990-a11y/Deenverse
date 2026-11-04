@@ -95,7 +95,7 @@ export function AppShell() {
                   <div className="card-kicker"><span className="tiny-star">✦</span> THE QURAN READER</div>
                   <h2>Begin with intention.</h2>
                   <p>Verified Quran text and approved editions will appear here once their sources and redistribution rights have been reviewed.</p>
-                  <div className="card-actions"><button className="primary-button" onClick={() => document.getElementById("catalogue")?.scrollIntoView({ behavior: "smooth" })}>Explore the reader <span>↗</span></button><span className="edition-label">SOURCE-VERIFIED CONTENT ONLY</span></div>
+                  <div className="card-actions"><button className="primary-button" onClick={() => document.getElementById("catalogue")?.scrollIntoView({ behavior: "smooth" })}>Explore the reader <span>↗</span></button><a className="secondary-button" href="/quran/review">Quran team review <span>↗</span></a><span className="edition-label">SOURCE-VERIFIED CONTENT ONLY</span></div>
                 </div>
                 <div className="ornament" aria-hidden="true"><span>۞</span><i /><b /></div>
               </section>
