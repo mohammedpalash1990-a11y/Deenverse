@@ -19,7 +19,7 @@ export interface VerifiedAyah {
     checksum: string;
     approvalStatus: 'approved';
     reviewDecisionId: string;
-    approvalReviewerId: string;
+    approvedByAuthority: string;
     approvedAt: string;
   };
   payload: {
@@ -132,7 +132,7 @@ export class QuranAyahService {
           checksum,
           approvalStatus: 'approved',
           reviewDecisionId: source.approval_id,
-          approvalReviewerId: source.approval_reviewer_id,
+          approvedByAuthority: source.approval_reviewer_id,
           approvedAt
         },
         payload: {
