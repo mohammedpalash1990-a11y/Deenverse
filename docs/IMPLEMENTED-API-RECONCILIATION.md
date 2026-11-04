@@ -112,3 +112,45 @@ The route-parity workflow is newly added in this integration update. Its result 
 ## OpenAPI validator hardening — 2026-11-04
 
 The first route-parity workflow passed on the exact sync head. The validator is now being hardened to reject duplicate YAML mapping keys and unresolved local component references before comparing all documented path/method pairs with the backend route registrations. The duplicate `SurahPage` schema key was removed. The hardened version requires a fresh exact-head Actions run; no pass is claimed for it yet.
+
+
+## Integration follow-up — 2026-11-04
+
+**Verified code head:** `b3c890be21f8a9e33a9174d39a6cbaf13bdf21c4` on `integration/platform-foundation`. The branch compares 58 commits ahead / 0 behind `main` at `a7ff4130f6d74e9319b6d894c118d270b44171cd`. Main was not modified.
+
+### Current workstream evidence
+
+- `jules/backend-foundation`: 3 ahead / 58 behind main; only `AGENT_TASK.md` and `JULES_NEXT_TASK.md` differ.
+- `queen/frontend-foundation`: 2 ahead / 58 behind main; only `AGENT_TASK.md` differs.
+- These exact assignment branches contain no implementation source. Merged PRs elsewhere are present in main, but they are not evidence that either named assignment branch contains code or that those agents authored the merged work.
+
+### Cross-cutting implementation on this branch
+
+- Added `backend/src/services/approved-quran-source.ts`; it returns a source only when exactly one active, redistribution-permitted Quran source has a matching approved decision.
+- Both `QuranCatalogueService` and `QuranAyahService` now use the shared selector. Zero or multiple eligible sources fail closed. Ayah source metadata is validated before checking whether the requested Surah exists.
+- Catalogue provenance now preserves the source reviewer's `reviewer` / `reviewedAt` separately from the approval authority and approval timestamp.
+- Added regression tests for ambiguous source sets in both catalogue and Ayah APIs and for the catalogue provenance distinction.
+- Added `getSurah()` to the Bengali translation client for `GET /api/v1/translation/bn/{surahNumber}`. It validates the envelope, requested Surah, ordered Ayah coordinates, exact pinned provider edition, and matching provenance across the parent and each row.
+- Bengali translation client errors now use the shared safe error mapper; server-supplied diagnostic messages are not displayed.
+- Fixed the OpenAPI validator crash observed in run #41835304798: Psych scalar AST nodes may have `children == nil`; the recursive duplicate-key checker now guards that case.
+- Updated the Ayah contract and OpenAPI description to document the single-eligible-edition rule. Updated error mapping, response parsing, checklist, and remaining-work documentation.
+
+### Exact-head CI evidence
+
+All runs below target code head `b3c890be21f8a9e33a9174d39a6cbaf13bdf21c4`:
+- DEENVERSE CI #41838270768 — backend and web jobs passed. Both used locked installs; typecheck, tests, production builds, and `npm audit --audit-level=high` passed.
+- Web foundation #41838270665 — `npm ci`, dependency audit capture, typecheck, tests, and production build passed.
+- OpenAPI contract validation #41838270690 — passed.
+- Push-triggered OpenAPI contract validation #41837800895 — passed.
+
+The earlier failure #41835304798 was a validator implementation bug, not an OpenAPI route mismatch. It is fixed and the exact current branch head has a successful route-parity run.
+
+### Still not verified / not enabled
+
+- The source approval digest comparison is still metadata equality; the backend does not independently download and hash an immutable upstream artifact.
+- No exact Tanzil artifact, independent scholarly review, or per-Ayah human approval is recorded as complete. PR #43 and dependent PR #45 are still open; neither is an active merged publication gate.
+- QuranEnc's terms for redistribution, caching, offline use, and export remain unresolved.
+- Hadith source candidates are not approved/populated for public delivery. Tafsir, dua/adhkar, and audio source/API work remains unverified.
+- Authentication, sessions, private bookmarks/progress, protected writes, manual RTL/keyboard/screen-reader/device QA, and hosted PostgreSQL operations remain release blockers.
+
+No Quran Arabic, Hadith, translation, tafsir, dua, or audio corpus was imported or fabricated by this integration update. CI success is software verification only; it is not religious-content approval.
