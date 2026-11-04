@@ -9,18 +9,18 @@ This checklist is evidence-based. A checked item means the corresponding code or
 - [x] npm lockfiles committed; main CI uses `npm ci`.
 - [x] PostgreSQL 16 service is used in backend CI; production rejects SQLite.
 - [x] Main exact-head run #41812199822 passed backend/web typecheck, tests, builds, and high-severity dependency audits.
-- [x] Initial integration OpenAPI route-parity workflow passed on exact sync head (push #41834454152 and PR #41834462227); rerun after duplicate-key/reference validator hardening.
+- [x] Hardened OpenAPI validator passed on exact integration PR head (run #41838270690); push run #41837800895 also passed.
 - [ ] Manual browser/device, responsive, RTL, keyboard, and screen-reader QA completed.
 
 ## API and adapters
 
 - [x] Main API route inventory statically reconciled: 12 GET routes across system, Quran catalogue, Ayah, Bengali translation, and Hadith.
-- [x] Quran catalogue, Ayah, Bengali translation, and Hadith adapters use the shared API-base resolver.
-- [x] Frontend adapter paths match the registered backend paths in the current source snapshot.
+- [x] Quran catalogue, Ayah, Bengali translation (single Ayah + full Surah), and Hadith adapters use the shared API-base resolver.
+- [x] Frontend adapter paths match registered backend paths; full-Surah translation adapter and safe error mapping have contract tests.
 - [x] Success/error envelope and 400 validation convention documented.
-- [ ] Enforce exactly one active approved Quran edition or add explicit edition-scoped route parameters; current `.first()` selection is ambiguous if multiple sources qualify.
+- [x] Shared Quran source selector fails closed unless exactly one active, redistribution-permitted, approved source exists; catalogue and Ayah regression tests cover ambiguity.
 - [ ] Bind pagination cursors to edition/query context.
-- [ ] Add contract tests beyond route-path parity for response schema compatibility and failure mapping.
+- [ ] Expand contract tests to cover every response schema and pagination/error edge case; current coverage includes source ambiguity, full-Surah ordering/provenance, and safe error mapping.
 
 ## Security and user data
 
@@ -51,7 +51,7 @@ This checklist is evidence-based. A checked item means the corresponding code or
 
 ## PR disposition
 
-- [ ] PR #1 route-parity workflow passed and docs reviewed; do not merge automatically.
+- [x] PR #1 exact-head route-parity and backend/web CI passed; human review and release-blocker review remain before merge.
 - [ ] PR #11 reconciled against current implementation; do not merge its stale snapshot.
 - [ ] PR #43 exact-head CI and review complete.
 - [ ] PR #45 security review and exact-head CI complete.
