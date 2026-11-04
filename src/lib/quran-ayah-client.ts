@@ -47,7 +47,7 @@ function rejected(message: string): QuranAyahResult {
   };
 }
 
-function isValidProvenance(value: unknown): value is QuranAyahProvenance {
+function isValidProvenance(value: unknown): value is Record<string, unknown> {
   if (!isObject(value)) return false;
   const stringFields = [
     "sourceId", "edition", "sourceUrl", "attribution", "licenseId",
