@@ -1,49 +1,108 @@
 "use client";
 
-import { useState } from "react";
-import type { FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 
 type SettingsPanelProps = {
   currentSection: string;
 };
 
-const REPORT_URL = "https://github.com/mohammedpalash1990-a11y/Deenverse/issues/new";
+type ReportState = "idle" | "sending" | "sent" | "error";
+
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL?.trim()
+  || "https://deenverse-api.onrender.com/api/v1").replace(/\/+$/, "");
+
+const categories = [
+  { value: "bug", label: "Bug / app error" },
+  { value: "audio", label: "Audio / playback issue" },
+  { value: "quran", label: "Quran / Ayah / translation issue" },
+  { value: "hadith_dua", label: "Hadith or dua issue" },
+  { value: "feature", label: "Feature not working" },
+  { value: "suggestion", label: "Suggestion / other" }
+] as const;
 
 export function SettingsPanel({ currentSection }: SettingsPanelProps) {
-  const [category, setCategory] = useState("Bug / app error");
+  const [category, setCategory] = useState<(typeof categories)[number]["value"]>("bug");
   const [description, setDescription] = useState("");
   const [steps, setSteps] = useState("");
+  const [surahNumber, setSurahNumber] = useState("");
+  const [ayahNumber, setAyahNumber] = useState("");
   const [includeDiagnostics, setIncludeDiagnostics] = useState(false);
-  const [error, setError] = useState("");
+  const [state, setState] = useState<ReportState>("idle");
+  const [message, setMessage] = useState("");
 
-  function submitReport(event: FormEvent<HTMLFormElement>) {
+  async function submitReport(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (state === "sending") return;
+
     const details = description.trim();
     if (details.length < 10) {
-      setError("Please describe the problem in at least 10 characters.");
+      setState("error");
+      setMessage("Please describe the problem in at least 10 characters.");
       return;
     }
 
+    const hasSurah = surahNumber.trim().length > 0;
+    const hasAyah = ayahNumber.trim().length > 0;
+    if (category === "quran" && hasSurah !== hasAyah) {
+      setState("error");
+      setMessage("Enter both the Surah number and Ayah number, or leave both blank.");
+      return;
+    }
+    if (hasSurah && (!/^\d+$/.test(surahNumber) || Number(surahNumber) < 1 || Number(surahNumber) > 114)) {
+      setState("error");
+      setMessage("Surah number must be between 1 and 114.");
+      return;
+    }
+    if (hasAyah && (!/^\d+$/.test(ayahNumber) || Number(ayahNumber) < 1 || Number(ayahNumber) > 286)) {
+      setState("error");
+      setMessage("Ayah number must be between 1 and 286.");
+      return;
+    }
+
+    setState("sending");
+    setMessage("");
     const diagnostics = includeDiagnostics
-      ? `\n\n### Technical details (shared with your consent)\n- App version: 0.1.0\n- Browser/device: ${navigator.userAgent}\n- Language: ${navigator.language}\n- Current page: ${currentSection}`
-      : `\n\n### App details\n- App version: 0.1.0\n- Current page: ${currentSection}\n- Device diagnostics: Not shared`;
-    const body = [
-      "### Problem description",
-      details,
-      "",
-      "### Steps to reproduce (optional)",
-      steps.trim() || "Not provided",
-      diagnostics,
-      "",
-      "---",
-      "Submitted through the DEENVERSE in-app problem report."
-    ].join("\n");
-    const params = new URLSearchParams({
-      title: `[${category}] ${details.slice(0, 70)}`,
-      body,
-      labels: "bug"
-    });
-    window.location.assign(`${REPORT_URL}?${params.toString()}`);
+      ? JSON.stringify({ userAgent: navigator.userAgent, language: navigator.language })
+      : undefined;
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/problem-reports`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({
+          category,
+          description: details,
+          stepsToReproduce: steps.trim(),
+          currentSection,
+          appVersion: "0.1.0",
+          ...(hasSurah && hasAyah ? {
+            surahNumber: Number(surahNumber),
+            ayahNumber: Number(ayahNumber)
+          } : {}),
+          ...(diagnostics ? { diagnostics } : {})
+        })
+      });
+      const result: unknown = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error("The report could not be submitted. Please try again later.");
+      }
+      if (typeof result !== "object" || result === null ||
+          !("data" in result) || typeof result.data !== "object" || result.data === null ||
+          !("status" in result.data) || result.data.status !== "received") {
+        throw new Error("The server response could not be verified. Please try again.");
+      }
+
+      setState("sent");
+      setMessage("Your report has been received. Thank you for helping improve DEENVERSE.");
+      setDescription("");
+      setSteps("");
+      setSurahNumber("");
+      setAyahNumber("");
+      setIncludeDiagnostics(false);
+    } catch (error) {
+      setState("error");
+      setMessage(error instanceof Error ? error.message : "Connection failed. Please try again.");
+    }
   }
 
   return (
@@ -51,7 +110,7 @@ export function SettingsPanel({ currentSection }: SettingsPanelProps) {
       <div className="settings-heading">
         <p className="eyebrow">YOUR EXPERIENCE</p>
         <h2 id="settings-title">Settings & support</h2>
-        <p>One place to report a problem anywhere in DEENVERSE.</p>
+        <p>Report an issue anywhere in DEENVERSE. Reports are sent directly to the DEENVERSE support system.</p>
       </div>
 
       <section className="report-card" aria-labelledby="report-title">
@@ -59,29 +118,38 @@ export function SettingsPanel({ currentSection }: SettingsPanelProps) {
           <span className="report-icon" aria-hidden="true">!</span>
           <div>
             <h3 id="report-title">Report a problem</h3>
-            <p>Found a bug, an error, or something that is not working?</p>
+            <p>Found a bug, an incorrect display, or something that is not working?</p>
           </div>
         </div>
 
         <form className="report-form" onSubmit={submitReport}>
           <label>
             Problem type
-            <select value={category} onChange={(event) => setCategory(event.target.value)}>
-              <option>Bug / app error</option>
-              <option>Audio / playback issue</option>
-              <option>Quran or content issue</option>
-              <option>Hadith or dua issue</option>
-              <option>Feature not working</option>
-              <option>Suggestion / other</option>
+            <select value={category} onChange={(event) => setCategory(event.target.value as (typeof categories)[number]["value"])}>
+              {categories.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
             </select>
           </label>
+
+          {category === "quran" && (
+            <div className="report-ayah-fields">
+              <label>
+                Surah number (optional)
+                <input inputMode="numeric" value={surahNumber} onChange={(event) => setSurahNumber(event.target.value)} placeholder="1–114" />
+              </label>
+              <label>
+                Ayah number (optional)
+                <input inputMode="numeric" value={ayahNumber} onChange={(event) => setAyahNumber(event.target.value)} placeholder="Ayah number" />
+              </label>
+              <p>Provide both numbers if the report relates to a specific Ayah.</p>
+            </div>
+          )}
 
           <label>
             Describe the problem
             <textarea
               value={description}
-              onChange={(event) => { setDescription(event.target.value); setError(""); }}
-              placeholder="Tell us what happened and what you expected..."
+              onChange={(event) => { setDescription(event.target.value); if (state !== "sending") setState("idle"); }}
+              placeholder="Tell us what happened, where it happened, and what you expected..."
               rows={5}
               required
               minLength={10}
@@ -109,9 +177,12 @@ export function SettingsPanel({ currentSection }: SettingsPanelProps) {
             <span>Include browser and device diagnostics to help investigate (optional).</span>
           </label>
 
-          {error && <p className="report-error" role="alert">{error}</p>}
-          <button className="primary-button report-submit" type="submit">Continue to submit report <span>↗</span></button>
-          <p className="report-privacy">Your report opens the DEENVERSE GitHub issue form so you can review it before submitting. No report or device diagnostics are sent until you submit there. A GitHub account is required.</p>
+          {message && <p className={state === "sent" ? "report-success" : "report-error"} role="status" aria-live="polite">{message}</p>}
+          <button className="primary-button report-submit" type="submit" disabled={state === "sending"}>
+            {state === "sending" ? "Submitting…" : state === "sent" ? "Submit another report" : "Submit report"}
+            <span>↗</span>
+          </button>
+          <p className="report-privacy">Reports are stored securely for issue investigation. Device diagnostics are included only if you choose them. Reports do not automatically change Quran text or other published religious content.</p>
         </form>
       </section>
       <p className="settings-current-section">Current section: <strong>{currentSection}</strong></p>
