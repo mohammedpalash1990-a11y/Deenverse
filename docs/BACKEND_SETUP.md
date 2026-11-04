@@ -34,14 +34,12 @@ npm run build
 
 ## 4. Running Database Migrations
 
-Run database migrations to initialize the schema:
+Run database migrations to initialize the schema (SQLite local development):
 ```bash
-npm run migrate
+npm run db:migrate
 ```
-Or build TypeScript first and run:
-```bash
-npm run build
-```
+
+The command creates the initial schema only when neither required table exists. Re-running it after a successful migration is safe. If only one required table exists, it stops with a partial-schema error instead of guessing how to repair the database. The migration CLI currently supports SQLite only; PostgreSQL configuration is intentionally not advertised as ready. The API server does not silently run schema migrations at startup.
 
 ## 5. Running the Development Server
 
@@ -59,7 +57,6 @@ The server will bind to `http://0.0.0.0:4000`.
 Check health:
 ```bash
 curl http://localhost:4000/api/v1/health
-curl -i http://localhost:4000/api/v1/ready
 ```
 
 ## 6. Running Automated Tests
@@ -68,3 +65,5 @@ Run the full test suite using the Node.js test runner:
 ```bash
 npm test
 ```
+
+The suite covers the Quran catalogue API, input validation, and migration idempotency/partial-schema handling. Treat the actual command output as the test result; no result is pre-claimed here.

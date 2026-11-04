@@ -1,94 +1,79 @@
 # DEENVERSE — API Contract v1 (Backend & Frontend Boundary)
 
-> **IMPORTANT DISCLAIMER**: All sample JSON bodies, URLs, names, and checksums in this documentation are **Synthetic / Illustrative Examples Only — Non-authoritative**. No religious texts, Hadith, or Quranic Arabic are generated or certified here. In production, only independently reviewed, verified, and checksum-validated corpora from approved authorities are published.
+## Overview
 
----
+All responses adhere to the standard REST envelope specified in `docs/CONTENT-API-RESPONSE-PARSING.md` and `docs/CONTENT-API-ERROR-MAPPING.md`.
 
-## 1. Universal Response Envelopes
+**Example-data warning:** Every identifier, source, reviewer, license, checksum, and catalogue value in the JSON examples below is illustrative test/documentation data only. It does not identify an approved Quran source, establish redistribution rights, or authorize publication of religious content. Production responses must remain unavailable until the source and its artifact have completed the independent approval process.
 
-Every DEENVERSE API endpoint returns either a structured Success Envelope or a structured Error Envelope.
+## Response Envelopes
 
-### 1.1 Paginated Success Envelope
+### Success Envelope (Paginated)
+
 ```json
 {
   "meta": {
-    "requestId": "req_01h7abc1234567890abcdef123456789",
-    "nextCursor": "NDU="
+    "requestId": "req_01h7abc...",
+    "nextCursor": "MA=="
   },
   "data": [
     {
       "id": "quran:surah:1",
       "type": "quran",
-      "title": "Al-Fatihah",
+      "title": "Example catalogue title",
       "locale": "ar",
       "provenance": {
         "contentType": "quran",
-        "sourceId": "src-tanzil-uthmani",
-        "edition": "1.0.2",
-        "sourceUrl": "https://example.com/verified/corpus.txt",
-        "attribution": "Sample Verified Provenance Attribution",
-        "licenseId": "CC-BY-3.0",
+        "sourceId": "example-source-not-production",
+        "edition": "example-edition",
+        "sourceUrl": "https://example.invalid/source",
+        "attribution": "Documentation fixture only",
+        "licenseId": "EXAMPLE-NOT-A-LICENSE",
         "redistributionAllowed": true,
+        "reviewer": "example-reviewer-not-production",
+        "reviewedAt": "2026-01-01T00:00:00.000Z",
         "approvalStatus": "approved",
-        "reviewDecisionId": "rev-decision-202611-001",
-        "approvedByAuthority": "Islamic Content Review Committee",
-        "approvedAt": "2026-11-01T00:00:00.000Z",
-        "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        "reviewDecisionId": "example-approval-not-production",
+        "approvedByAuthority": "example-reviewer-not-production",
+        "approvedAt": "2026-01-01T00:00:00.000Z",
+        "checksum": "0000000000000000000000000000000000000000000000000000000000000000"
       },
       "payload": {
         "surahNumber": 1,
-        "nameArabic": "الفاتحة",
-        "nameSimple": "Al-Fatihah",
-        "nameEnglish": "The Opener",
+        "nameArabic": "example-only",
+        "nameSimple": "Example",
+        "nameEnglish": "Example",
         "revelationPlace": "makkah",
-        "revelationOrder": 5,
-        "versesCount": 7
+        "revelationOrder": 1,
+        "versesCount": 1
       }
     }
   ]
 }
 ```
 
-### 1.2 Error Envelope
+The pagination cursor is an opaque, base64-encoded non-negative offset in the current implementation. Clients must treat it as an opaque token and must not construct or modify it.
+
+**Integrity limitation:** The current backend compares the approval record's `artifact_sha256` string with the source record's `checksum` string and validates provenance metadata. It does not download or hash an immutable source artifact. This equality check is not cryptographic artifact verification and must not be described as proof that published content matches an authentic source. Do not approve or publish production religious content until immutable artifact retrieval, SHA-256 recomputation, source identity, edition, licensing, and independent human review are implemented and evidenced.
+
+### Error Envelope
+
 ```json
 {
   "error": {
-    "code": "INVALID_QUERY",
-    "message": "Surah number must be a positive integer without leading zeroes or alphabetic characters.",
+    "code": "NOT_FOUND",
+    "message": "Resource not found",
+    "requestId": "req_01h7abc...",
+    "details": [],
     "retryable": false
   }
 }
 ```
 
----
-
-## 2. Standard Error Codes
-
-Aligned directly with the frontend error mapper (`src/lib/content-api-errors.ts`):
-- `UNAVAILABLE`: Service or verified source not configured or not approved (HTTP 503).
-- `INVALID_QUERY`: Query parameters, invalid cursor, or route params failed validation (HTTP 400).
-- `FORBIDDEN`: Cross-origin request or permission denied (HTTP 403).
-- `NOT_FOUND`: Requested entity does not exist (HTTP 404).
-- `RATE_LIMITED`: Too many requests; client should back off and retry (HTTP 429, retryable: true).
-- `INTEGRITY_REJECTED`: Content failed provenance or verification review (HTTP 422).
-- `INTERNAL_ERROR`: Internal server failure (HTTP 500, retryable: true).
-
----
-
-## 3. Endpoints in Initial Slice
-
-### `GET /api/v1/health`
-Returns system health, server timestamp, and unique `requestId`.
-
-### `GET /api/v1/ready`
-Checks database connectivity, the required catalogue tables, the migration ledger, and the recorded initial schema migration. Returns HTTP 503 `UNAVAILABLE` until all required schema migrations are recorded; liveness remains available independently.
-
-### `GET /api/v1/quran/surahs`
-- Query params:
-  - `limit` (integer, min 1, max 50, default 20)
-  - `cursor` (canonical base64 encoding of a non-negative safe-integer offset; malformed, non-canonical, and overflowing values are rejected with HTTP 400)
-- Fail-closed behavior: Returns HTTP 503 `UNAVAILABLE` if no approved source exists in the database.
-
-### `GET /api/v1/quran/surahs/:surahNumber`
-- Path param: `surahNumber` (strict positive integer between 1 and 114).
-- Rejects non-integers, suffixes (e.g. `1abc`), decimals, and leading zeros with HTTP 400 `INVALID_QUERY`.
+Standard Error Codes:
+- `CONTENT_UNAVAILABLE`: Service or approved source is not configured/available.
+- `VALIDATION_ERROR`: Query parameters or payload failed validation.
+- `INTEGRITY_REJECTED`: Content failed provenance or verification review.
+- `NOT_FOUND`: Requested entity does not exist.
+- `RATE_LIMITED`: Too many requests (retryable: true).
+- `INTERNAL_ERROR`: Internal server failure.

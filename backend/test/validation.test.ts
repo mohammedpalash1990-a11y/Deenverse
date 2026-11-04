@@ -17,6 +17,8 @@ test('Validation Service', async (t) => {
       attribution: 'Tanzil Project Verified Quran Metadata',
       licenseId: 'CC-BY-3.0',
       redistributionAllowed: true,
+      reviewer: 'test-reviewer',
+      reviewedAt: '2026-11-01T00:00:00.000Z',
       approvalStatus: 'approved',
       reviewDecisionId: 'rev-2026-11-001',
       approvedByAuthority: 'Islamic Editorial Board',
@@ -37,6 +39,8 @@ test('Validation Service', async (t) => {
       attribution: 'Tanzil Project Verified Quran Metadata',
       licenseId: 'CC-BY-3.0',
       redistributionAllowed: true,
+      reviewer: 'test-reviewer',
+      reviewedAt: '2026-11-01T00:00:00.000Z',
       approvalStatus: 'pending', // Pending approval!
       reviewDecisionId: 'rev-2026-11-001',
       approvedByAuthority: 'Islamic Editorial Board',
@@ -57,6 +61,8 @@ test('Validation Service', async (t) => {
       attribution: 'Tanzil Project Verified Quran Metadata',
       licenseId: 'CC-BY-3.0',
       redistributionAllowed: true,
+      reviewer: 'test-reviewer',
+      reviewedAt: '2026-11-01T00:00:00.000Z',
       approvalStatus: 'approved',
       reviewDecisionId: 'rev-2026-11-001',
       approvedByAuthority: 'Islamic Editorial Board',
@@ -77,6 +83,8 @@ test('Validation Service', async (t) => {
       attribution: 'Tanzil Project Verified Quran Metadata',
       licenseId: 'CC-BY-3.0',
       redistributionAllowed: false, // rejected!
+      reviewer: 'test-reviewer',
+      reviewedAt: '2026-11-01T00:00:00.000Z',
       approvalStatus: 'approved',
       reviewDecisionId: 'rev-2026-11-001',
       approvedByAuthority: 'Islamic Editorial Board',
@@ -102,14 +110,13 @@ test('Validation Service', async (t) => {
     const encoded = encodeCursor(40);
     assert.equal(decodeCursor(encoded), 40);
 
-    // Fail closed on tampered / invalid cursors
-    assert.throws(() => decodeCursor('not_base64!'), /Invalid cursor format/);
-    assert.throws(() => decodeCursor(Buffer.from('-5').toString('base64')), /Invalid cursor value/);
-    assert.throws(() => decodeCursor(Buffer.from('3.14').toString('base64')), /Invalid cursor value/);
-    assert.throws(() => decodeCursor(Buffer.from('abc').toString('base64')), /Invalid cursor value/);
-    assert.throws(() => decodeCursor(Buffer.from('9007199254740992').toString('base64')), /non-negative safe integer/);
-    assert.throws(() => decodeCursor('AB=='), /Invalid cursor encoding/);
-    assert.throws(() => encodeCursor(Number.MAX_SAFE_INTEGER + 1), /non-negative safe integer/);
-    assert.equal(decodeCursor(encodeCursor(Number.MAX_SAFE_INTEGER)), Number.MAX_SAFE_INTEGER);
+    // Fail closed on malformed, non-canonical, negative, fractional, and unsafe cursors.
+    for (const invalid of ['not_base64!', 'MQ==junk', Buffer.from('-5').toString('base64'), Buffer.from('3.14').toString('base64'), Buffer.from('9007199254740992').toString('base64')]) {
+      assert.equal(PaginationQuerySchema.safeParse({ cursor: invalid }).success, false);
+      assert.throws(() => decodeCursor(invalid));
+    }
+    assert.equal(PaginationQuerySchema.safeParse({ cursor: encodeCursor(0) }).success, true);
+    assert.throws(() => encodeCursor(-1));
+    assert.throws(() => encodeCursor(Number.MAX_SAFE_INTEGER + 1));
   });
 });

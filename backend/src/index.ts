@@ -4,7 +4,6 @@ import { createDatabaseConnection } from './db/connection.js';
 function readPositiveInteger(name: string, fallback: number): number {
   const raw = process.env[name];
   if (raw === undefined) return fallback;
-
   const value = Number(raw);
   if (!Number.isSafeInteger(value) || value < 1) {
     throw new Error(name + ' must be a positive safe integer.');
@@ -13,19 +12,29 @@ function readPositiveInteger(name: string, fallback: number): number {
 }
 
 const PORT = readPositiveInteger('PORT', 4000);
-if (PORT > 65_535) {
-  throw new Error('PORT must not exceed 65535.');
-}
+if (PORT > 65_535) throw new Error('PORT must not exceed 65535.');
 const RATE_LIMIT_MAX = readPositiveInteger('RATE_LIMIT_MAX', 100);
 const RATE_LIMIT_WINDOW_MS = readPositiveInteger('RATE_LIMIT_WINDOW_MS', 60_000);
 const HOST = process.env.HOST || '0.0.0.0';
-const CORS_ORIGIN = process.env.CORS_ORIGIN
-  ? process.env.CORS_ORIGIN.split(',').map((o) => o.trim())
-  : ['http://localhost:3000'];
+const CORS_ORIGIN = (process.env.CORS_ALLOWED_ORIGINS || process.env.CORS_ORIGIN || 'http://localhost:3000')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
 
-async function main() {
-  const db = createDatabaseConnection();
+async function main(): Promise<void> {
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('Production startup is blocked: DEENVERSE PostgreSQL runtime is not implemented; SQLite is development/test only.');
+  }
 
+  const dbClient = process.env.DB_CLIENT || 'sqlite3';
+  if (dbClient !== 'sqlite3') {
+    throw new Error('PostgreSQL runtime is not configured yet. Use DB_CLIENT=sqlite3 until the PostgreSQL driver, connection handling, and migrations are implemented.');
+  }
+
+  const db = createDatabaseConnection({
+    client: 'sqlite3',
+    connection: process.env.DB_FILENAME || './deenverse.sqlite'
+  });
   const app = buildApp({
     db,
     allowedOrigins: CORS_ORIGIN,
@@ -36,12 +45,17 @@ async function main() {
   try {
     const address = await app.listen({ port: PORT, host: HOST });
     console.log(`DEENVERSE backend listening at ${address}`);
-  } catch (err) {
-    console.error('Failed to start server:', err);
-    process.exit(1);
+  } catch (error) {
+    await app.close();
+    await db.destroy();
+    console.error('Failed to start DEENVERSE backend:', error instanceof Error ? error.message : error);
+    process.exitCode = 1;
   }
 }
 
 if (process.env.NODE_ENV !== 'test') {
-  main();
+  main().catch((error: unknown) => {
+    console.error('Failed to start DEENVERSE backend:', error instanceof Error ? error.message : error);
+    process.exitCode = 1;
+  });
 }

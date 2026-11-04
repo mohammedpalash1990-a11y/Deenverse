@@ -6,7 +6,6 @@ import { randomUUID } from 'crypto';
 import { Knex } from 'knex';
 import { QuranCatalogueService } from './services/quran-catalogue.js';
 import { quranRoutes } from './routes/quran.js';
-import { INITIAL_SCHEMA_MIGRATION } from './db/migrate.js';
 import { ApiErrorResponse } from './types/content.js';
 
 export interface BuildAppOptions {
@@ -19,20 +18,14 @@ export interface BuildAppOptions {
 
 export function buildApp(opts: BuildAppOptions): FastifyInstance {
   const { db, enableRateLimit = true, allowedOrigins = [], rateLimitMax = 100, rateLimitWindowMs = 60_000 } = opts;
-
-  if (!Number.isSafeInteger(rateLimitMax) || rateLimitMax < 1) {
-    throw new Error('rateLimitMax must be a positive safe integer.');
-  }
-  if (!Number.isSafeInteger(rateLimitWindowMs) || rateLimitWindowMs < 1) {
-    throw new Error('rateLimitWindowMs must be a positive safe integer.');
-  }
+  if (!Number.isSafeInteger(rateLimitMax) || rateLimitMax < 1) throw new Error('rateLimitMax must be a positive safe integer.');
+  if (!Number.isSafeInteger(rateLimitWindowMs) || rateLimitWindowMs < 1) throw new Error('rateLimitWindowMs must be a positive safe integer.');
 
   const app = fastify({
     genReqId: () => `req_${randomUUID().replace(/-/g, '')}`,
     logger: false
   });
 
-  // Security Headers
   app.register(helmet, {
     contentSecurityPolicy: {
       directives: {
@@ -43,131 +36,104 @@ export function buildApp(opts: BuildAppOptions): FastifyInstance {
     }
   });
 
-  // Strict CORS configuration with explicit allowlist
+  const environmentOrigins = (process.env.CORS_ALLOWED_ORIGINS || process.env.CORS_ORIGIN || '')
+    .split(',')
+    .map((value) => value.trim())
+    .filter(Boolean);
+  const trustedOrigins = new Set([...allowedOrigins, ...environmentOrigins]);
   app.register(cors, {
-    origin: (origin: string | undefined, cb: (err: Error | null, allow: boolean) => void) => {
-      // Requests without origin header (e.g. curl, server-to-server, mobile apps) are allowed
-      if (!origin) {
-        return cb(null, true);
-      }
-
-      // Check against explicit allowedOrigins list
-      if (allowedOrigins.includes(origin)) {
-        return cb(null, true);
-      }
-
-      // Deny untrusted origins
+    origin: (origin, cb) => {
+      if (!origin) return cb(null, true);
+      if (trustedOrigins.has(origin)) return cb(null, true);
       return cb(new Error('Origin not allowed by CORS'), false);
     },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
   });
 
-  // Rate Limiting
-  if (enableRateLimit) {
-    app.register(rateLimit, {
-      max: rateLimitMax,
-      timeWindow: rateLimitWindowMs,
-      errorResponseBuilder: (request, context) => ({
-        statusCode: 429,
-        error: 'Too Many Requests',
-        message: `Rate limit exceeded, retry in ${context.after}`,
-        date: Date.now(),
-        expiresIn: context.ttl
-      })
-    });
-  }
-
-  // Consistent Error Handler
   app.setErrorHandler((error: FastifyError, request, reply) => {
-    if (error.message === 'Origin not allowed by CORS') {
-      const errResponse: ApiErrorResponse = {
-        error: {
-          code: 'FORBIDDEN',
-          message: 'Cross-origin request blocked by security policy.',
-          retryable: false
-        }
-      };
-      return reply.status(403).send(errResponse);
-    }
+    const statusCode = error.message === 'Origin not allowed by CORS' ? 403 : error.statusCode || 500;
+    const code = statusCode === 401 ? 'UNAUTHENTICATED'
+      : statusCode === 403 ? 'FORBIDDEN'
+        : statusCode === 404 ? 'NOT_FOUND'
+          : statusCode === 429 ? 'RATE_LIMITED'
+            : statusCode === 400 || statusCode === 422 ? 'VALIDATION_ERROR'
+              : statusCode >= 400 && statusCode < 500 ? 'VALIDATION_ERROR'
+                : 'INTERNAL_ERROR';
+    const retryable = code === 'RATE_LIMITED' || statusCode >= 500;
+    const message = code === 'INTERNAL_ERROR'
+      ? 'An internal error occurred. Please try again.'
+      : error.message === 'Origin not allowed by CORS'
+        ? 'Cross-origin request blocked by security policy.'
+        : code === 'RATE_LIMITED'
+          ? 'Too many requests. Please slow down and try again later.'
+          : error.message;
 
-    const statusCode = error.statusCode || 500;
-
-    if (statusCode === 429) {
-      const errResponse: ApiErrorResponse = {
-        error: {
-          code: 'RATE_LIMITED',
-          message: 'Too many requests. Please slow down and try again later.',
-          retryable: true
-        }
-      };
-      return reply.status(429).send(errResponse);
-    }
-
-    const isClientError = statusCode >= 400 && statusCode < 500;
-
-    const errorResponse: ApiErrorResponse = {
-      error: {
-        code: isClientError ? 'INVALID_QUERY' : 'INTERNAL_ERROR',
-        message: isClientError ? error.message : 'An internal error occurred. Please try again.',
-        retryable: statusCode >= 500
-      }
+    const response: ApiErrorResponse = {
+      error: { code, message, requestId: request.id, details: [], retryable }
     };
-
-    reply.status(statusCode).send(errorResponse);
+    reply.status(statusCode).send(response);
   });
 
-  // Core Service instances
+  app.setNotFoundHandler((request, reply) => {
+    const response: ApiErrorResponse = {
+      error: {
+        code: 'NOT_FOUND',
+        message: 'The requested resource was not found.',
+        requestId: request.id,
+        details: [],
+        retryable: false
+      }
+    };
+    reply.status(404).send(response);
+  });
+
   const quranCatalogueService = new QuranCatalogueService(db);
 
-  // Register routes after plugins are initialized
-  app.after(() => {
-    // Liveness probe (indicates server process is up and responding)
-    app.get('/api/v1/health', async (request, reply) => {
-      return {
-        status: 'ok',
-        probe: 'liveness',
-        timestamp: new Date().toISOString(),
-        requestId: request.id
-      };
-    });
+  // Keep the rate limiter and its routes in one Fastify encapsulation scope.
+  app.register(async function registerApiRoutes(api) {
+    if (enableRateLimit) {
+      await api.register(rateLimit, {
+        max: rateLimitMax,
+        timeWindow: rateLimitWindowMs,
+        global: true,
+        errorResponseBuilder: (request, context) => ({
+          statusCode: 429,
+          error: {
+            code: 'RATE_LIMITED',
+            message: 'Too many requests. Please slow down and try again later.',
+            requestId: request.id,
+            details: [],
+            retryable: true
+          }
+        })
+      });
+    }
 
-    // Readiness probe (verifies database connectivity and migration state)
-    app.get('/api/v1/ready', async (request, reply) => {
+    api.get('/api/v1/health', async (request) => ({
+      status: 'healthy',
+      probe: 'liveness',
+      timestamp: new Date().toISOString(),
+      requestId: request.id
+    }));
+
+    api.get('/api/v1/ready', async (request, reply) => {
       try {
-        // 1. Check basic DB connectivity
         await db.raw('SELECT 1');
-
-        // 2. Check that critical migration tables exist
         const hasContentSources = await db.schema.hasTable('content_sources');
+        const hasSourceApprovals = await db.schema.hasTable('content_source_approvals');
         const hasQuranSurahs = await db.schema.hasTable('quran_surahs');
-        const hasMigrationLedger = await db.schema.hasTable('schema_migrations');
-
-        if (!hasContentSources || !hasQuranSurahs || !hasMigrationLedger) {
-          const errResponse: ApiErrorResponse = {
+        if (!hasContentSources || !hasSourceApprovals || !hasQuranSurahs) {
+          const response: ApiErrorResponse = {
             error: {
               code: 'UNAVAILABLE',
               message: 'Database schema is not fully migrated.',
+              requestId: request.id,
+              details: [],
               retryable: true
             }
           };
-          return reply.status(503).send(errResponse);
+          return reply.status(503).send(response);
         }
-
-        const initialMigration = await db('schema_migrations')
-          .where({ name: INITIAL_SCHEMA_MIGRATION })
-          .first();
-
-        if (!initialMigration) {
-          const errResponse: ApiErrorResponse = {
-            error: {
-              code: 'UNAVAILABLE',
-              message: 'Required database migrations have not been applied.',
-              retryable: true
-            }
-          };
-          return reply.status(503).send(errResponse);
-        }
-
         return {
           status: 'ready',
           probe: 'readiness',
@@ -176,20 +142,21 @@ export function buildApp(opts: BuildAppOptions): FastifyInstance {
           timestamp: new Date().toISOString(),
           requestId: request.id
         };
-      } catch (err: any) {
-        const errResponse: ApiErrorResponse = {
+      } catch {
+        const response: ApiErrorResponse = {
           error: {
             code: 'UNAVAILABLE',
             message: 'Database connection failed.',
+            requestId: request.id,
+            details: [],
             retryable: true
           }
         };
-        return reply.status(503).send(errResponse);
+        return reply.status(503).send(response);
       }
     });
 
-    // Register Quran routes
-    app.register(quranRoutes, {
+    api.register(quranRoutes, {
       prefix: '/api/v1/quran',
       catalogueService: quranCatalogueService
     });

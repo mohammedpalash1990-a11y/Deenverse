@@ -37,23 +37,26 @@ describe("QuranCatalogue", () => {
       getById: vi.fn()
     };
     render(<QuranCatalogue source={source} />);
-    expect(screen.getByText("Loading verified catalogue")).toBeInTheDocument();
+    expect(screen.getByText("Loading catalogue metadata")).toBeInTheDocument();
+    expect(screen.getByRole("status", { name: "Quran catalogue" })).toHaveAttribute("aria-busy", "true");
   });
 
-  it("fails closed when no approved provider is configured", async () => {
+  it("fails closed when the configured REST endpoint is unreachable", async () => {
     render(<QuranCatalogue />);
-    expect(await screen.findByRole("alert")).toHaveTextContent("Verified content service is not configured.");
+    expect(await screen.findByRole("alert")).toHaveTextContent("The content service could not be reached.");
+    expect(screen.queryByText(/Al-Fatihah/)).not.toBeInTheDocument();
   });
 
   it("shows an explicit empty state", async () => {
     render(<QuranCatalogue source={sourceReturning({ ok: true, data: { items: [] } })} />);
-    expect(await screen.findByText("No approved Surah records yet")).toBeInTheDocument();
+    expect(await screen.findByText("No catalogue records available yet")).toBeInTheDocument();
+    expect(screen.getByRole("status", { name: "Quran catalogue" })).toHaveAttribute("aria-live", "polite");
   });
 
   it("renders only records that pass provenance validation", async () => {
     render(<QuranCatalogue source={sourceReturning({ ok: true, data: { items: [record] } })} />);
     expect(await screen.findByText("Approved catalogue fixture")).toBeInTheDocument();
-    expect(screen.getByText(/source-verified catalogue records/)).toBeInTheDocument();
+    expect(screen.getByText(/catalogue records passed metadata checks/)).toBeInTheDocument();
   });
 
   it("rejects records with incomplete provenance", async () => {

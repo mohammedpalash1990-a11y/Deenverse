@@ -2,50 +2,48 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { buildApp } from '../src/app.js';
 import { createDatabaseConnection } from '../src/db/connection.js';
+import * as initialSchema from '../src/db/migrations/20261102_000001_initial_schema.js';
+import * as sourceApprovalGate from '../src/db/migrations/20261103_000002_source_approval_gate.js';
 
-test('CORS Security Configuration', async (t) => {
-  const db = createDatabaseConnection({ connection: ':memory:' });
-  const app = buildApp({
-    db,
-    enableRateLimit: false,
-    allowedOrigins: ['https://deenverse.com', 'http://localhost:3000']
-  });
+test('CORS permits only explicitly configured browser origins', async (t) => {
+  const previousOrigins = process.env.CORS_ALLOWED_ORIGINS;
+  process.env.CORS_ALLOWED_ORIGINS = 'https://app.example.test, https://admin.example.test';
+
+  const db = createDatabaseConnection({ client: 'sqlite3', connection: ':memory:' });
+  await initialSchema.up(db);
+  await sourceApprovalGate.up(db);
+  const app = buildApp({ db, enableRateLimit: false });
 
   t.after(async () => {
     await app.close();
     await db.destroy();
+    if (previousOrigins === undefined) delete process.env.CORS_ALLOWED_ORIGINS;
+    else process.env.CORS_ALLOWED_ORIGINS = previousOrigins;
   });
 
-  await t.test('allows requests without origin header (e.g. server-to-server or mobile clients)', async () => {
-    const res = await app.inject({
-      method: 'GET',
-      url: '/api/v1/health'
-    });
-    assert.equal(res.statusCode, 200);
-  });
-
-  await t.test('allows requests from explicit allowlisted origin', async () => {
-    const res = await app.inject({
+  await t.test('returns the exact allow-origin header for an approved origin', async () => {
+    const response = await app.inject({
       method: 'GET',
       url: '/api/v1/health',
-      headers: {
-        origin: 'https://deenverse.com'
-      }
+      headers: { origin: 'https://app.example.test' }
     });
-    assert.equal(res.statusCode, 200);
-    assert.equal(res.headers['access-control-allow-origin'], 'https://deenverse.com');
+
+    assert.equal(response.statusCode, 200);
+    assert.equal(response.headers['access-control-allow-origin'], 'https://app.example.test');
+    assert.equal(response.headers['access-control-allow-credentials'], undefined);
   });
 
-  await t.test('blocks requests from unauthorized origin with 403 FORBIDDEN', async () => {
-    const res = await app.inject({
+  await t.test('does not grant CORS access to an unlisted origin', async () => {
+    const response = await app.inject({
       method: 'GET',
       url: '/api/v1/health',
-      headers: {
-        origin: 'https://malicious-site.example'
-      }
+      headers: { origin: 'https://untrusted.example.test' }
     });
-    assert.equal(res.statusCode, 403);
-    const body = JSON.parse(res.body);
+
+    assert.equal(response.statusCode, 403);
+    assert.equal(response.headers['access-control-allow-origin'], undefined);
+    const body = JSON.parse(response.body);
     assert.equal(body.error.code, 'FORBIDDEN');
+    assert.ok(body.error.requestId.startsWith('req_'));
   });
 });

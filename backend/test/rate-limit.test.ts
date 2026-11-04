@@ -16,6 +16,7 @@ test('Rate limit configuration', async (t) => {
       rateLimitMax: 1,
       rateLimitWindowMs: 60_000
     });
+    await app.ready();
 
     t.after(async () => {
       await app.close();
@@ -27,46 +28,6 @@ test('Rate limit configuration', async (t) => {
     assert.equal(first.statusCode, 200);
     assert.equal(second.statusCode, 429);
     assert.equal(JSON.parse(second.body).error.code, 'RATE_LIMITED');
-  });
-
-  await t.test('allows requests from an explicitly trusted browser origin', async () => {
-    const app = buildApp({
-      db,
-      enableRateLimit: false,
-      allowedOrigins: ['https://app.example.test']
-    });
-    t.after(async () => {
-      await app.close();
-    });
-
-    const response = await app.inject({
-      method: 'GET',
-      url: '/api/v1/health',
-      headers: { origin: 'https://app.example.test' }
-    });
-
-    assert.equal(response.statusCode, 200);
-    assert.equal(response.headers['access-control-allow-origin'], 'https://app.example.test');
-  });
-
-  await t.test('rejects requests from an untrusted browser origin with a structured 403', async () => {
-    const app = buildApp({
-      db,
-      enableRateLimit: false,
-      allowedOrigins: ['https://app.example.test']
-    });
-    t.after(async () => {
-      await app.close();
-    });
-
-    const response = await app.inject({
-      method: 'GET',
-      url: '/api/v1/health',
-      headers: { origin: 'https://attacker.example.test' }
-    });
-
-    assert.equal(response.statusCode, 403);
-    assert.equal(JSON.parse(response.body).error.code, 'FORBIDDEN');
   });
 
   await t.test('rejects a zero request limit', () => {

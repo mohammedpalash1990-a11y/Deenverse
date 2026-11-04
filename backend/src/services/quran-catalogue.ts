@@ -15,36 +15,34 @@ export class QuranCatalogueService {
   constructor(private db: Knex) {}
 
   /**
-   * Retrieves paginated Quran Surah catalogue metadata with full immutable provenance.
-   * Fails closed: If no active, approved content source exists, returns null.
+   * Retrieves paginated Quran Surah catalogue metadata only after an explicit
+   * approval record is bound to the exact registered artifact checksum.
+   * The database digest comparison does not independently fetch/hash the artifact.
    */
   async listSurahs(query: SurahListQuery): Promise<{
     items: ContentRecord<SurahPayload>[];
     total: number;
     hasApprovedSource: boolean;
   }> {
-    // 1. Fetch approved active source with controlled approval status
-    // Never choose an edition implicitly when multiple approved active sources exist.
-    const approvedSources = await this.db('content_sources')
+    const source = await this.db('content_sources')
+      .join('content_source_approvals', 'content_source_approvals.source_id', 'content_sources.id')
       .where({
-        content_type: 'quran',
-        is_active: true,
-        approval_status: 'approved',
-        redistribution_allowed: true
+        'content_sources.content_type': 'quran',
+        'content_sources.is_active': true,
+        'content_sources.redistribution_allowed': true,
+        'content_source_approvals.decision': 'approved'
       })
-      .orderBy('id', 'asc')
-      .limit(2);
+      .whereRaw('content_source_approvals.artifact_sha256 = content_sources.checksum')
+      .select(
+        'content_sources.*',
+        'content_source_approvals.id as approval_id',
+        'content_source_approvals.decision as approval_decision',
+        'content_source_approvals.reviewer_id as approval_reviewer',
+        'content_source_approvals.approved_at as approval_date'
+      )
+      .first();
 
-    if (approvedSources.length !== 1) {
-      return { items: [], total: 0, hasApprovedSource: false };
-    }
-    const source = approvedSources[0];
-
-    // 2. Validate provenance structure and SHA-256 digest at boundary
-    const approvedAt = new Date(source.approved_at);
-    if (!Number.isFinite(approvedAt.getTime())) {
-      return { items: [], total: 0, hasApprovedSource: false };
-    }
+    if (!source) return { items: [], total: 0, hasApprovedSource: false };
 
     const provenance: ContentProvenance = {
       contentType: source.content_type,
@@ -54,28 +52,24 @@ export class QuranCatalogueService {
       attribution: source.attribution,
       licenseId: source.license_id,
       redistributionAllowed: Boolean(source.redistribution_allowed),
-      approvalStatus: source.approval_status,
-      reviewDecisionId: source.review_decision_id,
-      approvedByAuthority: source.approved_by_authority,
-      approvedAt: approvedAt.toISOString(),
-      checksum: source.artifact_sha256
+      reviewer: source.approval_reviewer,
+      reviewedAt: new Date(source.approval_date).toISOString(),
+      approvalStatus: source.approval_decision,
+      reviewDecisionId: source.approval_id,
+      approvedByAuthority: source.approval_reviewer,
+      approvedAt: new Date(source.approval_date).toISOString(),
+      checksum: source.checksum
     };
 
-    const provValidation = ContentProvenanceSchema.safeParse(provenance);
-    if (!provValidation.success) {
-      // Source provenance is invalid or incomplete -> fail closed
-      return { items: [], total: 0, hasApprovedSource: false };
-    }
+    const provenanceValidation = ContentProvenanceSchema.safeParse(provenance);
+    if (!provenanceValidation.success) return { items: [], total: 0, hasApprovedSource: false };
 
-    // 3. Count total surahs for this approved source
     const countResult = await this.db('quran_surahs')
       .where({ source_id: source.id })
       .count<{ count: number | string }>('* as count')
       .first();
-
     const total = countResult ? Number(countResult.count) : 0;
 
-    // 4. Retrieve paginated list
     const rows = await this.db('quran_surahs')
       .where({ source_id: source.id })
       .orderBy('surah_number', 'asc')
@@ -106,26 +100,25 @@ export class QuranCatalogueService {
     item: ContentRecord<SurahPayload> | null;
     hasApprovedSource: boolean;
   }> {
-    // Never choose an edition implicitly when multiple approved active sources exist.
-    const approvedSources = await this.db('content_sources')
+    const source = await this.db('content_sources')
+      .join('content_source_approvals', 'content_source_approvals.source_id', 'content_sources.id')
       .where({
-        content_type: 'quran',
-        is_active: true,
-        approval_status: 'approved',
-        redistribution_allowed: true
+        'content_sources.content_type': 'quran',
+        'content_sources.is_active': true,
+        'content_sources.redistribution_allowed': true,
+        'content_source_approvals.decision': 'approved'
       })
-      .orderBy('id', 'asc')
-      .limit(2);
+      .whereRaw('content_source_approvals.artifact_sha256 = content_sources.checksum')
+      .select(
+        'content_sources.*',
+        'content_source_approvals.id as approval_id',
+        'content_source_approvals.decision as approval_decision',
+        'content_source_approvals.reviewer_id as approval_reviewer',
+        'content_source_approvals.approved_at as approval_date'
+      )
+      .first();
 
-    if (approvedSources.length !== 1) {
-      return { item: null, hasApprovedSource: false };
-    }
-    const source = approvedSources[0];
-
-    const approvedAt = new Date(source.approved_at);
-    if (!Number.isFinite(approvedAt.getTime())) {
-      return { item: null, hasApprovedSource: false };
-    }
+    if (!source) return { item: null, hasApprovedSource: false };
 
     const provenance: ContentProvenance = {
       contentType: source.content_type,
@@ -135,25 +128,22 @@ export class QuranCatalogueService {
       attribution: source.attribution,
       licenseId: source.license_id,
       redistributionAllowed: Boolean(source.redistribution_allowed),
-      approvalStatus: source.approval_status,
-      reviewDecisionId: source.review_decision_id,
-      approvedByAuthority: source.approved_by_authority,
-      approvedAt: approvedAt.toISOString(),
-      checksum: source.artifact_sha256
+      reviewer: source.approval_reviewer,
+      reviewedAt: new Date(source.approval_date).toISOString(),
+      approvalStatus: source.approval_decision,
+      reviewDecisionId: source.approval_id,
+      approvedByAuthority: source.approval_reviewer,
+      approvedAt: new Date(source.approval_date).toISOString(),
+      checksum: source.checksum
     };
 
-    const provValidation = ContentProvenanceSchema.safeParse(provenance);
-    if (!provValidation.success) {
-      return { item: null, hasApprovedSource: false };
-    }
+    const provenanceValidation = ContentProvenanceSchema.safeParse(provenance);
+    if (!provenanceValidation.success) return { item: null, hasApprovedSource: false };
 
     const row = await this.db('quran_surahs')
       .where({ source_id: source.id, surah_number: surahNumber })
       .first();
-
-    if (!row) {
-      return { item: null, hasApprovedSource: true };
-    }
+    if (!row) return { item: null, hasApprovedSource: true };
 
     return {
       hasApprovedSource: true,
