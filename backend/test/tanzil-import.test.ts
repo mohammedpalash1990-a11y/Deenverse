@@ -97,7 +97,7 @@ test('accepts only the exact Tanzil copyright and license footer after all Ayahs
     '#',
     '#',
     '#',
-    '#'
+    '#',
     '#',
     '#',
   ].join('\n') + '\n';
