@@ -91,3 +91,38 @@ test('fails closed when the stored ayah digest does not match its text', async (
   const response = await app.inject({ method: 'GET', url: '/api/v1/ayah/1/1' });
   assert.equal(response.statusCode, 502);
 });
+
+
+test('fails closed when multiple active approved Quran editions exist', async () => {
+  await db('content_sources').insert({
+    id: 'second-approved-quran-source',
+    code: 'second-approved-quran-source',
+    name: 'Second synthetic Quran source',
+    content_type: 'quran',
+    edition: 'second-test-edition',
+    source_url: 'https://example.org/second-quran-source',
+    attribution: 'Synthetic test fixture only',
+    license_id: 'test-license',
+    redistribution_allowed: true,
+    reviewer: 'second-test-reviewer',
+    reviewed_at: '2026-11-04 00:00:00',
+    checksum: 'b'.repeat(64),
+    is_active: true
+  });
+  await db('content_source_approvals').insert({
+    id: 'approval-second-quran-source',
+    source_id: 'second-approved-quran-source',
+    decision: 'approved',
+    reviewer_id: 'second-test-reviewer',
+    approved_at: '2026-11-04 00:00:00',
+    artifact_sha256: 'b'.repeat(64),
+    review_notes: 'Synthetic ambiguity regression fixture only'
+  });
+
+  const response = await app.inject({ method: 'GET', url: '/api/v1/ayah/1/1' });
+  assert.equal(response.statusCode, 503);
+  assert.equal(response.json().error.code, 'CONTENT_UNAVAILABLE');
+
+  await db('content_source_approvals').where({ id: 'approval-second-quran-source' }).delete();
+  await db('content_sources').where({ id: 'second-approved-quran-source' }).delete();
+});
