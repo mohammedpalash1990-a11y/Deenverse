@@ -244,7 +244,8 @@ function isTruthyDatabaseBoolean(value: unknown): boolean {
 async function assertImportApproval(
   db: Knex,
   sourceId: string,
-  artifactSha256: string
+  artifactSha256: string,
+  metadataSha256: string
 ): Promise<Record<string, unknown>> {
   const source = await db('content_sources').where({ id: sourceId }).first();
   if (!source) throw new Error(`Quran source ${sourceId} is not registered in content_sources.`);
@@ -282,6 +283,9 @@ async function assertImportApproval(
   if (!approval.reviewer_id || !approval.approved_at || !approval.review_notes) {
     throw new Error('The source approval record is missing reviewer, approval date, or review notes.');
   }
+  if (!String(approval.review_notes).toLowerCase().includes(metadataSha256)) {
+    throw new Error('Human approval notes must include the exact Tanzil metadata XML SHA-256.');
+  }
 
   return source;
 }
@@ -291,7 +295,7 @@ async function importValidatedTanzilUthmani(
   sourceId: string,
   validated: ValidatedTanzilImport
 ): Promise<TanzilValidationReport> {
-  await assertImportApproval(db, sourceId, validated.report.artifactSha256);
+  await assertImportApproval(db, sourceId, validated.report.artifactSha256, validated.report.metadataSha256);
 
   const [existingSurahCount, existingAyahCount] = await Promise.all([
     db('quran_surahs').count<{ count: number | string }>('* as count').first(),
@@ -305,7 +309,7 @@ async function importValidatedTanzilUthmani(
   }
 
   await db.transaction(async (trx) => {
-    await assertImportApproval(trx, sourceId, validated.report.artifactSha256);
+    await assertImportApproval(trx, sourceId, validated.report.artifactSha256, validated.report.metadataSha256);
 
     await trx('quran_surahs').insert(validated.surahs.map((surah) => ({
       surah_number: surah.surahNumber,
