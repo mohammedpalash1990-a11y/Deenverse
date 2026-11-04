@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { QuranEncBengaliTranslationService } from '../src/services/quran-translation.js';
+import { EXPECTED_AYAH_COUNTS } from '../src/services/quran-surah-counts.js';
 
 function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
@@ -118,10 +119,12 @@ test('fails closed when QuranEnc changes the pinned translation edition', async 
 });
 
 test('returns an ordered full-Surah translation and rejects gaps or reordered Ayahs', async () => {
-  const validRows = [
-    { sura: 1, aya: 1, translation: 'প্রথম আয়াত', footnotes: [] },
-    { sura: 1, aya: 2, translation: 'দ্বিতীয় আয়াত', footnotes: [] }
-  ];
+  const validRows = Array.from({ length: EXPECTED_AYAH_COUNTS[0] }, (_, index) => ({
+    sura: 1,
+    aya: index + 1,
+    translation: `সূরা ফাতিহার আয়াত ${index + 1}`,
+    footnotes: []
+  }));
   const fetcher: typeof fetch = async (input) => {
     const url = String(input);
     if (url.includes('/translations/list/')) return jsonResponse(editionList);
@@ -147,10 +150,12 @@ test('serves a complete ordered Surah through the public translation route', asy
   const { buildApp } = await import('../src/app.js');
   const fetcher: typeof fetch = async (input) => String(input).includes('/translations/list/')
     ? jsonResponse(editionList)
-    : jsonResponse([
-        { sura: 1, aya: 1, translation: 'প্রথম আয়াত', footnotes: [] },
-        { sura: 1, aya: 2, translation: 'দ্বিতীয় আয়াত', footnotes: [] }
-      ]);
+    : jsonResponse(Array.from({ length: EXPECTED_AYAH_COUNTS[0] }, (_, index) => ({
+        sura: 1,
+        aya: index + 1,
+        translation: `সূরা ফাতিহার আয়াত ${index + 1}`,
+        footnotes: []
+      })));
   const app = buildApp({ db: {} as never, enableRateLimit: false, quranTranslationFetcher: fetcher });
   try {
     const response = await app.inject({ method: 'GET', url: '/api/v1/translation/bn/1' });
@@ -162,4 +167,25 @@ test('serves a complete ordered Surah through the public translation route', asy
   } finally {
     await app.close();
   }
+});
+
+test('rejects a Surah response that is ordered but incomplete', async () => {
+  const fetcher: typeof fetch = async (input) => String(input).includes('/translations/list/')
+    ? jsonResponse(editionList)
+    : jsonResponse([{ sura: 1, aya: 1, translation: 'প্রথম আয়াত', footnotes: [] }]);
+
+  const result = await new QuranEncBengaliTranslationService(fetcher).getSurah(1);
+  assert.equal(result.status, 'invalid_source_response');
+});
+
+test('rejects an Ayah coordinate beyond the canonical Surah boundary before fetching', async () => {
+  let calls = 0;
+  const fetcher: typeof fetch = async () => {
+    calls += 1;
+    return jsonResponse(editionList);
+  };
+
+  const result = await new QuranEncBengaliTranslationService(fetcher).getAyah(1, 8);
+  assert.equal(result.status, 'not_found');
+  assert.equal(calls, 0);
 });
