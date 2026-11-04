@@ -181,9 +181,11 @@ export function parseTanzilUthmaniText(textBytes: Uint8Array): TanzilAyahRecord[
       appendix.slice(2).every((line) => line.startsWith('#'));
     const footerText = appendix.slice(2).join('\n').toLowerCase();
     const requiredFooterTerms = [
-      'please do not remove this copyright notice',
+      'please do not remove',
+      'copyright notice',
       'tanzil quran text',
-      'copyright (c) 2007-2021 tanzil project',
+      'copyright (c)',
+      'tanzil project',
       'license: creative commons attribution 3.0',
       'terms of use',
       'permission is granted',
