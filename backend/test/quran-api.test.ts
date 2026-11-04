@@ -230,6 +230,8 @@ test('Quran Catalogue API Integration', async (t) => {
     assert.equal(first.title, 'Al-Fatihah');
     assert.equal(first.locale, 'ar');
     assert.equal(first.provenance.sourceId, 'src-test-fixture');
+    assert.equal(first.provenance.reviewer, 'Islamic Editorial Board');
+    assert.equal(first.provenance.reviewedAt, '2026-11-01T00:00:00.000Z');
     assert.equal(first.provenance.redistributionAllowed, true);
     assert.equal(first.provenance.approvalStatus, 'approved');
     assert.equal(first.provenance.reviewDecisionId, 'approval-test-fixture');
