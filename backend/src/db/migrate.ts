@@ -34,6 +34,10 @@ export async function runMigrations(db = createDatabaseConnection()): Promise<vo
     await quranAyahs.up(db);
   }
 
+  if (!(await db.schema.hasTable('hadith_books'))) {
+    await hadithLibrary.up(db);
+  }
+
   const complete = await Promise.all(REQUIRED_TABLES.map((table) => db.schema.hasTable(table)));
   if (!complete.every(Boolean)) {
     throw new Error('DEENVERSE migrations did not create the complete required schema.');
