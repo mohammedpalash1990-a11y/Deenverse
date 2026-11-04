@@ -105,11 +105,13 @@ describe("HadithReader", () => {
   it("loads approved collection metadata and renders exact Arabic and attributed Bengali translation", async () => {
     render(<HadithReader />);
 
-    expect(await screen.findByText("পরীক্ষামূলক সংকলন")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByRole("combobox", { name: "Hadith collection" })).toHaveValue("fixture-book");
+    });
     expect(await screen.findByText("نص اختباري موثق")).toBeInTheDocument();
     expect(screen.getByText("পরীক্ষামূলক অনুবাদ")).toBeInTheDocument();
     expect(screen.getByText("Fixture Translator")).toBeInTheDocument();
-    expect(screen.getByText("Synthetic fixture source")).toBeInTheDocument();
+    expect(screen.getAllByText("Synthetic fixture source")).toHaveLength(2);
     expect(screen.getByText("Fixture reference 1")).toBeInTheDocument();
     expect(screen.getByText("Synthetic chain fixture")).toBeInTheDocument();
   });
