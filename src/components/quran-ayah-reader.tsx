@@ -143,7 +143,7 @@ export function QuranAyahReader({ client = defaultClient }: QuranAyahReaderProps
                   </details>
                 )}
                 <p className="ayah-reader-attribution">
-                  {translationState.data.provenance.translator} · {translationState.data.provenance.publisher} · {translationState.data.provenance.editionVersion}
+                  {translationState.data.provenance.translator} · {translationState.data.provenance.publisher} · {translationState.data.provenance.sourceTitle} · {translationState.data.provenance.editionVersion}
                 </p>
                 <a href={translationState.data.provenance.sourceUrl} target="_blank" rel="noreferrer">QuranEnc-এর মূল অনুবাদ</a>{" · "}\n                <a href={translationState.data.provenance.termsUrl} target="_blank" rel="noreferrer">প্রকাশের শর্ত</a>
               </>
