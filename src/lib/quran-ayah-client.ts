@@ -12,7 +12,7 @@ export interface QuranAyahPayload {
 export interface QuranAyahProvenance extends ContentProvenance {
   approvalStatus: "approved";
   reviewDecisionId: string;
-  approvalReviewerId: string;
+  approvedByAuthority: string;
   approvedAt: string;
 }
 
@@ -56,8 +56,8 @@ function isValidProvenance(value: unknown): value is QuranAyahProvenance {
   if (stringFields.some((field) => typeof value[field] !== "string" || !(value[field] as string).trim())) {
     return false;
   }
-  const approvalReviewer = value.approvalReviewerId ?? value.approvedByAuthority;
-  if (typeof approvalReviewer !== "string" || !approvalReviewer.trim()) return false;
+  const approvalAuthority = value.approvedByAuthority ?? value.approvalReviewerId;
+  if (typeof approvalAuthority !== "string" || !approvalAuthority.trim()) return false;
   if (value.contentType !== "quran" || value.approvalStatus !== "approved" ||
       value.redistributionAllowed !== true ||
       typeof value.checksum !== "string" ||
@@ -112,7 +112,7 @@ function parseAyahResponse(
       locale: "ar",
       provenance: {
         ...record.provenance,
-        approvalReviewerId: record.provenance.approvalReviewerId ?? record.provenance.approvedByAuthority
+        approvedByAuthority: record.provenance.approvedByAuthority ?? record.provenance.approvalReviewerId
       } as QuranAyahProvenance,
       // Preserve the source string exactly; deliberately do not normalize it.
       payload: {
