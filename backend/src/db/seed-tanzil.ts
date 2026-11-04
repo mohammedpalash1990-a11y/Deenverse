@@ -123,11 +123,12 @@ export async function seedTanzilUthmaniFromOfficialSource(db: Knex): Promise<voi
     marks: 'true',
     sajdah: 'true',
     tatweel: 'true',
-    agree: 'true'
+    agree: 'true',
+    rub: 'true'
   });
 
   const [textBytes, metadataBytes] = await Promise.all([
-    downloadBytes('https://tanzil.net/pub/download/index.php', {
+    downloadBytes('https://tanzil.net/pub/download/download.php', {
       method: 'POST',
       headers: {
         'accept': 'text/plain, application/octet-stream;q=0.9, */*;q=0.8',
