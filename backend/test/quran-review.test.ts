@@ -58,6 +58,12 @@ test('creates separate single-use links and records each reviewer decision', asy
   const token = inviteUrl.pathname.split('/').pop() as string;
   assert.ok(token);
 
+  const spoofedName = await app.inject({
+    method: 'POST', url: `/api/v1/quran/review/${token}`,
+    payload: { reviewerName: 'Someone Else', decision: 'passed', textMatch: true, referenceMatch: true }
+  });
+  assert.equal(spoofedName.statusCode, 403);
+
   const opened = await app.inject({ method: 'GET', url: `/api/v1/quran/review/${token}` });
   assert.equal(opened.statusCode, 200);
   assert.equal(opened.json().data.arabic, arabic);
