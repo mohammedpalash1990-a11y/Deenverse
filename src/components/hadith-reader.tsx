@@ -23,7 +23,9 @@ export function HadithReader() {
   const [books, setBooks] = useState<HadithBook[]>([]);
   const [chapters, setChapters] = useState<HadithChapter[]>([]);
   const [records, setRecords] = useState<HadithRecord[]>([]);
+  const [recordsCursor, setRecordsCursor] = useState<string | null>(null);
   const [searchResults, setSearchResults] = useState<HadithRecord[] | null>(null);
+  const [searchCursor, setSearchCursor] = useState<string | null>(null);
   const [selectedBookId, setSelectedBookId] = useState("");
   const [selectedChapterId, setSelectedChapterId] = useState("");
   const [locale, setLocale] = useState<"bn" | "ar" | "en">("bn");
@@ -31,8 +33,10 @@ export function HadithReader() {
   const [loadingBooks, setLoadingBooks] = useState(true);
   const [loadingContent, setLoadingContent] = useState(false);
   const [searching, setSearching] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState("");
   const [searchError, setSearchError] = useState("");
+  const [loadMoreError, setLoadMoreError] = useState("");
 
   const selectedBook = useMemo(
     () => books.find((book) => book.id === selectedBookId) ?? null,
@@ -65,6 +69,8 @@ export function HadithReader() {
     }
     let active = true;
     setLoadingContent(true);
+    setRecords([]);
+    setRecordsCursor(null);
     setError("");
     void Promise.all([
       hadithClient.listChapters(selectedBookId),
@@ -82,6 +88,7 @@ export function HadithReader() {
         setRecords([]);
       } else {
         setRecords(recordResult.data.items);
+        setRecordsCursor(recordResult.data.nextCursor);
       }
       setLoadingContent(false);
     });
@@ -96,21 +103,57 @@ export function HadithReader() {
       return;
     }
     setSearching(true);
+    setSearchCursor(null);
     setSearchError("");
+    setLoadMoreError("");
     const result = await hadithClient.search(term, locale, 20);
     if (!result.ok) {
       setSearchResults([]);
+      setSearchCursor(null);
       setSearchError(result.error.message);
     } else {
       setSearchResults(result.data.items);
+      setSearchCursor(result.data.nextCursor);
     }
     setSearching(false);
   }
 
   function clearSearch() {
     setSearchResults(null);
+    setSearchCursor(null);
     setSearchError("");
+    setLoadMoreError("");
     setQuery("");
+  }
+
+  async function handleLoadMore() {
+    const cursor = searchResults !== null ? searchCursor : recordsCursor;
+    if (!cursor || loadingMore) return;
+
+    setLoadingMore(true);
+    setLoadMoreError("");
+    if (searchResults !== null) {
+      const result = await hadithClient.search(query.trim(), locale, 20, cursor);
+      if (!result.ok) {
+        setLoadMoreError(result.error.message);
+      } else {
+        setSearchResults((current) => [...(current ?? []), ...result.data.items]);
+        setSearchCursor(result.data.nextCursor);
+      }
+    } else {
+      const result = await hadithClient.listRecords(selectedBookId, {
+        chapterId: selectedChapterId || undefined,
+        limit: 20,
+        cursor
+      });
+      if (!result.ok) {
+        setLoadMoreError(result.error.message);
+      } else {
+        setRecords((current) => [...current, ...result.data.items]);
+        setRecordsCursor(result.data.nextCursor);
+      }
+    }
+    setLoadingMore(false);
   }
 
   function renderRecord(record: HadithRecord) {
@@ -187,7 +230,7 @@ export function HadithReader() {
         </label>
         <label>
           Display language
-          <select aria-label="Display language" value={locale} onChange={(event) => setLocale(event.target.value as "bn" | "ar" | "en")}>
+          <select aria-label="Display language" value={locale} onChange={(event) => { setLocale(event.target.value as "bn" | "ar" | "en"); clearSearch(); }}>
             <option value="bn">বাংলা</option>
             <option value="ar">العربية</option>
             <option value="en">English</option>
@@ -216,6 +259,7 @@ export function HadithReader() {
       </form>
 
       {searchError && <p className="hadith-reader-error" role="alert">{searchError}</p>}
+      {loadMoreError && <p className="hadith-reader-error" role="alert">{loadMoreError}</p>}
       {error && <div className="hadith-reader-state" role="status"><p>{error}</p><span>Content remains hidden until its source and review requirements are met.</span></div>}
       {loadingBooks && <p className="hadith-reader-state" role="status">Loading approved collections…</p>}
       {!loadingBooks && books.length === 0 && !error && (
@@ -239,6 +283,13 @@ export function HadithReader() {
               {records.length > 0 ? records.map(renderRecord) : <p className="hadith-reader-state">No narrations have passed both required reviews in this collection or chapter.</p>}
             </>
           )}
+        </div>
+      )}
+      {!loadingContent && !loadingBooks && (searchResults !== null ? searchCursor !== null : recordsCursor !== null) && (
+        <div className="hadith-load-more">
+          <button type="button" onClick={handleLoadMore} disabled={loadingMore || searching}>
+            {loadingMore ? "Loading…" : searchResults !== null ? "Load more search results" : "Load more narrations"}
+          </button>
         </div>
       )}
     </section>
