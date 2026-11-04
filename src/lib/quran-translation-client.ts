@@ -8,6 +8,8 @@ export interface QuranBengaliTranslation {
   provenance: {
     publisher: 'QuranEnc.com';
     translator: 'Abu Bakr Muhammad Zakaria';
+    sourceTitle: string;
+    sourceDescription: string;
     translationKey: 'bengali_zakaria';
     editionVersion: string;
     sourceUrl: string;
@@ -75,6 +77,8 @@ export function createQuranBengaliTranslationClient(options: {
           !isObject(provenance) ||
           provenance.publisher !== 'QuranEnc.com' ||
           provenance.translator !== 'Abu Bakr Muhammad Zakaria' ||
+          typeof provenance.sourceTitle !== 'string' || !provenance.sourceTitle.trim() ||
+          typeof provenance.sourceDescription !== 'string' ||
           provenance.translationKey !== 'bengali_zakaria' ||
           typeof provenance.editionVersion !== 'string' || !provenance.editionVersion.trim() ||
           typeof provenance.sourceUrl !== 'string' ||
@@ -94,6 +98,8 @@ export function createQuranBengaliTranslationClient(options: {
           provenance: {
             publisher: 'QuranEnc.com',
             translator: 'Abu Bakr Muhammad Zakaria',
+            sourceTitle: provenance.sourceTitle,
+            sourceDescription: provenance.sourceDescription,
             translationKey: 'bengali_zakaria',
             editionVersion: provenance.editionVersion,
             sourceUrl: provenance.sourceUrl,
