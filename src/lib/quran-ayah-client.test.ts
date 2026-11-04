@@ -14,7 +14,7 @@ const provenance = {
   reviewedAt: "2026-11-01T00:00:00.000Z",
   approvalStatus: "approved",
   reviewDecisionId: "test-approval-only",
-  approvedByAuthority: "test-authority-only",
+  approvalReviewerId: "test-authority-only",
   approvedAt: "2026-11-01T00:00:00.000Z",
   checksum: "a".repeat(64)
 };
