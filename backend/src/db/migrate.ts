@@ -4,9 +4,10 @@ import { createDatabaseConnection, resolveDatabaseConfig, DatabaseConfig } from 
 import * as initialSchema from './migrations/20261102_000001_initial_schema.js';
 import * as sourceApprovalGate from './migrations/20261103_000002_source_approval_gate.js';
 import * as quranAyahs from './migrations/20261104_000003_quran_ayahs.js';
+import * as problemReports from './migrations/20261104_000004_problem_reports.js';
 
 const BASE_REQUIRED_TABLES = ['content_sources', 'quran_surahs'] as const;
-const REQUIRED_TABLES = [...BASE_REQUIRED_TABLES, 'content_source_approvals', 'quran_ayahs'] as const;
+const REQUIRED_TABLES = [...BASE_REQUIRED_TABLES, 'content_source_approvals', 'quran_ayahs', 'problem_reports'] as const;
 
 /**
  * Apply the base schema to a fresh database, then apply additive migrations.
@@ -30,6 +31,10 @@ export async function runMigrations(db = createDatabaseConnection()): Promise<vo
 
   if (!(await db.schema.hasTable('quran_ayahs'))) {
     await quranAyahs.up(db);
+  }
+
+  if (!(await db.schema.hasTable('problem_reports'))) {
+    await problemReports.up(db);
   }
 
   const complete = await Promise.all(REQUIRED_TABLES.map((table) => db.schema.hasTable(table)));
