@@ -8,22 +8,21 @@ export interface HadithRoutesOptions {
   hadithService: HadithLibraryService;
 }
 
+const isCanonicalCursor = (cursor: string): boolean => {
+  if (!/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(cursor)) return false;
+  const decoded = Buffer.from(cursor, 'base64').toString('utf8');
+  return /^(0|[1-9]\d*)$/.test(decoded) &&
+    Number.isSafeInteger(Number(decoded)) &&
+    Buffer.from(decoded, 'utf8').toString('base64') === cursor;
+};
+
 const SearchQuerySchema = z.object({
   q: z.string().trim().min(1).max(120),
   locale: z.enum(['ar', 'bn', 'en']).optional(),
   limit: z.coerce.number().int().min(1).max(50).default(20),
-  cursor: z.string().optional()
-}).superRefine((value, context) => {
-  if (value.cursor !== undefined && !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(value.cursor)) {
-    context.addIssue({ code: 'custom', message: 'Cursor must be a valid pagination offset', path: ['cursor'] });
-    return;
-  }
-  if (value.cursor !== undefined) {
-    const decoded = Buffer.from(value.cursor, 'base64').toString('utf8');
-    if (!/^(0|[1-9]\\d*)$/.test(decoded) || !Number.isSafeInteger(Number(decoded)) || Buffer.from(decoded, 'utf8').toString('base64') !== value.cursor) {
-      context.addIssue({ code: 'custom', message: 'Cursor must be a valid pagination offset', path: ['cursor'] });
-    }
-  }
+  cursor: z.string().optional().refine((value) => value === undefined || isCanonicalCursor(value), {
+    message: 'Cursor must be a valid pagination offset'
+  })
 });
 
 function errorResponse(requestId: string, code: string, message: string, retryable = false): ApiErrorResponse {
@@ -94,7 +93,7 @@ export const hadithRoutes: FastifyPluginAsync<HadithRoutesOptions> = async (
     const parsed = SearchQuerySchema.safeParse(request.query);
     if (!parsed.success) return reply.status(400).send(errorResponse(request.id, 'VALIDATION_ERROR', 'Invalid Hadith search parameters.'));
     const { q, locale, limit, cursor } = parsed.data;
-    const offset = cursor ? Number(Buffer.from(cursor, 'base64').toString('utf8')) : 0;
+    const offset = decodeCursor(cursor);
     const result = await hadithService.search(q, locale, { limit, offset, locale });
     if (result.status !== 'ok') return sendServiceError(reply, request.id, result.status);
     return sendPage(reply, request.id, result.value, limit, offset);
