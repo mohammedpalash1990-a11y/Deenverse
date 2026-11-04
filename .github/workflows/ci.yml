@@ -75,9 +75,8 @@ jobs:
           cache-dependency-path: backend/package-lock.json
       - name: Regenerate and commit lockfile for the isolated remediation PR
         if: steps.backend.outputs.present == 'true' && github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'security/dependency-audit-remediation-20261104' && github.event.pull_request.base.ref == 'qa/postgres-runtime-verification-20261103'
-        working-directory: backend
         run: |
-          npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+          npm install --prefix backend --package-lock-only --ignore-scripts --no-audit --no-fund
           if ! git diff --quiet -- backend/package-lock.json; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
