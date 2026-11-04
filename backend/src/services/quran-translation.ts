@@ -8,6 +8,8 @@ export interface QuranEncTranslation {
   provenance: {
     publisher: 'QuranEnc.com';
     translator: 'Abu Bakr Muhammad Zakaria';
+    sourceTitle: string;
+    sourceDescription: string;
     translationKey: 'bengali_zakaria';
     editionVersion: string;
     sourceUrl: string;
@@ -26,6 +28,8 @@ interface TranslationListEntry {
   key: string;
   version: string;
   last_update?: string | number;
+  title?: string;
+  description?: string;
 }
 
 const API_ROOT = 'https://quranenc.com/api/v1';
@@ -51,7 +55,8 @@ export class QuranEncBengaliTranslationService {
     try {
       listResponse = await this.fetcher(TRANSLATION_LIST_URL, {
         method: 'GET',
-        headers: { Accept: 'application/json' }
+        headers: { Accept: 'application/json' },
+        signal: AbortSignal.timeout(8000)
       });
     } catch {
       return { status: 'unavailable' };
@@ -68,7 +73,9 @@ export class QuranEncBengaliTranslationService {
 
     const edition = listBody.find((entry): entry is TranslationListEntry =>
       isObject(entry) && entry.key === TRANSLATION_KEY &&
-      typeof entry.version === 'string' && entry.version.trim().length > 0
+      typeof entry.version === 'string' && entry.version.trim().length > 0 &&
+      typeof entry.title === 'string' && entry.title.trim().length > 0 &&
+      typeof entry.description === 'string'
     );
     if (!edition) return { status: 'invalid_source_response' };
 
@@ -76,7 +83,7 @@ export class QuranEncBengaliTranslationService {
     try {
       ayahResponse = await this.fetcher(
         `${API_ROOT}/translation/aya/${TRANSLATION_KEY}/${surahNumber}/${ayahNumber}`,
-        { method: 'GET', headers: { Accept: 'application/json' } }
+        { method: 'GET', headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(8000) }
       );
     } catch {
       return { status: 'unavailable' };
@@ -110,6 +117,8 @@ export class QuranEncBengaliTranslationService {
         provenance: {
           publisher: 'QuranEnc.com',
           translator: 'Abu Bakr Muhammad Zakaria',
+          sourceTitle: edition.title!,
+          sourceDescription: edition.description!,
           translationKey: TRANSLATION_KEY,
           editionVersion: edition.version,
           sourceUrl: EDITION_URL,
