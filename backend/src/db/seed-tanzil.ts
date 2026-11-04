@@ -14,7 +14,7 @@ const SOURCE_CODE = 'tanzil-uthmani-v1';
 const SOURCE_NAME = 'Tanzil Quran Text (Uthmani)';
 const SOURCE_REVIEWER = 'project-owner-chat-authorization';
 const ATTRIBUTION =
-  'Tanzil Quran Text (Uthmani), Tanzil Project. CC BY 3.0. Verbatim and unmodified. Source: https://tanzil.net/.';
+  'Tanzil Quran Text (Uthmani), Tanzil Project. Creative Commons Attribution 3.0 (CC BY 3.0). Verbatim and unmodified. Source: https://tanzil.net/.';
 
 const sha256 = (bytes: Uint8Array): string =>
   createHash('sha256').update(bytes).digest('hex');
