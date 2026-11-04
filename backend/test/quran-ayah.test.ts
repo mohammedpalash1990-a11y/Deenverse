@@ -64,7 +64,13 @@ after(async () => {
 test('returns an ayah only from an approved source with matching text digest', async () => {
   const response = await app.inject({ method: 'GET', url: '/api/v1/ayah/1/1' });
   assert.equal(response.statusCode, 200);
-  assert.equal(response.json().data.arabic, arabic);
+  assert.equal(response.json().data.id, 'quran:ayah:1:1');
+  assert.equal(response.json().data.payload.textArabic, arabic);
+  assert.equal(response.json().data.payload.surahNumber, 1);
+  assert.equal(response.json().data.payload.ayahNumber, 1);
+  assert.equal(response.json().data.provenance.approvalStatus, 'approved');
+  assert.equal(response.json().data.provenance.approvalReviewerId, 'test-reviewer');
+  assert.equal(response.json().data.provenance.redistributionAllowed, true);
   assert.equal(response.json().data.provenance.sourceId, sourceId);
 });
 
