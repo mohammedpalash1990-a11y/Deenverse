@@ -36,7 +36,7 @@ HTTP 200:
       "reviewedAt": "2026-01-01T00:00:00.000Z",
       "approvalStatus": "approved",
       "reviewDecisionId": "approval-id",
-      "approvalReviewerId": "review-authority-id",
+      "approvedByAuthority": "review-authority-id",
       "approvedAt": "2026-01-01T00:00:00.000Z",
       "checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
     },
@@ -74,7 +74,7 @@ Use the common API error envelope:
 | 404 | `NOT_FOUND` | Ayah does not exist in the requested approved edition |
 | 429 | `RATE_LIMITED` | Request rate exceeded |
 | 503 | `CONTENT_UNAVAILABLE` | No approved, licensed, integrity-verified edition is available |
-| 503 | `INTEGRITY_REJECTED` | Source or record integrity check failed |
+| 502 | `INTEGRITY_REJECTED` | Stored Ayah record failed its SHA-256 integrity check |
 
 Do not expose internal provider diagnostics, storage paths, SQL errors, or secret values.
 
@@ -98,6 +98,6 @@ Until multi-edition selection is explicitly implemented, only a single configure
 
 ## Ownership
 
-- Backend owner (Jules): implement route, persistence, source/edition selection, and server-side artifact/record verification.
+- Backend owner (Jules): harden the existing `/api/v1/ayah/:surah/:ayah` route and complete independent source-artifact verification; current code verifies the stored Ayah record digest but does not independently retrieve and hash the immutable upstream artifact.
 - Frontend owner (Queen): consume this contract in the reader UI and provide loading/error/empty/unavailable states.
 - Integration owner: maintain contract tests and ensure frontend/backend schemas remain aligned.
