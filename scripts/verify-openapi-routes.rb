@@ -13,22 +13,67 @@ def abort_with(message)
   exit 1
 end
 
+def assert_unique_mapping_keys(node, location = "$")
+  return unless node.respond_to?(:children)
+
+  if node.is_a?(Psych::Nodes::Mapping)
+    pairs = node.children.each_slice(2).to_a
+    names = pairs.map { |key, _value| key.respond_to?(:value) ? key.value : key.class.name }
+    duplicate = names.group_by(&:itself).find { |_name, occurrences| occurrences.length > 1 }
+    abort_with("duplicate YAML key #{duplicate.first.inspect} at #{location}") if duplicate
+    pairs.each do |key, value|
+      name = key.respond_to?(:value) ? key.value : key.class.name
+      assert_unique_mapping_keys(value, "#{location}.#{name}")
+    end
+  else
+    node.children.each_with_index do |child, index|
+      assert_unique_mapping_keys(child, "#{location}[#{index}]")
+    end
+  end
+end
+
+def walk(value, &block)
+  yield value
+  case value
+  when Hash
+    value.each_value { |child| walk(child, &block) }
+  when Array
+    value.each { |child| walk(child, &block) }
+  end
+end
+
+def resolve_local_reference(spec, reference)
+  return nil unless reference.start_with?("#/")
+  reference.delete_prefix("#/").split("/").reduce(spec) do |node, part|
+    decoded = part.gsub("~1", "/").gsub("~0", "~")
+    node.is_a?(Hash) ? node[decoded] : nil
+  end
+end
+
+ast = Psych.parse_file(SPEC_PATH)
+abort_with("OpenAPI file is empty or invalid YAML") unless ast
+assert_unique_mapping_keys(ast)
+
 spec = YAML.safe_load_file(SPEC_PATH, permitted_classes: [], aliases: false)
 abort_with("expected OpenAPI 3.1.0") unless spec.is_a?(Hash) && spec["openapi"] == "3.1.0"
 paths = spec["paths"]
 abort_with("paths must be a non-empty mapping") unless paths.is_a?(Hash) && !paths.empty?
 
+walk(spec) do |value|
+  next unless value.is_a?(Hash) && value["$ref"].is_a?(String)
+  reference = value["$ref"]
+  next unless reference.start_with?("#/")
+  abort_with("unresolved local reference #{reference}") if resolve_local_reference(spec, reference).nil?
+end
+
 app_source = File.read(APP_PATH)
 actual = Hash.new { |hash, key| hash[key] = [] }
 
-# Direct routes registered in app.ts (health/readiness).
+abort_with("app.ts uses api.route(); extend this scanner before adding route-object registrations") if app_source.match?(/\bapi\.route\s*\(/)
 app_source.scan(/\bapi\.(get|post|put|patch|delete)\s*(?:<[^>]*>)?\s*\(\s*['"]([^'"]+)['"]/m) do |method, path|
   actual[path] << method
 end
 
-# Resolve each registered route plugin from its import and prefix, then scan
-# the plugin source for literal route declarations. Fail closed on unknown
-# plugins or files so a new plugin cannot silently escape the contract check.
 route_imports = app_source.scan(/import\s*\{\s*(\w+)\s*\}\s*from\s*['"]\.\/routes\/([^'"]+)\.js['"]/m).to_h
 registrations = app_source.scan(/api\.register\(\s*(\w+)\s*,\s*\{\s*prefix:\s*['"]([^'"]+)['"]/m)
 
@@ -39,14 +84,14 @@ registrations.each do |plugin, prefix|
   source_path = File.join(ROOT, "backend", "src", "routes", "#{route_file}.ts")
   abort_with("route source not found for #{plugin}: #{source_path}") unless File.file?(source_path)
   source = File.read(source_path)
+  abort_with("#{plugin} uses fastify.route(); extend this scanner before adding route-object registrations") if source.match?(/\bfastify\.route\s*\(/)
 
   declarations = source.scan(/\bfastify\.(get|post|put|patch|delete)\s*(?:<[^>]*>)?\s*\(\s*['"]([^'"]+)['"]/m)
   abort_with("no literal route declarations found for #{plugin}") if declarations.empty?
 
   declarations.each do |method, route|
     full_path = "#{prefix}#{route}"
-    openapi_path = full_path.gsub(/:([A-Za-z0-9_]+)/, '{\1}')
-    actual[openapi_path] << method
+    actual[full_path.gsub(/:([A-Za-z0-9_]+)/, '{\1}')] << method
   end
 end
 
@@ -86,4 +131,4 @@ end
 
 abort_with("operationId values must be unique") unless operation_ids.uniq.length == operation_ids.length
 
-puts "OpenAPI 3.1 valid YAML and backend route parity verified: #{paths.length} paths, #{operation_ids.length} operations."
+puts "OpenAPI 3.1 YAML, unique keys, local references, and backend route parity verified: #{paths.length} paths, #{operation_ids.length} operations."

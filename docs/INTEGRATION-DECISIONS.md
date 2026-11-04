@@ -147,3 +147,8 @@ Main exact-head CI run #41812199822 passed both backend and web jobs on `a7ff413
 - `jules/backend-foundation`: 3 ahead / 58 behind; diff only `AGENT_TASK.md` and `JULES_NEXT_TASK.md`.
 - `queen/frontend-foundation`: 2 ahead / 58 behind; diff only `AGENT_TASK.md`.
 - No implementation commit or PR from either named branch was found. Do not infer agent activity from assignment issues or owner-authored PRs.
+
+
+## OpenAPI validator hardening — 2026-11-04
+
+The first route-parity workflow passed on the exact sync head. The validator is now being hardened to reject duplicate YAML mapping keys and unresolved local component references before comparing all documented path/method pairs with the backend route registrations. The duplicate `SurahPage` schema key was removed. The hardened version requires a fresh exact-head Actions run; no pass is claimed for it yet.

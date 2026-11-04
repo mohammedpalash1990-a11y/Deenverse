@@ -40,7 +40,7 @@
 2. Manual Arabic RTL/mixed-direction, keyboard/focus, and screen-reader testing with evidence.
 3. Browser CORS/CSP/network checks against the configured API origin.
 4. Hosted PostgreSQL migration/readiness, backup/restore, rollback, secret-store, and deployment smoke tests.
-5. Keep PR #1 open until route-parity CI passes and a human review approves the documentation diff. Reconcile PR #11 against this current route inventory; do not merge it as-is.
+5. PR #1 is synchronized and the initial route-parity CI passed; keep it open for human review of the documentation diff and release blockers. Rerun CI after validator hardening. Reconcile PR #11 against this current route inventory; do not merge it as-is.
 
 ## Agent status
 

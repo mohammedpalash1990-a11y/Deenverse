@@ -240,3 +240,8 @@ Do not merge these without exact-head checks and review. PR #45 must be assessed
 Main exact-head run #41812199822 passed backend and web typecheck/tests/build/audit; backend CI included PostgreSQL 16. Manual accessibility/device and hosted production database checks remain separate.
 
 No branch or file in the named Jules/Queen assignment branches was changed by this integration update.
+
+
+## OpenAPI validator hardening — 2026-11-04
+
+The first route-parity workflow passed on the exact sync head. The validator is now being hardened to reject duplicate YAML mapping keys and unresolved local component references before comparing all documented path/method pairs with the backend route registrations. The duplicate `SurahPage` schema key was removed. The hardened version requires a fresh exact-head Actions run; no pass is claimed for it yet.

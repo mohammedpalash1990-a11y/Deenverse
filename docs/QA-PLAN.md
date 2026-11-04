@@ -379,3 +379,8 @@ No local build or test commands were run during this checkpoint. No green CI sta
 - No approved Quran artifact or completed per-Ayah human review is recorded. Do not use a green software build as religious-content approval.
 - QuranEnc translation rights and Hadith source permissions remain open.
 - Audio playback, private bookmarks/progress, authentication/session, and admin write flows are not complete in main.
+
+
+## OpenAPI validator hardening — 2026-11-04
+
+The first route-parity workflow passed on the exact sync head. The validator is now being hardened to reject duplicate YAML mapping keys and unresolved local component references before comparing all documented path/method pairs with the backend route registrations. The duplicate `SurahPage` schema key was removed. The hardened version requires a fresh exact-head Actions run; no pass is claimed for it yet.

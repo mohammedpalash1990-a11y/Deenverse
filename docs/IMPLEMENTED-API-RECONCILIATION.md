@@ -107,3 +107,8 @@ A checksum is integrity evidence, not a substitute for source identity, independ
 `docs/OPENAPI-DRAFT.yaml` now describes the 12 routes found in main. `scripts/verify-openapi-routes.rb` parses the spec and discovers routes from `backend/src/app.ts` and its registered route plugins. The workflow fails if a backend route is added/removed/renamed without a corresponding OpenAPI path/method update, or if the spec documents a route that is not registered.
 
 The route-parity workflow is newly added in this integration update. Its result must be checked on the exact integration PR head; no pass is claimed until GitHub Actions reports it.
+
+
+## OpenAPI validator hardening — 2026-11-04
+
+The first route-parity workflow passed on the exact sync head. The validator is now being hardened to reject duplicate YAML mapping keys and unresolved local component references before comparing all documented path/method pairs with the backend route registrations. The duplicate `SurahPage` schema key was removed. The hardened version requires a fresh exact-head Actions run; no pass is claimed for it yet.

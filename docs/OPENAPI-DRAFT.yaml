@@ -867,16 +867,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/HadithTranslation'
-    SurahPage:
-      type: object
-      required: [meta, data]
-      properties:
-        meta:
-          $ref: '#/components/schemas/PageMeta'
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/SurahRecord'
     HadithBookPage:
       type: object
       required: [meta, data]
