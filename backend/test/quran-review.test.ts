@@ -104,3 +104,26 @@ test('rejects a passed decision without both exact-match checks', async () => {
   });
   assert.equal(response.statusCode, 400);
 });
+
+
+test('rejects malformed coordinator and reviewer names without an internal error', async () => {
+  const malformedCoordinator = await app.inject({
+    method: 'POST', url: '/api/v1/quran/review-batches',
+    headers: { 'x-review-admin-token': adminToken },
+    payload: { sourceId, surahNumber: 1, ayahNumber: 1, reviewers: ['A', 'B', 'C'], createdBy: 42 }
+  });
+  assert.equal(malformedCoordinator.statusCode, 400);
+
+  const created = await app.inject({
+    method: 'POST', url: '/api/v1/quran/review-batches',
+    headers: { 'x-review-admin-token': adminToken },
+    payload: { sourceId, surahNumber: 1, ayahNumber: 1, reviewers: ['G', 'H', 'I'], createdBy: 'Coordinator' }
+  });
+  assert.equal(created.statusCode, 201);
+  const token = new URL(created.json().data.invites[0].url as string).pathname.split('/').pop() as string;
+  const malformedReviewer = await app.inject({
+    method: 'POST', url: `/api/v1/quran/review/${token}`,
+    payload: { reviewerName: 42, decision: 'failed', textMatch: false, referenceMatch: false }
+  });
+  assert.equal(malformedReviewer.statusCode, 400);
+});
