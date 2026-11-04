@@ -82,7 +82,7 @@ Do not expose internal provider diagnostics, storage paths, SQL errors, or secre
 
 This single-record route has no pagination cursor. If a list route is added, its cursor must be opaque, validated, bounded, and bound to the edition/query context; clients must not construct or modify it.
 
-Until multi-edition selection is explicitly implemented, only a single configured approved edition may be served. Do not silently switch editions.
+Until explicit edition selection is implemented, the backend must find exactly one eligible active, redistribution-permitted, approved Quran source globally. Zero or multiple eligible sources return `503 CONTENT_UNAVAILABLE`; the backend must never choose an arbitrary row or silently switch editions.
 
 ## Contract test matrix
 
