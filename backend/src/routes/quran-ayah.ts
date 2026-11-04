@@ -12,7 +12,7 @@ export const quranAyahRoutes: FastifyPluginAsync<QuranAyahRoutesOptions> = async
 ) => {
   fastify.get<{ Params: { surah: string; ayah: string } }>('/:surah/:ayah', async (request, reply) => {
     const { surah: rawSurah, ayah: rawAyah } = request.params;
-    if (!/^(?:[1-9]|[1-9][0-9]|1[01][0-9]|114)$/.test(rawSurah)
+    if (!/^(?:[1-9]|[1-9][0-9]|10[0-9]|11[0-4])$/.test(rawSurah)
       || !/^[1-9][0-9]{0,2}$/.test(rawAyah)) {
       const response: ApiErrorResponse = {
         error: {
