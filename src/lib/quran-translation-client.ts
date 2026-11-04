@@ -1,4 +1,5 @@
 import { resolveApiBaseUrl } from "./api-config";
+import { mapContentApiError } from "./content-api-errors";
 export interface QuranBengaliTranslationProvenance {
   publisher: 'QuranEnc.com';
   translator: 'Abu Bakr Muhammad Zakaria';
@@ -98,11 +99,7 @@ export function createQuranBengaliTranslationClient(options: {
         body = null;
       }
       if (!response.ok) {
-        const message = isObject(body) && isObject(body.error) &&
-          typeof body.error.message === 'string'
-          ? body.error.message
-          : 'বাংলা অনুবাদ এখন পাওয়া যাচ্ছে না।';
-        return { ok: false, message };
+        return { ok: false, message: mapContentApiError(response.status, body).message };
       }
 
       if (!isObject(body) || !isObject(body.meta) ||
@@ -163,11 +160,7 @@ export function createQuranBengaliTranslationClient(options: {
         body = null;
       }
       if (!response.ok) {
-        const message = isObject(body) && isObject(body.error) &&
-          typeof body.error.message === 'string'
-          ? body.error.message
-          : 'বাংলা অনুবাদ এখন পাওয়া যাচ্ছে না।';
-        return { ok: false, message };
+        return { ok: false, message: mapContentApiError(response.status, body).message };
       }
 
       if (!isObject(body) || !isObject(body.meta) ||
