@@ -36,7 +36,7 @@ HTTP 200:
       "reviewedAt": "2026-01-01T00:00:00.000Z",
       "approvalStatus": "approved",
       "reviewDecisionId": "approval-id",
-      "approvalReviewerId": "review-authority-id",
+      "approvedByAuthority": "review-authority-id",
       "approvedAt": "2026-01-01T00:00:00.000Z",
       "checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
     },
