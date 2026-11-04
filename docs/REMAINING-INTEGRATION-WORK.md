@@ -49,7 +49,7 @@
 
 ## Integration follow-up — 2026-11-04
 
-Verified code head: `b3c890be21f8a9e33a9174d39a6cbaf13bdf21c4` on `integration/platform-foundation`, compared with main `a7ff4130f6d74e9319b6d894c118d270b44171cd` (58 ahead / 0 behind).
+Verified implementation code head: `b3c890be21f8a9e33a9174d39a6cbaf13bdf21c4`. After documentation-only evidence updates, integration head before this final evidence refresh was `839b29a3bf409c13d40336d18210d6cb7a9bd391`, compared with main `a7ff4130f6d74e9319b6d894c118d270b44171cd` (69 ahead / 0 behind).
 
 Completed on the integration branch:
 - Fixed the OpenAPI validator's Ruby Psych scalar-node crash.
@@ -59,10 +59,12 @@ Completed on the integration branch:
 - Routed Bengali translation API errors through the shared safe error mapper.
 - Reconciled API error documentation and the single-edition OpenAPI/Ayah contract.
 
-Exact-head verification on the code head:
+Exact-head verification on the implementation code head:
 - DEENVERSE CI run #41838270768: backend install, typecheck, tests, build, and high-severity audit passed; web install, typecheck, tests, build, and high-severity audit passed.
 - Web foundation run #41838270665: install, audit capture, typecheck, tests, and production build passed.
 - OpenAPI route-parity run #41838270690: passed.
+
+A later documentation-only head `839b29a3bf409c13d40336d18210d6cb7a9bd391` was also rechecked: DEENVERSE CI #41838823799, Web foundation #41838823586, and OpenAPI validation #41838823872 all passed.
 - Push-triggered OpenAPI run #41837800895: passed.
 
 Remaining blockers are unchanged: immutable source artifact retrieval/re-hashing, independent scholarly/source review, per-Ayah human review, QuranEnc redistribution/caching/offline/export terms, approved Hadith/tafsir/dua/audio sources, authentication/authorization for private features, manual accessibility/device QA, and hosted production PostgreSQL operations. No religious corpus was imported or approved by this integration work.

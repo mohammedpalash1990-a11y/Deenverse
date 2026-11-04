@@ -116,7 +116,7 @@ The first route-parity workflow passed on the exact sync head. The validator is 
 
 ## Integration follow-up — 2026-11-04
 
-**Verified code head:** `b3c890be21f8a9e33a9174d39a6cbaf13bdf21c4` on `integration/platform-foundation`. The branch compares 58 commits ahead / 0 behind `main` at `a7ff4130f6d74e9319b6d894c118d270b44171cd`. Main was not modified.
+**Verified implementation code head:** `b3c890be21f8a9e33a9174d39a6cbaf13bdf21c4` on `integration/platform-foundation`. After documentation-only evidence updates, the branch head was `839b29a3bf409c13d40336d18210d6cb7a9bd391`, 69 commits ahead / 0 behind `main` at `a7ff4130f6d74e9319b6d894c118d270b44171cd`. Main was not modified.
 
 ### Current workstream evidence
 
@@ -143,7 +143,7 @@ All runs below target code head `b3c890be21f8a9e33a9174d39a6cbaf13bdf21c4`:
 - OpenAPI contract validation #41838270690 — passed.
 - Push-triggered OpenAPI contract validation #41837800895 — passed.
 
-The earlier failure #41835304798 was a validator implementation bug, not an OpenAPI route mismatch. It is fixed and the exact current branch head has a successful route-parity run.
+The earlier failure #41835304798 was a validator implementation bug, not an OpenAPI route mismatch. It is fixed. Later exact-head verification on `839b29a3bf409c13d40336d18210d6cb7a9bd391` passed DEENVERSE CI #41838823799, Web foundation #41838823586, and OpenAPI validation #41838823872.
 
 ### Still not verified / not enabled
 

@@ -9,7 +9,7 @@ This checklist is evidence-based. A checked item means the corresponding code or
 - [x] npm lockfiles committed; main CI uses `npm ci`.
 - [x] PostgreSQL 16 service is used in backend CI; production rejects SQLite.
 - [x] Main exact-head run #41812199822 passed backend/web typecheck, tests, builds, and high-severity dependency audits.
-- [x] Hardened OpenAPI validator passed on exact integration PR head (run #41838270690); push run #41837800895 also passed.
+- [x] Exact latest integration PR head passed OpenAPI validation (#41838823872), backend/web CI (#41838823799), and web-foundation checks (#41838823586). Push-triggered OpenAPI run #41837800895 also passed.
 - [ ] Manual browser/device, responsive, RTL, keyboard, and screen-reader QA completed.
 
 ## API and adapters
