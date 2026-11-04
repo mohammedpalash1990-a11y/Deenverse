@@ -11,6 +11,13 @@ test('database migration creates the complete schema and is safe to rerun', asyn
     assert.equal(await db.schema.hasTable('content_sources'), true);
     assert.equal(await db.schema.hasTable('quran_surahs'), true);
     assert.equal(await db.schema.hasTable('content_source_approvals'), true);
+    for (const table of [
+      'hadith_books', 'hadith_chapters', 'hadith_records',
+      'hadith_translations', 'hadith_grade_assessments', 'hadith_record_reviews'
+    ]) {
+      assert.equal(await db.schema.hasTable(table), true, table);
+      assert.equal(await db(table).count('* as count').first().then((row) => Number(row?.count)), 0, table);
+    }
 
     await assert.doesNotReject(() => runMigrations(db));
   } finally {
@@ -30,6 +37,8 @@ test('database migration upgrades an existing base schema with the approval tabl
     await runMigrations(db);
 
     assert.equal(await db.schema.hasTable('content_source_approvals'), true);
+    assert.equal(await db.schema.hasTable('hadith_books'), true);
+    assert.equal(await db.schema.hasTable('hadith_record_reviews'), true);
     await assert.doesNotReject(() => runMigrations(db));
   } finally {
     await db.destroy();
