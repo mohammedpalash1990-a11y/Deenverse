@@ -289,4 +289,40 @@ test('Quran Catalogue API Integration', async (t) => {
     assert.ok(body.error.requestId.startsWith('req_'));
     assert.deepEqual(body.error.details, []);
   });
+  await t.test('fails closed when more than one active approved Quran edition exists', async () => {
+    await db('content_sources').insert({
+      id: 'src-test-fixture-second',
+      code: 'synthetic-test-fixture-second',
+      name: 'Synthetic second source — test only',
+      content_type: 'quran',
+      edition: 'synthetic-second-edition',
+      source_url: 'https://example.org/synthetic-second-source',
+      attribution: 'Synthetic test fixture only',
+      license_id: 'TEST-FIXTURE-NOT-A-LICENSE',
+      redistribution_allowed: true,
+      reviewer: 'test-reviewer',
+      reviewed_at: '2026-11-01T00:00:00.000Z',
+      checksum: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+      is_active: true
+    });
+    await db('content_source_approvals').insert({
+      id: 'approval-test-fixture-second',
+      source_id: 'src-test-fixture-second',
+      decision: 'approved',
+      reviewer_id: 'test-reviewer',
+      approved_at: '2026-11-01T00:00:00.000Z',
+      artifact_sha256: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+      review_notes: 'Synthetic ambiguity regression fixture only.'
+    });
+
+    for (const url of ['/api/v1/quran/surahs', '/api/v1/quran/surahs/1']) {
+      const response = await app.inject({ method: 'GET', url });
+      assert.equal(response.statusCode, 503, url);
+      assert.equal(response.json().error.code, 'CONTENT_UNAVAILABLE', url);
+    }
+
+    await db('content_source_approvals').where({ id: 'approval-test-fixture-second' }).delete();
+    await db('content_sources').where({ id: 'src-test-fixture-second' }).delete();
+  });
+
 });
