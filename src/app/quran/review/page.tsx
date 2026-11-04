@@ -77,8 +77,8 @@ export default function QuranReviewCoordinatorPage() {
       <h2 style={{fontFamily:"Georgia,serif",fontWeight:500}}>Private reviewer links</h2>
       <p>Send each reviewer only their own link. Links expire after 14 days and can be submitted once.</p>
       {links.map(item=><div key={item.reviewer} style={{padding:"12px 0",borderTop:"1px solid #d6ddd3"}}>
-        <strong>{item.reviewer}</strong><p style={{overflowWrap:"anywhere",fontSize:13}}>{item.url || item.token}</p>
-        <button type="button" style={secondary} onClick={()=>navigator.clipboard.writeText(item.url || item.token || "")}>Copy link</button>
+        <strong>{item.reviewer}</strong><p style={{overflowWrap:"anywhere",fontSize:13}}>{item.url}</p>
+        <button type="button" style={secondary} onClick={()=>navigator.clipboard.writeText(item.url || "")}>Copy link</button>
       </div>)}
     </section>}
     <p style={{fontSize:12,lineHeight:1.7,color:"#7a867e",marginTop:32}}>Review is not an approval or publication decision. Every reviewer must compare the exact Arabic text, diacritics and verse boundaries with the cited source. A team result does not replace qualified scholarly sign-off.</p>
