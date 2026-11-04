@@ -30,8 +30,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      # npm ci is intentionally blocked until a reviewed package-lock.json is committed.
-      - run: npm install
+      # Install the exact reviewed frontend dependency graph.
+      - run: npm ci
       - name: Capture dependency audit report
         run: npm audit --json > npm-audit.json || true
       - name: Summarize dependency audit findings

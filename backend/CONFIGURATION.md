@@ -33,3 +33,24 @@ Both values must be positive safe integers. The same settings are available thro
 - Unsupported clients and URL schemes fail closed.
 
 The backend runtime and migration CLI support PostgreSQL through Knex and the `pg` driver. Production startup rejects SQLite. Set `NODE_ENV=production` and `DATABASE_URL` to a PostgreSQL connection string. Run `npm run db:migrate` from `backend/` as a release step before starting the service. The migration CLI applies the same additive schema migrations to SQLite in development and PostgreSQL in production. A successful TypeScript build or SQLite test run alone is not evidence that a particular hosted PostgreSQL instance is reachable; verify the deployment database with `/api/v1/ready`.
+
+## Deployment lifecycle and probes
+
+Use `/api/v1/health` for liveness and `/api/v1/ready` for readiness. Both
+probes bypass the public API rate limiter so a busy client cannot exhaust a
+shared quota and cause spurious restarts. Readiness still returns HTTP 503 when
+the database is disconnected or required schema tables are missing. Neither
+probe certifies that a corpus is approved, authentication is implemented, or all
+product features are ready. Avoid high-frequency public readiness polling: it
+checks the database on each request.
+
+SIGTERM and SIGINT stop accepting HTTP requests, drain in-flight requests via
+Fastify, and then destroy the database pool. Shutdown has a ten-second deadline;
+configure the hosting platform's termination grace period above that deadline.
+A deadline overrun exits unsuccessfully rather than leaving a hung instance.
+
+For reproducible installs, run `npm ci` in both the repository root and
+`backend/`. Both dependency graphs now have committed lockfiles. Keep Node.js 22
+aligned with CI. The environment template is documentation, not an automatic
+`.env` loader: inject these variables through the host environment or a supported
+Node environment-file mechanism.

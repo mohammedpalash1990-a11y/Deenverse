@@ -119,14 +119,14 @@ export function buildApp(opts: BuildAppOptions): FastifyInstance {
       });
     }
 
-    api.get('/api/v1/health', async (request) => ({
+    api.get('/api/v1/health', { config: { rateLimit: false } }, async (request) => ({
       status: 'healthy',
       probe: 'liveness',
       timestamp: new Date().toISOString(),
       requestId: request.id
     }));
 
-    api.get('/api/v1/ready', async (request, reply) => {
+    api.get('/api/v1/ready', { config: { rateLimit: false } }, async (request, reply) => {
       try {
         await db.raw('SELECT 1');
         const requiredTables = ['content_sources', 'content_source_approvals', 'quran_surahs', 'quran_ayahs', 'hadith_books', 'hadith_chapters', 'hadith_records', 'hadith_translations', 'hadith_grade_assessments', 'hadith_record_reviews'];

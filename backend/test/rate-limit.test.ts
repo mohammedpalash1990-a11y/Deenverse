@@ -22,12 +22,21 @@ test('Rate limit configuration', async (t) => {
       await app.close();
     });
 
-    const first = await app.inject({ method: 'GET', url: '/api/v1/health' });
-    const second = await app.inject({ method: 'GET', url: '/api/v1/health' });
+    const first = await app.inject({ method: 'GET', url: '/api/v1/quran/surahs' });
+    const second = await app.inject({ method: 'GET', url: '/api/v1/quran/surahs' });
 
-    assert.equal(first.statusCode, 200);
+    assert.notEqual(first.statusCode, 429);
     assert.equal(second.statusCode, 429);
     assert.equal(JSON.parse(second.body).error.code, 'RATE_LIMITED');
+
+    // An exhausted public quota must never trigger an orchestrator restart.
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const health = await app.inject({ method: 'GET', url: '/api/v1/health' });
+      const ready = await app.inject({ method: 'GET', url: '/api/v1/ready' });
+      assert.equal(health.statusCode, 200);
+      assert.equal(ready.statusCode, 503); // Unmigrated database, not a quota failure.
+      assert.equal(ready.json().error.code, 'UNAVAILABLE');
+    }
   });
 
   await t.test('rejects a zero request limit', () => {

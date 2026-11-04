@@ -113,7 +113,7 @@ jobs:
           node-version: 22
       - name: Install web dependencies
         if: steps.web.outputs.present == 'true'
-        run: npm install --no-audit --no-fund
+        run: npm ci --no-audit --no-fund
       - name: Typecheck web
         if: steps.web.outputs.present == 'true'
         run: npm run typecheck
