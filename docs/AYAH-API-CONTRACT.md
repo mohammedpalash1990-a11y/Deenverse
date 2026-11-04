@@ -36,7 +36,7 @@ HTTP 200:
       "reviewedAt": "2026-01-01T00:00:00.000Z",
       "approvalStatus": "approved",
       "reviewDecisionId": "approval-id",
-      "approvalReviewerId": "review-authority-id",
+      "approvedByAuthority": "review-authority-id",
       "approvedAt": "2026-01-01T00:00:00.000Z",
       "checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
     },
@@ -57,7 +57,7 @@ All values above are schema examples only. The placeholder in `textArabic` is no
 - Payload path numbers must exactly match the request path.
 - `type` must be `quran` and `locale` must be `ar`.
 - `textArabic` must be the exact approved source string. Do not trim, normalize, transliterate, rewrite, repair, or otherwise transform it.
-- Provenance must include source, edition, HTTPS source URL, attribution, license, explicit redistribution permission, reviewer, review time, approved decision ID/reviewer/time, and a 64-character hexadecimal SHA-256 checksum. For compatibility with an in-flight backend patch, the client also accepts `approvedByAuthority` and normalizes it to `approvalReviewerId`.
+- Provenance must include source, edition, HTTPS source URL, attribution, license, explicit redistribution permission, reviewer, review time, approved decision ID/reviewer/time, and a 64-character hexadecimal SHA-256 checksum. The canonical backend field is `approvedByAuthority`; the client also accepts legacy `approvalReviewerId` responses and normalizes them to `approvedByAuthority`.
 - The current backend verifies the stored Ayah text against its per-record SHA-256 and requires the approval digest to match the registered source checksum. This is a metadata and record-integrity gate, not independent verification of an immutable source artifact. Do not import or publish a production Quran corpus until immutable artifact retrieval, digest recomputation, and independent source review are implemented and evidenced.
 - A source/edition without valid approval, rights, or integrity verification must fail closed.
 - No synthetic fixtures, AI-generated text, alternate-edition fallback, or cached unapproved record may be returned.
