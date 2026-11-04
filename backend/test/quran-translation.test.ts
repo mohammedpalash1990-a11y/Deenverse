@@ -71,3 +71,31 @@ test('rejects invalid coordinates before making a source request', async () => {
   assert.equal(result.status, 'not_found');
   assert.equal(calls, 0);
 });
+
+
+test('serves the QuranEnc translation route with attribution and rejects invalid coordinates', async () => {
+  const { buildApp } = await import('../src/app.js');
+  const fetcher: typeof fetch = async (input) => String(input).includes('/translations/list/')
+    ? jsonResponse(editionList)
+    : jsonResponse({
+        sura: 1,
+        aya: 1,
+        translation: 'প্রকাশকের মূল অনুবাদ',
+        footnotes: [{ id: 1, text: 'প্রকাশকের মূল টীকা' }]
+      });
+  const app = buildApp({ db: {} as never, enableRateLimit: false, quranTranslationFetcher: fetcher });
+
+  try {
+    const valid = await app.inject({ method: 'GET', url: '/api/v1/translation/bn/1/1' });
+    assert.equal(valid.statusCode, 200);
+    const payload = valid.json();
+    assert.equal(payload.data.translation, 'প্রকাশকের মূল অনুবাদ');
+    assert.equal(payload.data.provenance.publisher, 'QuranEnc.com');
+    assert.equal(payload.data.provenance.sourceDescription, editionList[0].description);
+
+    const invalid = await app.inject({ method: 'GET', url: '/api/v1/translation/bn/115/1' });
+    assert.equal(invalid.statusCode, 400);
+  } finally {
+    await app.close();
+  }
+});
