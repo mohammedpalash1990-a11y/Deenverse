@@ -78,6 +78,14 @@ export function AppShell() {
           <div className="topbar-right"><span className="status-dot" /> CONTENT SOURCES PENDING REVIEW</div>
         </header>
 
+        <aside className="beta-notice" aria-label="Public beta notice">
+          <span className="beta-notice-label">PUBLIC BETA · পাঠক পরীক্ষণ</span>
+          <div>
+            <strong lang="bn">DEENVERSE এখনো উন্নয়ন ও যাচাইয়ের পর্যায়ে আছে।</strong>
+            <p lang="bn">কিছু বিভাগ বা কনটেন্ট অসম্পূর্ণ কিংবা সাময়িকভাবে অনুপলব্ধ থাকতে পারে। কুরআন ও হাদিসের তথ্য ব্যবহারের আগে নির্ভরযোগ্য মূল উৎসের সঙ্গে মিলিয়ে নিন। ভুল বা সমস্যা পেলে আমাদের জানান—পরবর্তী আপডেটে সংশোধন করা হবে।</p>
+          </div>
+        </aside>
+
         <div className="content-wrap">
           <section className="welcome-row">
             <div>
