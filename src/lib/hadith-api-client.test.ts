@@ -84,7 +84,7 @@ describe("Hadith API client", () => {
       expect(result.data.nextCursor).toBe("MTA=");
     }
     expect(fetcher).toHaveBeenCalledWith(
-      "https://api.example.org/api/v1/hadith?limit=50",
+      "https://api.example.org/api/v1/hadith/books?limit=50",
       expect.objectContaining({ method: "GET" })
     );
   });
