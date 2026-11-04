@@ -98,6 +98,8 @@ test('accepts only the exact Tanzil copyright and license footer after all Ayahs
     '#',
     '#',
     '#'
+    '#',
+    '#',
   ].join('\n') + '\n';
   const artifact = Buffer.from(plainText + footer, 'utf8');
   const validated = validateTanzilUthmaniArtifacts(artifact, fixture.metadata);
