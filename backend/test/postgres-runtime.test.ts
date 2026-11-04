@@ -107,6 +107,7 @@ test('PostgreSQL migrations and production runtime are verified against a real P
         await once(child, 'exit');
       }
     }
+    await db.schema.dropTableIfExists('quran_ayahs');
     await db.schema.dropTableIfExists('content_source_approvals');
     await db.schema.dropTableIfExists('quran_surahs');
     await db.schema.dropTableIfExists('content_sources');
