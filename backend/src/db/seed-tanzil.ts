@@ -13,6 +13,30 @@ const SOURCE_ID = 'tanzil-uthmani-v1';
 const ATTRIBUTION =
   'Tanzil Quran Text (Uthmani), Tanzil Project. Creative Commons Attribution 3.0 (CC BY 3.0). Verbatim and unmodified. Source: https://tanzil.net/.';
 
+async function downloadBytes(
+  url: string,
+  init?: RequestInit,
+  minimumBytes = 1
+): Promise<Uint8Array> {
+  const response = await fetch(url, {
+    ...init,
+    signal: AbortSignal.timeout(45_000),
+    redirect: 'follow'
+  });
+  if (!response.ok) {
+    throw new Error(`Tanzil download failed (${response.status}) for ${url}.`);
+  }
+  const finalUrl = new URL(response.url);
+  if (finalUrl.protocol !== 'https:' || finalUrl.hostname !== 'tanzil.net') {
+    throw new Error('Tanzil download redirected outside the official HTTPS Tanzil domain.');
+  }
+  const bytes = new Uint8Array(await response.arrayBuffer());
+  if (bytes.byteLength < minimumBytes) {
+    throw new Error(`Tanzil returned an empty or incomplete artifact from ${url}.`);
+  }
+  return bytes;
+}
+
 async function assertIndependentlyApprovedSource(
   db: Knex,
   artifactSha256: string,
