@@ -134,14 +134,15 @@ test('returns an ordered full-Surah translation and rejects gaps or reordered Ay
   const result = await service.getSurah(1);
   assert.equal(result.status, 'ok');
   if (result.status === 'ok') {
-    assert.deepEqual(result.value.ayahs.map((ayah) => ayah.ayahNumber), [1, 2]);
-    assert.equal(result.value.ayahs[1].translation, 'দ্বিতীয় আয়াত');
+    assert.deepEqual(result.value.ayahs.map((ayah) => ayah.ayahNumber), [1, 2, 3, 4, 5, 6, 7]);
+    assert.equal(result.value.ayahs[1].translation, 'সূরা ফাতিহার আয়াত 2');
     assert.equal(result.value.provenance.editionVersion, 'V1.1.1');
   }
 
+  const gapRows = validRows.map((row, index) => index === 2 ? { ...row, aya: 4 } : row);
   const gapFetcher: typeof fetch = async (input) => String(input).includes('/translations/list/')
     ? jsonResponse(editionList)
-    : jsonResponse([validRows[0], { ...validRows[1], aya: 3 }]);
+    : jsonResponse(gapRows);
   const gapResult = await new QuranEncBengaliTranslationService(gapFetcher).getSurah(1);
   assert.equal(gapResult.status, 'invalid_source_response');
 });
@@ -162,7 +163,7 @@ test('serves a complete ordered Surah through the public translation route', asy
     assert.equal(response.statusCode, 200);
     const payload = response.json();
     assert.equal(payload.data.surahNumber, 1);
-    assert.deepEqual(payload.data.ayahs.map((ayah: { ayahNumber: number }) => ayah.ayahNumber), [1, 2]);
+    assert.deepEqual(payload.data.ayahs.map((ayah: { ayahNumber: number }) => ayah.ayahNumber), [1, 2, 3, 4, 5, 6, 7]);
     assert.equal(payload.data.provenance.publisher, 'QuranEnc.com');
   } finally {
     await app.close();
