@@ -2,7 +2,7 @@
 
 ## Frontend flow
 
-The Quran page mounts `QuranAyahReader`, which calls the typed client in `src/lib/quran-ayah-client.ts` for one requested Surah/Ayah coordinate. The client validates the request coordinates, response envelope, returned record ID, payload coordinates, Arabic text presence, approval metadata, HTTPS source URL, redistribution flag, and SHA-256 digest format before returning a record to the component.
+The Quran page mounts `QuranAyahReader`, which calls `GET /api/v1/ayah/{surahNumber}/{ayahNumber}` through the typed client in `src/lib/quran-ayah-client.ts` for one requested Surah/Ayah coordinate. The backend route and service are present; the client path and provenance reviewer field are aligned with the backend response. The client validates the request coordinates, response envelope, returned record ID, payload coordinates, Arabic text presence, approval metadata, HTTPS source URL, redistribution flag, and SHA-256 digest format before returning a record to the component.
 
 The reader:
 - starts with no scripture text rendered;
