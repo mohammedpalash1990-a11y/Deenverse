@@ -106,9 +106,12 @@ export const quranReviewRoutes: FastifyPluginAsync<ReviewRoutesOptions> = async 
       const invite = await opts.db('quran_review_invites as i')
         .join('quran_review_batches as b', 'b.id', 'i.batch_id')
         .where('i.token_hash', tokenHash)
-        .first('i.expires_at', 'i.submitted_at', 'b.source_id', 'b.surah_number', 'b.ayah_number', 'b.artifact_sha256');
+        .first('i.reviewer_label', 'i.expires_at', 'i.submitted_at', 'b.source_id', 'b.surah_number', 'b.ayah_number', 'b.artifact_sha256');
       if (!invite || new Date(invite.expires_at).getTime() <= Date.now()) return reply.status(404).send({ error: { code: 'INVITE_EXPIRED', message: 'This review link is invalid or expired.' } });
       if (invite.submitted_at) return reply.status(409).send({ error: { code: 'ALREADY_SUBMITTED', message: 'This review has already been submitted.' } });
+      if (reviewerName.trim().toLowerCase() !== String(invite.reviewer_label).trim().toLowerCase()) {
+        return reply.status(403).send({ error: { code: 'REVIEWER_MISMATCH', message: 'The submitted name must match the reviewer assigned to this invitation.' } });
+      }
       const [source, ayah] = await Promise.all([
         opts.db('content_sources').where({ id: invite.source_id }).first('checksum'),
         opts.db('quran_ayahs').where({ source_id: invite.source_id, surah_number: invite.surah_number, ayah_number: invite.ayah_number }).first('arabic', 'text_sha256')
@@ -118,15 +121,25 @@ export const quranReviewRoutes: FastifyPluginAsync<ReviewRoutesOptions> = async 
         return reply.status(409).send({ error: { code: 'SOURCE_CHANGED', message: 'The source artifact changed; this review cannot be submitted.' } });
       }
       const submittedAt = new Date().toISOString();
-      await opts.db.transaction(async (trx) => {
-        await trx('quran_review_submissions').insert({
-          id: randomUUID(), token_hash: tokenHash, reviewer_name: reviewerName.trim(), decision,
-          text_match: textMatch, reference_match: referenceMatch, issue_note: issueNote?.trim() || null,
-          submitted_at: submittedAt
+      try {
+        await opts.db.transaction(async (trx) => {
+          const claimed = await trx('quran_review_invites')
+            .where({ token_hash: tokenHash, submitted_at: null })
+            .andWhere('expires_at', '>', submittedAt)
+            .update({ submitted_at: submittedAt });
+          if (claimed !== 1) throw new Error('REVIEW_INVITE_ALREADY_CLAIMED');
+          await trx('quran_review_submissions').insert({
+            id: randomUUID(), token_hash: tokenHash, reviewer_name: reviewerName.trim(), decision,
+            text_match: textMatch, reference_match: referenceMatch, issue_note: issueNote?.trim() || null,
+            submitted_at: submittedAt
+          });
         });
-        const updated = await trx('quran_review_invites').where({ token_hash: tokenHash, submitted_at: null }).update({ submitted_at: submittedAt });
-        if (updated !== 1) throw new Error('Review invitation has already been submitted.');
-      });
+      } catch (error) {
+        if (error instanceof Error && error.message === 'REVIEW_INVITE_ALREADY_CLAIMED') {
+          return reply.status(409).send({ error: { code: 'ALREADY_SUBMITTED', message: 'This review has already been submitted.' } });
+        }
+        throw error;
+      }
       return reply.status(201).send({ data: { submitted: true, submittedAt, decision } });
     }
   );
