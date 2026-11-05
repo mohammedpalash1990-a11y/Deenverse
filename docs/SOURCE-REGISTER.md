@@ -1,16 +1,25 @@
 # DEENVERSE Verified Content Source Register
 
-**Snapshot:** 2026-11-04  
+**Snapshot:** 2026-11-05  
 A provider being listed or reachable through an API does not approve its content for import, redistribution, caching, offline use, or publication. Each content type and edition requires its own evidence.
 
 | Content type | Candidate/provider | Edition/version | Current implementation | Rights/authenticity status | Import/publication status |
 |---|---|---|---|---|---|
-| Quran Arabic | Tanzil Project | Uthmani, Version 1.1 | Official-source importer and opt-in seed path exist | Published CC BY 3.0 terms require verbatim text, attribution, source link, and license notice. Exact artifact/checksum and independent source review are not recorded in the dossier. | Candidate only; no approved source or import evidence recorded. Per-Ayah human approval is not enforced in main; PR #43 is open. |
+| Quran Arabic | Tanzil Project | Uthmani, Version 1.1 | Importer/opt-in seed path exists; `main` also contains `data/quran/tanzil/quran-uthmani.txt`, which the public beta reader fetches directly from raw GitHub | Official CC BY 3.0 terms permit verbatim copying/distribution with attribution, a Tanzil link, and the required copyright notice; changing the text is prohibited. The committed file's exact official-source acquisition, selected options, SHA-256, and independent review are not evidenced by `SOURCE_INFO.md`. | Public repository copy and UI display exist; database import/activation and independent per-Ayah review are not evidenced. Treat as candidate, not release-approved. |
 | Quran Bengali translation | QuranEnc.com; translator Abu Bakr Muhammad Zakaria | `bengali_zakaria`, V1.1.1 | Live API service/client, edition-version pinned | Current code points to a generic provider home page for terms. Explicit web/mobile redistribution, caching, offline, and export permissions remain unverified in this register. | Not imported; do not treat API availability as redistribution permission. |
 | Hadith Arabic/translation | HadeethEnc, Sunnah.com API, Dorar are research candidates | Exact edition TBD per provider | Source-gated API/reader and dual narration-review checks exist | Provider-specific access, edition, grading, attribution, and reuse terms remain to be approved. | No approved collection or production corpus recorded. |
 | Tafsir | TBD | TBD | No production source/API verified | Authenticity, publisher, edition, attribution, license, and caching rights unreviewed | Blocked |
 | Dua/Adhkar | TBD | TBD | No approved library/source verified | References, grading, edition, attribution, and redistribution rights unreviewed | Blocked |
-| Recitation audio | TBD | TBD | No approved reciter/audio API or playback path verified | Recording ownership, streaming, caching, download, and offline rights unreviewed | Blocked; playback remains unavailable/disabled |
+| Recitation audio | EveryAyah URLs and an Audiomack album are referenced by the beta reader | Reciter-specific files/album; exact recording editions TBD | Prototype external audio links/player are present in `src/components/quran-beta-reader.tsx`; no approved audio catalogue/API | Recording identity, ownership, attribution, streaming, caching, download, and offline rights are not evidenced | Not approved. External links are not a license review; do not describe audio as verified or licensed. |
+
+## 2026-11-05 repository evidence refresh
+
+- Current `main` is `f098d650a9cbc5aaaaadee6a925e68dfa9dbdb9a`. It contains `data/quran/tanzil/quran-uthmani.txt` and `data/quran/tanzil/SOURCE_INFO.md`; the source-info file records only source, Uthmani text, Version 1.1, URL, and an unverified statement that the original text is unchanged.
+- `src/components/quran-beta-reader.tsx` fetches that raw GitHub file from `main` and displays it in the public beta reader. This is already public content delivery, even though it is not a database import.
+- The official Tanzil download page and text-license page were checked on 2026-11-05. Tanzil permits verbatim copying/distribution for websites and applications, requires clear Tanzil attribution and a link to `tanzil.net`, requires preservation of its copyright/license notice, and prohibits changing the text. This establishes the published terms, not the provenance of the particular GitHub-uploaded bytes.
+- No exact acquisition timestamp, selected download options, independently computed artifact SHA-256, preserved original download, or completed human source-review evidence is present in the current source register. `docs/TANZIL-SOURCE-DOSSIER.md` still says no artifact has been downloaded; that statement must be reconciled with the committed public copy.
+- The importer and seed path require a separate approval record bound to the exact text and metadata digests. No production database import/activation or per-Ayah human review is evidenced by the repository snapshot. Do not treat the committed file or its UI display as source approval.
+- The beta reader also references EveryAyah MP3 paths and an Audiomack album. Their recording-specific rights and permitted streaming/cache/offline uses have not been verified. These are unapproved external links, not an approved audio corpus.
 
 ## Tanzil import prerequisites
 
@@ -21,7 +30,7 @@ The main-branch importer/seed code:
 - requires a pre-registered inactive source and a separate independent approval whose reviewer differs from the source reviewer and whose approval record is bound to both exact artifact digests;
 - refuses partial/mixed existing Quran data.
 
-The source dossier and human-review protocol still record no acquired official artifact, no completed independent source review, and no Ayah human approvals. Do not create approval rows merely to make the importer run. A checksum proves integrity against a byte sequence; it does not establish scholarly correctness.
+The public repository copy is not accompanied by a reproducible official acquisition record. The source dossier still records no acquired official artifact, and no completed independent source review or Ayah human approvals are evidenced. Reconcile the dossier before treating the committed file as the approved artifact. Do not create approval rows merely to make the importer run. A checksum proves integrity against a byte sequence; it does not establish scholarly correctness.
 
 ## Required evidence before any import or public release
 
