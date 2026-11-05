@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { getSection, sections, type SectionId } from "@/lib/navigation";
 import { QuranCatalogue } from "@/components/quran-catalogue";
 import { ReaderControls } from "@/components/reader-controls";
-import { QuranBetaReader } from "@/components/quran-beta-reader";
+import { QuranAyahReader } from "@/components/quran-ayah-reader";
 import { HadithReader } from "@/components/hadith-reader";
 
 const symbols: Record<SectionId, string> = {
@@ -75,7 +75,7 @@ export function AppShell() {
         <header className="topbar">
           <button ref={menuButtonRef} type="button" className="mobile-menu" onClick={() => setMenuOpen(!menuOpen)} aria-label="Toggle navigation" aria-controls="primary-sidebar" aria-expanded={menuOpen}>☰</button>
           <div className="breadcrumb" aria-live="polite" aria-atomic="true">DEENVERSE <span>/</span> {section.label.toUpperCase()}</div>
-          <div className="topbar-right"><span className="status-dot" /> QURAN PUBLIC BETA LIVE</div>
+          <div className="topbar-right"><span className="status-dot" /> QURAN READER · APPROVAL GATED</div>
         </header>
 
         <aside className="beta-notice" aria-label="Public beta notice">
@@ -98,7 +98,7 @@ export function AppShell() {
 
           {active === "quran" ? (
             <>
-              <QuranBetaReader />
+              <QuranAyahReader />
               <section className="catalogue-section" aria-label="Explore sections">
                 <div className="search-box"><span aria-hidden="true">⌕</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Find a section..." aria-label="Find a section" /></div>
                 <div className="quick-links" role="group" aria-label="Explore sections">
