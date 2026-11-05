@@ -7,6 +7,7 @@ export const REQUIRED_SCHEMA_COLUMNS = {
   quran_surahs: ['surah_number', 'name_arabic', 'name_simple', 'name_english', 'revelation_place', 'revelation_order', 'verses_count', 'source_id'],
   content_source_approvals: ['id', 'source_id', 'decision', 'reviewer_id', 'approved_at', 'artifact_sha256', 'review_notes'],
   quran_ayahs: ['id', 'surah_number', 'ayah_number', 'arabic', 'text_sha256', 'source_id'],
+  quran_translations: ['id', 'surah_number', 'ayah_number', 'locale', 'translator_name', 'publisher', 'edition_version', 'translation_text', 'footnotes_json', 'text_sha256', 'source_id'],
   hadith_books: ['id', 'source_id', 'slug', 'title_arabic', 'title_english', 'title_bengali', 'compiler_name', 'collection_type', 'edition', 'sort_order'],
   hadith_chapters: ['id', 'book_id', 'source_id', 'chapter_number', 'title_arabic', 'title_english', 'title_bengali', 'sort_order'],
   hadith_records: ['id', 'book_id', 'chapter_id', 'source_id', 'hadith_number', 'numbering_system', 'arabic_text', 'narrator_text', 'isnad_text', 'source_reference', 'text_sha256'],
