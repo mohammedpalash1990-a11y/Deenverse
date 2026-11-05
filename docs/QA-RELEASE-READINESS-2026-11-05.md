@@ -107,3 +107,109 @@
 8. Restrict Neon network access, protect the production branch, separate migration and runtime roles, and enable required GitHub status checks on main.
 9. Run real browser accessibility and viewport checks at mobile, tablet, and desktop widths, including keyboard, screen-reader, RTL, and offline-shell behavior.
 10. Re-run focused tests and full CI on the exact final candidate SHA. Do not merge or deploy while any blocking test, typecheck, security, integrity, or CI failure remains.
+
+
+---
+
+## Automation QA refresh — 2026-11-05 17:14 UTC
+
+**Decision remains BLOCKED. No merge or deployment was performed.** This refresh supersedes stale branch-head, PR inventory, and check references in the earlier snapshot above.
+
+### Exact repository and PR state
+
+- Current `main`: `f098d650a9cbc5aaaaadee6a925e68dfa9dbdb9a`.
+- Safety PR #75 base: `f098d650a9cbc5aaaaadee6a925e68dfa9dbdb9a`.
+- Safety PR #75 head at the start of this refresh: `7c19026d8c15d6bb7b4654fa6a4ae70a5f50b61d` (`qa/release-safety-2026-11-05`), 3 commits ahead / 0 behind main.
+- PR #75 is open, draft, unmerged, and GitHub reports `mergeable_state=clean`. This is not release approval.
+- Main branch reports `protected=false`; repository rulesets endpoint returned an empty list. Required checks are therefore not enforced by branch protection/rulesets.
+
+### Exact-SHA CI evidence
+
+**Main SHA `f098d650a9cbc5aaaaadee6a925e68dfa9dbdb9a`:**
+- [DEENVERSE CI run 41957683025](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/41957683025) failed.
+- Backend job: typecheck/build passed; 83 tests, 83 pass, 0 fail, 0 skipped. Real PostgreSQL migration/runtime test passed. Production-startup subprocess test rejected SQLite before creating the database.
+- Web job: typecheck passed; 18 test files, 17 passed / 1 failed; 171 tests, 170 passed / 1 failed. The failing assertion in `src/components/app-shell.test.tsx` expects the old Bengali-Arabic region name and Surah combobox; the current main reader renders the Arabic-only reader with a different heading and controls. The web production build and audit did not run after the test failure.
+- Render nevertheless has this failing main SHA live on the web service.
+
+**Safety PR #75 exact head `7c19026d8c15d6bb7b4654fa6a4ae70a5f50b61d`:**
+- [DEENVERSE CI run 42071843318](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/42071843318) passed.
+- Backend: typecheck/build passed; 80 tests, 80 pass, 0 fail, 0 skipped. PostgreSQL integration/runtime test passed. SQLite production-startup subprocess guard passed. The QuranEnc route-unavailable test passed. Tanzil parser/import fixture tests passed. Backend audit: 0 vulnerabilities.
+- Web: typecheck/production build passed; 18 test files, 171 tests, 171 pass, 0 fail. Web audit: 0 vulnerabilities.
+- [Web foundation run 42071843376](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/42071843376) passed on the same head; [repeat run 42072112350](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/42072112350) also passed, with 18 files / 171 tests passing.
+- The candidate's green CI validates the fail-closed UI/API changes, not source approval, production network hardening, or browser/device certification.
+
+**Integration PR #1 exact head `9a10cad804093f72701460c2c323f7876732b760`:**
+- [DEENVERSE CI run 42033682522](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/42033682522) passed: backend 85/85 tests; web 18/18 files and 174/174 tests; 0 skipped; both typechecks/builds passed; both audits reported 0 vulnerabilities.
+- [OpenAPI route check run 42033682520](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/42033682520) passed; [web foundation run 42033726957](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/42033726957) passed.
+- PR #1 is open, not draft, and clean/mergeable (82 commits ahead / 0 behind main). Do not merge it as-is: it retains the public QuranEnc translation route, and its Quran source selector compares stored digest strings but does not itself recompute an immutable artifact digest. Its OpenAPI snapshot includes the translation route that PR #75 deliberately disables. Reconcile the contract and safety gate first.
+
+### Current open PR inventory (all heads checked against current main)
+
+| PR | Exact head | Current-main relationship | Exact check disposition | Merge/release disposition |
+|---|---|---:|---|---|
+| #75 safety gate | `7c19026d8c15d6bb7b4654fa6a4ae70a5f50b61d` | 3 ahead / 0 behind | CI + web foundation green | Keep draft; do not merge/deploy yet |
+| #1 integration | `9a10cad804093f72701460c2c323f7876732b760` | 82 ahead / 0 behind | Backend 85/85, web 174/174, OpenAPI check green | Open; reconcile translation approval and OpenAPI with #75 |
+| #11 API gap docs | `22e90ed26142c5bf6046a80830e08d43a6ec680b` | 37 ahead / 69 behind | No checks | Stacked on #1; stale, docs-only |
+| #69 Quran reader | `5ce130f5e6b312948e3ed0165295572aa509e5e3` | 8 ahead / 5 behind | No checks | Dirty/conflicting; stale |
+| #66 release-readiness docs | `7e2ba09349e92630c9c6be7fbbaff9ad5f9ac4ac` | 1 ahead / 11 behind | One web-foundation check green | Stale, docs-only |
+| #47 problem reporting | `be096ab7161b1336c7351d06f1ffcfc20574d0f2` | 12 ahead / 40 behind | Backend failed (61 pass / 3 fail / 0 skipped); web passed | Dirty/conflicting; do not merge; public POST needs abuse/auth review |
+| #43 Ayah review gate | `12c9b3590b1d96274d84039bc29d4314648aa8a6` | 7 ahead / 41 behind | Backend CI cancelled; web foundation passed | Dirty/conflicting; do not merge |
+| #45 team review workspace | `36054fbb5986b645a87e25fd6bc8e12abaf30762` | 30 ahead / 41 behind | Backend CI cancelled; web passed | Stacked on #43; unstable; do not merge |
+
+No changes were made to other workstream branches.
+
+### Live deployment and PostgreSQL verification
+
+- Render web service `deenverse-web`: live deploy `dep-dblutft6e07s73aj96cg`, commit `f098d650a9cbc5aaaaadee6a925e68dfa9dbdb9a`, finished 2026-11-05 02:50:45 UTC.
+- Render API service `deenverse-api`: live deploy `dep-dblrlbugekts73c7kka0`, commit `09c0532588881ef6e90f02c9fe6ffd641ad9ca31`, finished 2026-11-04 23:08:36 UTC.
+- API deploy is 10 commits behind current main. GitHub compare shows only web/data files changed in those 10 commits; no backend file changed. The deployed API therefore has the same backend route registration as main, including the public QuranEnc translation route.
+- Render has auto-deploy disabled for both services. The safety PR has not been deployed.
+- Render API logs show `npm run db:migrate`, “DEENVERSE database schema is ready”, then “DEENVERSE backend listening” at 2026-11-05 04:48:32–04:48:44 UTC.
+- Neon project `deenverse-db` (`cool-mud-31679014`) is PostgreSQL 17 in `aws-ap-southeast-1`; default branch `main` (`br-spring-night-a14ey96s`) is ready. The ten required tables exist.
+- Read-only production row counts remain: `content_sources=1`, `content_source_approvals=1`; all Quran and Hadith corpus/review tables are zero.
+- The sole source is inactive Tanzil Uthmani 1.1. Its approval row is marked approved and its stored `artifact_sha256` equals the stored source checksum, but both reviewer identities are `project-owner-chat-authorization`. The importer explicitly rejects that identity and requires distinct reviewers plus the exact text-artifact and metadata digests. The source dossier says the official bytes have not been acquired/preserved. Therefore the approval is invalid and no Quran import is authorized.
+- The database has no Hadith books, chapters, records, translations, grade assessments, or reviews. There are no approved tafsir, dua, or audio records.
+- Neon project settings still show an empty allowed-IP list, `block_public_connections=false`, and an unprotected default branch.
+- The `deenverse_api` Postgres role is non-superuser but currently has SELECT, INSERT, UPDATE, and DELETE grants on every content table. `deenverse_owner` has CREATEDB, CREATEROLE, REPLICATION, and BYPASSRLS. The Render service's actual connection role could not be read through the available Render read interface; do not assume it uses the least-privilege role. Restrict the runtime role to the minimum required (read-only for current GET-only API) and separate it from the migration owner before sign-off.
+
+### Additional QA findings
+
+- Main's deployed Quran UI fetches the repository text file directly from `raw.githubusercontent.com`, validates the total 6,236 rows and basic coordinates, but does not validate complete per-Surah counts, unique/order-preserving coordinates, or the approved artifact digest. It displays Tanzil attribution/link but the visible reader does not show the complete required copyright notice.
+- Main's reader also exposes EveryAyah audio URLs and an Audiomack library without a DEENVERSE rights dossier. The official Tanzil terms permit only verbatim, unmodified redistribution with attribution/link and the copyright notice; the official QuranEnc terms allow republishing only under their stated no-modification, attribution/version/transcript, update, notification, and advertising conditions. These conditions do not substitute for DEENVERSE's required artifact acquisition and approval evidence. See [Tanzil text license](https://tanzil.net/docs/Text_License), [Tanzil download terms](https://tanzil.net/download/), and [QuranEnc API/republication terms](https://quranenc.com/en/home/api/).
+- The deployed API registers `/api/v1/translation/bn/...` and calls QuranEnc without a DEENVERSE approval row bound to a preserved, independently reviewed artifact. PR #75 unregisters those routes, but is not deployed.
+- The Quran catalogue, Ayah, and Hadith REST adapters validate response envelopes/provenance. Main's visible Quran reader bypasses those adapters and fetches raw GitHub content. The Hadith UI uses its REST adapter and fails closed with the currently empty database.
+- Pagination cursors are canonical base64 numeric offsets, not signed or bound to the book/search/locale/filter query. Cross-query replay can yield inconsistent page positions; replace them with query-bound opaque cursors before publishing a larger corpus.
+- CORS code uses exact configured origins and has allow/deny tests, but the deployed Render CORS environment value could not be independently read. The code also allows origin-less server-to-server requests and lists POST/PUT/DELETE methods although main has no public write route. No API authentication/session system is implemented; current registered content endpoints are public GET-only, with no public approval-write route.
+- The web CSP still permits `'unsafe-inline'` scripts/styles. Use nonce/hash-based script policy for a hardened release. The backend rate limiter and Helmet are present.
+- The service worker registers only in production, caches the app shell and same-origin static assets/manifest/icon, and bypasses API, cross-origin, POST, and religious content/audio. This is the correct conservative offline boundary. Browser-level offline verification was not run.
+- Arabic Quran/Hadith text uses `lang=ar` and `dir=rtl`; translation components use locale/direction metadata. Unit tests cover skip navigation, mobile menu state, Escape/focus restoration, and labelled controls. No real browser/screen-reader test or mobile/tablet/desktop viewport matrix was run; responsive/RTL accessibility is not certified.
+
+### Exact changed files in the safety PR
+
+PR #75 changes exactly:
+1. `backend/src/app.ts`
+2. `backend/test/quran-translation.test.ts`
+3. `data/quran/tanzil/quran-uthmani.txt` (deleted)
+4. `docs/API-CONTRACT.md`
+5. `docs/CONTENT-SOURCE-APPROVAL.md`
+6. `docs/QA-RELEASE-READINESS-2026-11-05.md` (this evidence record)
+7. `next.config.ts`
+8. `src/components/app-shell.test.tsx`
+9. `src/components/app-shell.tsx`
+10. `src/components/quran-beta-reader.tsx`
+11. `src/lib/security-headers.test.ts`
+
+### Next release-blocking tasks
+
+1. Keep Quran, translation, tafsir, Hadith, dua, and audio unavailable until each exact artifact/source has preserved bytes, verified SHA-256, explicit redistribution terms, attribution, edition/version, and independent human approval. Do not use the current owner-chat approval row.
+2. Preserve the official Tanzil text and metadata artifacts read-only; independently recompute both digests; complete exact parser/import validation and the human review protocol before import. Do not enable the seed flag or activate the source before that.
+3. Obtain a separate QuranEnc Bengali edition snapshot and rights/review record. Keep the translation API route disabled until its exact artifact and terms are approved.
+4. Remove EveryAyah/Audiomack from production until rights to stream/embed are evidenced for the exact recordings.
+5. Harden Neon network access, protect the production branch, remove DML from the runtime API role, and ensure Render uses a least-privilege runtime role distinct from the migration owner.
+6. Enable GitHub branch protection with required CI checks; keep PR #75 draft until the current release blockers are addressed.
+7. Reconcile PR #1/OpenAPI with PR #75's disabled translation route; add independent-review checks at the API source selector, then rerun CI on the reconciled exact head.
+8. Replace offset cursors with signed, query-bound opaque cursors and add cross-book/search/filter replay tests.
+9. Verify deployed CORS allowlist and CSP headers through an authenticated runtime/config inspection; replace unsafe-inline script policy where feasible.
+10. Run browser automation at mobile, tablet, and desktop widths; test keyboard, screen reader, RTL, install, and offline shell behavior.
+11. Re-run focused source-import, approval, Hadith review, CORS, API-contract, and SQLite-production-guard tests plus full repository CI on the exact final candidate SHA.
+12. Do not merge or deploy while any security, integrity, typecheck, test, or CI blocker remains.
