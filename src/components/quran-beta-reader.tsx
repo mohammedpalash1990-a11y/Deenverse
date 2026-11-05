@@ -32,7 +32,7 @@ const SURAH_NAMES = [
 
 function parseArabicFile(source: string): ArabicAyah[] {
   const records: ArabicAyah[] = [];
-  for (const line of source.split(/\\r?\\n/)) {
+  for (const line of source.split(/\r?\n/)) {
     if (!line || line.startsWith("#")) continue;
     const first = line.indexOf("|");
     const second = line.indexOf("|", first + 1);
