@@ -76,6 +76,7 @@
 - backend/src/app.ts — unregister public QuranEnc translation routes.
 - backend/test/quran-translation.test.ts — assert translation routes remain 404 until approval.
 - src/components/quran-beta-reader.tsx — replace direct raw-GitHub text and unapproved audio with an accessible fail-closed state.
+- src/components/app-shell.tsx — label the Quran section as approval-pending rather than live.
 - src/components/app-shell.test.tsx — test the fail-closed state and no external source fetch.
 - next.config.ts and src/lib/security-headers.test.ts — remove and test removal of raw.githubusercontent.com from connect-src.
 - data/quran/tanzil/quran-uthmani.txt — delete the unverified public copy from the current tree.

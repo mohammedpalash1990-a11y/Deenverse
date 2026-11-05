@@ -22,6 +22,7 @@ describe("DEENVERSE app shell", () => {
     expect(screen.getByRole("heading", { name: "Return to the words." })).toBeInTheDocument();
     expect(screen.getByRole("complementary", { name: "Public beta notice" })).toHaveTextContent("DEENVERSE এখনো উন্নয়ন ও যাচাইয়ের পর্যায়ে আছে।");
     expect(screen.getByText(/নির্ভরযোগ্য মূল উৎসের সঙ্গে মিলিয়ে নিন/)).toBeInTheDocument();
+    expect(screen.getByText("CONTENT APPROVAL PENDING")).toBeInTheDocument();
     expect(screen.getByRole("region", { name: "আল-কুরআন — যাচাইকৃত পাঠ" })).toBeInTheDocument();
     expect(screen.getByRole("status")).toHaveTextContent("কুরআনের আরবি পাঠ, বাংলা অনুবাদ ও অডিও এখনো প্রকাশের জন্য অনুমোদিত নয়।");
     expect(screen.queryByRole("combobox", { name: "সূরা নির্বাচন" })).not.toBeInTheDocument();
