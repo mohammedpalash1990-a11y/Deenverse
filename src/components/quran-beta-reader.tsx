@@ -91,7 +91,6 @@ export function QuranBetaReader() {
           <h2 id="full-quran-reader-title" style={{ margin: "5px 0", fontSize: "clamp(1.5rem, 4vw, 2rem)" }}>আল-কুরআন — আরবি তিলাওয়াত</h2>
           <p style={{ margin: 0, color: "var(--muted, #777)", fontSize: 13 }}>Tanzil Uthmani 1.1 · ১১৪টি সূরা · ৬,২৩৬টি আয়াত</p>
         </div>
-      </div>
 
       <div aria-label="১ থেকে ১১৪ ক্রমানুসারে সূরা নির্বাচন" style={{ marginBottom: 18, padding: 14, border: "1px solid var(--border, #ddd)", borderRadius: 12 }}>
         <p style={{ margin: "0 0 10px", fontSize: 14, fontWeight: 700 }}>সূরার তালিকা — ১ থেকে ১১৪</p>
