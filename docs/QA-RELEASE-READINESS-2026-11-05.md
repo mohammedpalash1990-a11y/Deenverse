@@ -213,3 +213,48 @@ PR #75 changes exactly:
 10. Run browser automation at mobile, tablet, and desktop widths; test keyboard, screen reader, RTL, install, and offline shell behavior.
 11. Re-run focused source-import, approval, Hadith review, CORS, API-contract, and SQLite-production-guard tests plus full repository CI on the exact final candidate SHA.
 12. Do not merge or deploy while any security, integrity, typecheck, test, or CI blocker remains.
+
+
+---
+
+## Exact-SHA verification refresh — 2026-11-05 20:37 UTC
+
+This section supersedes the earlier PR #75 head and check references above. The branch head advanced after the earlier 17:14 UTC snapshot; no application source changed in that final documentation commit.
+
+### Repository and PR state
+
+- Default branch: `main`, exact SHA `f098d650a9cbc5aaaaadee6a925e68dfa9dbdb9a`.
+- PR #75: `qa/release-safety-2026-11-05`, base SHA `f098d650a9cbc5aaaaadee6a925e68dfa9dbdb9a`, exact current head SHA `773378d82e0396358aecd6cb6a148b48ae2cfbfa`.
+- Compare: 4 commits ahead, 0 behind; 11 changed files; PR open, draft, unmerged, GitHub reports mergeable.
+- The final commit `773378d82e0396358aecd6cb6a148b48ae2cfbfa` changes only `docs/QA-RELEASE-READINESS-2026-11-05.md`. The functional safety changes remain in the same PR branch and were covered by the final candidate workflows below.
+- No agent-owned branch was modified. No merge, deploy, database write, or religious-content import was performed.
+
+### Final exact-head Actions evidence
+
+- DEENVERSE CI run 42075029048: https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/42075029048 — completed success on exact head `773378d82e0396358aecd6cb6a148b48ae2cfbfa`.
+  - Web job 127412846170: checkout, project detection, Node setup, dependency install, typecheck, tests, production build, and audit all passed. Vitest: 18/18 files passed; 171/171 tests passed; 0 failed. Next.js production build completed. `npm audit --audit-level=high`: 0 vulnerabilities.
+  - Backend job 127412846514: PostgreSQL 16 service became healthy; locked dependency install, typecheck, test suite, TypeScript build, and audit passed. Node test summary: 80 tests, 80 pass, 0 fail, 0 skipped. Real PostgreSQL migration/runtime test passed. Production-startup subprocess test rejected SQLite before opening/creating a SQLite database. `npm audit --audit-level=high`: 0 vulnerabilities.
+  - Both job step lists show all substantive steps completed successfully. The logs include Node 20 action deprecation warnings and dependency deprecation warnings; these did not fail the jobs.
+- Web foundation run 42075029010: https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/42075029010 — completed success on the same exact head.
+
+### Current open PR heads
+
+- #75 safety gate: `773378d82e0396358aecd6cb6a148b48ae2cfbfa`, base `f098d650a9cbc5aaaaadee6a925e68dfa9dbdb9a`, 4 ahead / 0 behind, draft, unmerged, mergeable.
+- #1 integration: `9a10cad804093f72701460c2c323f7876732b760`, base `f098d650a9cbc5aaaaadee6a925e68dfa9dbdb9a`, 82 ahead / 0 behind, open, unmerged, mergeable. Its current diff still adds `backend/src/services/approved-quran-source.ts`, changes Quran API services and frontend adapters, and adds `docs/OPENAPI-DRAFT.yaml`. Its backend app still registers `quranTranslationRoutes` at `/api/v1/translation`; this conflicts with PR #75's deliberate removal. Do not merge until the route and OpenAPI snapshot are reconciled.
+- #11: `22e90ed26142c5bf6046a80830e08d43a6ec680b`, stacked on integration branch, open and unmerged.
+- #69: `5ce130f5e6b312948e3ed0165295572aa509e5e3`, mergeable false.
+- #66: `7e2ba09349e92630c9c6be7fbbaff9ad5f9ac4ac`, open and unmerged.
+- #47: `be096ab7161b1336c7351d06f1ffcfc20574d0f2`, mergeable false.
+- #43: `12c9b3590b1d96274d84039bc29d4314648aa8a6`, mergeable false.
+- #45: `36054fbb5986b645a87e25fd6bc8e12abaf30762`, stacked on #43.
+
+### Additional exact-code observations
+
+- PR #75's `backend/src/app.ts` registers Quran catalogue, Ayah, and Hadith routes only; it does not register either QuranEnc translation endpoint. Regression tests request both former translation URLs and assert 404 with the canonical NOT_FOUND envelope.
+- PR #75's public Quran reader is an accessible approval-pending state and does not render a Quran text fetch or audio player. The repository's unverified Quran text file is deleted in the PR tree.
+- The app's CORS configuration still advertises POST, PUT, and DELETE methods although the currently registered API routes are GET-only. It still accepts requests without an Origin header (server-to-server behavior), and CSP still permits unsafe-inline styles. These are hardening tasks; deployed CORS environment values and browser headers have not been independently verified.
+- The integration PR's OpenAPI draft still describes QuranEnc translation endpoints as live, while its backend branch still registers them. This is an explicit contract conflict with the safety branch and must be resolved before any combined candidate.
+- The source approval model still compares stored approval and source checksum strings. It does not independently recompute the digest of immutable artifact bytes during a public GET. The guarded importer is the required artifact verification boundary; the production approval row remains invalid because the reviewer identity is not independent and the official artifact bytes have not been independently preserved and hashed.
+- No Quran, translation, tafsir, Hadith, dua, or audio corpus is authorized for publication. Keep all such content unavailable until exact artifact provenance, redistribution rights, digest verification, and independent approval are evidenced.
+- The production SQLite guard is verified on this exact candidate through the successful backend job log. Production SQLite remains blocked; PostgreSQL 16 CI integration and the production startup subprocess guard both passed.
+- Release decision remains BLOCKED. Green CI validates this fail-closed candidate only; it does not resolve production database network/role hardening, main branch protection, live deployment of the safety changes, artifact approval, or manual responsive/RTL/accessibility/offline browser QA.
