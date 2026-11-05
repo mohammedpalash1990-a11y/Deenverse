@@ -51,7 +51,7 @@ This checklist is evidence-based. A checked item means the corresponding code or
 
 ## PR disposition
 
-- [x] PR #1 current exact-head route-parity and backend/web CI passed; PR #1 is open, mergeable, 71 commits ahead / 0 behind `main`, with 24 changed files and no submitted reviews. Human review and release-blocker review remain before merge.
+- [x] PR #1 current exact-head route-parity and backend/web CI passed; PR #1 is open, mergeable, 78 commits ahead / 0 behind `main`, with 24 changed files and no submitted reviews. Human review and release-blocker review remain before merge.
 - [ ] PR #11 reconciled against current implementation; do not merge its stale snapshot.
 - [ ] PR #43 exact-head CI and review complete.
 - [ ] PR #45 security review and exact-head CI complete.
