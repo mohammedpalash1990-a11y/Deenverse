@@ -124,6 +124,8 @@ export function QuranAyahReader({ client = defaultClient, translationClient = de
           <div className="ayah-reader-attribution">
             <span>{state.record.provenance.edition}</span>
             <span>{state.record.provenance.attribution}</span>
+            <span>License: {state.record.provenance.licenseId}</span>
+            <a href={state.record.provenance.sourceUrl} target="_blank" rel="noreferrer">Official Quran source</a>
           </div>
           <p className="ayah-reader-reference">
             Surah {state.record.payload.surahNumber} · Ayah {state.record.payload.ayahNumber}

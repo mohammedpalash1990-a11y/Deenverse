@@ -71,6 +71,8 @@ describe("QuranAyahReader", () => {
     expect(await screen.findByText(fixtureText)).toHaveAttribute("dir", "rtl");
     expect(screen.getByText(fixtureText)).toHaveAttribute("lang", "ar");
     expect(screen.getByText("fixture-edition")).toBeInTheDocument();
+    expect(screen.getByText("License: TEST_FIXTURE_ONLY")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Official Quran source" })).toHaveAttribute("href", fixture.provenance.sourceUrl);
     expect(screen.getByText(/Surah 2 · Ayah 255/)).toBeInTheDocument();
     expect(client.getAyah).toHaveBeenCalledWith(2, 255);
   });
