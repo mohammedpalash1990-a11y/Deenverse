@@ -40,7 +40,7 @@ async function loadTanzilBetaAyah(surahNumber: number, ayahNumber: number): Prom
   if (checksum !== TANZIL_TEXT_SHA256) throw new Error("Tanzil Arabic file checksum did not match the published source artifact.");
   const text = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
   const prefix = `${surahNumber}|${ayahNumber}|`;
-  const line = text.split(/\\r?\\n/u).find((row) => row.startsWith(prefix));
+  const line = text.split(/\r?\n/u).find((row) => row.startsWith(prefix));
   const arabic = line?.slice(prefix.length);
   if (!arabic) throw new Error("The requested Ayah was not found in the Tanzil file.");
   return arabic;
