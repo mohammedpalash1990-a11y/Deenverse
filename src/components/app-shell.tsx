@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getSection, sections, type SectionId } from "@/lib/navigation";
 import { QuranCatalogue } from "@/components/quran-catalogue";
 import { ReaderControls } from "@/components/reader-controls";
-import { QuranAyahReader } from "@/components/quran-ayah-reader";
+import { QuranBetaReader } from "@/components/quran-beta-reader";
 import { HadithReader } from "@/components/hadith-reader";
 
 const symbols: Record<SectionId, string> = {
@@ -18,7 +18,6 @@ const symbols: Record<SectionId, string> = {
 
 export function AppShell() {
   const [active, setActive] = useState<SectionId>("quran");
-  const [query, setQuery] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const closeMobileMenu = () => {
@@ -36,10 +35,6 @@ export function AppShell() {
   }, [menuOpen]);
 
   const section = getSection(active);
-  const filtered = useMemo(
-    () => sections.filter((item) => item.label.toLowerCase().includes(query.toLowerCase())),
-    [query]
-  );
 
   return (
     <div className="app-frame">
@@ -75,7 +70,7 @@ export function AppShell() {
         <header className="topbar">
           <button ref={menuButtonRef} type="button" className="mobile-menu" onClick={() => setMenuOpen(!menuOpen)} aria-label="Toggle navigation" aria-controls="primary-sidebar" aria-expanded={menuOpen}>☰</button>
           <div className="breadcrumb" aria-live="polite" aria-atomic="true">DEENVERSE <span>/</span> {section.label.toUpperCase()}</div>
-          <div className="topbar-right"><span className="status-dot" /> CONTENT SOURCES PENDING REVIEW</div>
+          <div className="topbar-right"><span className="status-dot" /> QURAN PUBLIC BETA LIVE</div>
         </header>
 
         <aside className="beta-notice" aria-label="Public beta notice">
@@ -97,40 +92,7 @@ export function AppShell() {
           </section>
 
           {active === "quran" ? (
-            <>
-              <section className="continue-card">
-                <div className="card-glow" />
-                <div className="continue-content">
-                  <div className="card-kicker"><span className="tiny-star">✦</span> THE QURAN READER</div>
-                  <h2>Begin with intention.</h2>
-                  <p>Verified Quran text and approved editions will appear here once their sources and redistribution rights have been reviewed.</p>
-                  <div className="card-actions"><button className="primary-button" onClick={() => document.getElementById("catalogue")?.scrollIntoView({ behavior: "smooth" })}>Explore the reader <span>↗</span></button><span className="edition-label">SOURCE-VERIFIED CONTENT ONLY</span></div>
-                </div>
-                <div className="ornament" aria-hidden="true"><span>۞</span><i /><b /></div>
-              </section>
-
-              <section className="catalogue-section" id="catalogue">
-                <div className="section-heading"><div><p className="eyebrow">EXPLORE</p><h2>Quran library</h2></div><span className="count-label">CATALOGUE NOT YET CONNECTED</span></div>
-                <div className="search-box"><span aria-hidden="true">⌕</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Find a section..." aria-label="Find a section" /></div>
-                <section className="reader-preview" aria-label="Reserved Arabic Quran text area" dir="rtl" lang="ar">
-                  <div className="reader-preview-heading">
-                    <span className="source-tag">RTL READER FOUNDATION</span>
-                    <span className="count-label">ARABIC · DIR=RTL</span>
-                  </div>
-                  <div className="reader-preview-page">
-                    <p id="reader-preview-title" dir="ltr">Arabic reader area — awaiting an approved source edition</p>
-                    <div className="reader-preview-lines" aria-hidden="true"><span /><span /><span /></div>
-                  </div>
-                </section>
-                <ReaderControls />
-                <QuranAyahReader />
-                <QuranCatalogue />
-                <div className="quick-links" role="group" aria-label="Explore sections">
-                  {filtered.map((item) => <button key={item.id} onClick={() => setActive(item.id)}><span>{symbols[item.id]}</span>{item.label}<b>↗</b></button>)}
-                  {filtered.length === 0 && <p className="no-results">No matching sections.</p>}
-                </div>
-              </section>
-            </>
+            <QuranBetaReader />
           ) : active === "hadith" ? (
             <HadithReader />
           ) : (
