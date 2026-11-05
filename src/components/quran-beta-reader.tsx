@@ -100,12 +100,20 @@ export function QuranBetaReader() {
       </div>
 
       <div style={{ display: "flex", flexWrap: "wrap", alignItems: "end", gap: 12, padding: 14, border: "1px solid var(--border, #ddd)", borderRadius: 12, marginBottom: 18 }}>
-        <label style={{ display: "grid", gap: 6, flex: "1 1 240px" }}>
-          <span style={{ fontSize: 13 }}>কারির তিলাওয়াত নির্বাচন</span>
-          <select value={reciterId} onChange={(event) => setReciterId(event.target.value)} aria-label="কারির তিলাওয়াত নির্বাচন" style={{ padding: "11px 13px", borderRadius: 10, border: "1px solid var(--border, #ccc)", background: "var(--surface, #fff)", color: "inherit" }}>
-            {RECITERS.map((reciter) => <option key={reciter.id} value={reciter.id}>{reciter.name}</option>)}
-          </select>
-        </label>
+        <div style={{ display: "grid", gap: 8, flex: "1 1 100%" }}>
+          <span style={{ fontSize: 13 }}>কারি নির্বাচন — ১ থেকে ৪</span>
+          <div role="group" aria-label="ক্রমিক কারি অডিও নির্বাচন" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(145px, 1fr))", gap: 9 }}>
+            {RECITERS.map((reciter, index) => {
+              const active = reciterId === reciter.id;
+              return (
+                <button key={reciter.id} type="button" aria-pressed={active} onClick={() => setReciterId(reciter.id)} style={{ display: "flex", alignItems: "center", gap: 10, textAlign: "left", padding: "12px 13px", borderRadius: 11, border: active ? "2px solid var(--accent, #987447)" : "1px solid var(--border, #ccc)", background: active ? "var(--surface, #fff)" : "transparent", color: "inherit", cursor: "pointer" }}>
+                  <span style={{ display: "inline-grid", placeItems: "center", flex: "0 0 28px", width: 28, height: 28, borderRadius: "50%", background: active ? "var(--accent, #987447)" : "var(--border, #e5e1da)", color: active ? "#fff" : "inherit", fontWeight: 700 }}>{index + 1}</span>
+                  <span style={{ fontSize: 13, fontWeight: active ? 700 : 500 }}>{reciter.name}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
         {selectedReciter.external ? (
           <a href={selectedReciter.external} target="_blank" rel="noreferrer" style={{ display: "inline-flex", alignItems: "center", padding: "11px 15px", borderRadius: 10, border: "1px solid var(--border, #ccc)", color: "inherit", textDecoration: "none" }}>
             জাইন আবু কাওসারের অডিও শুনুন ↗
