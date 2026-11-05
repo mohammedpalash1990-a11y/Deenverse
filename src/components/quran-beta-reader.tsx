@@ -91,12 +91,23 @@ export function QuranBetaReader() {
           <h2 id="full-quran-reader-title" style={{ margin: "5px 0", fontSize: "clamp(1.5rem, 4vw, 2rem)" }}>আল-কুরআন — আরবি তিলাওয়াত</h2>
           <p style={{ margin: 0, color: "var(--muted, #777)", fontSize: 13 }}>Tanzil Uthmani 1.1 · ১১৪টি সূরা · ৬,২৩৬টি আয়াত</p>
         </div>
-        <label style={{ display: "grid", gap: 6, minWidth: 190 }}>
-          <span style={{ fontSize: 13 }}>সূরা নির্বাচন</span>
-          <select value={surah} onChange={(event) => setSurah(Number(event.target.value))} aria-label="সূরা নির্বাচন" style={{ padding: "11px 13px", borderRadius: 10, border: "1px solid var(--border, #ccc)", background: "var(--surface, #fff)", color: "inherit" }}>
-            {SURAH_NAMES.map((name, index) => <option key={name} value={index + 1}>{index + 1}. {name}</option>)}
-          </select>
-        </label>
+      </div>
+
+      <div aria-label="১ থেকে ১১৪ ক্রমানুসারে সূরা নির্বাচন" style={{ marginBottom: 18, padding: 14, border: "1px solid var(--border, #ddd)", borderRadius: 12 }}>
+        <p style={{ margin: "0 0 10px", fontSize: 14, fontWeight: 700 }}>সূরার তালিকা — ১ থেকে ১১৪</p>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(145px, 1fr))", gap: 8 }}>
+          {SURAH_NAMES.map((name, index) => {
+            const number = index + 1;
+            const active = surah === number;
+            return (
+              <button key={name} type="button" aria-pressed={active} onClick={() => setSurah(number)} style={{ display: "flex", alignItems: "center", gap: 9, minWidth: 0, padding: "10px 11px", borderRadius: 9, border: active ? "2px solid var(--accent, #987447)" : "1px solid var(--border, #ddd)", background: active ? "var(--surface, #fff)" : "transparent", color: "inherit", textAlign: "left", cursor: "pointer" }}>
+                <span style={{ display: "inline-grid", placeItems: "center", flex: "0 0 27px", width: 27, height: 27, borderRadius: 7, background: active ? "var(--accent, #987447)" : "var(--border, #e5e1da)", color: active ? "#fff" : "inherit", fontSize: 12, fontWeight: 700 }}>{number}</span>
+                <span style={{ fontSize: 13, fontWeight: active ? 700 : 500 }}>{name}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
       </div>
 
       <div style={{ display: "flex", flexWrap: "wrap", alignItems: "end", gap: 12, padding: 14, border: "1px solid var(--border, #ddd)", borderRadius: 12, marginBottom: 18 }}>
