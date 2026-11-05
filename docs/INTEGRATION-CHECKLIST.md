@@ -9,7 +9,7 @@ This checklist is evidence-based. A checked item means the corresponding code or
 - [x] npm lockfiles committed; main CI uses `npm ci`.
 - [x] PostgreSQL 16 service is used in backend CI; production rejects SQLite.
 - [x] Main exact-head run #41812199822 passed backend/web typecheck, tests, builds, and high-severity dependency audits at `a7ff4130f6d74e9319b6d894c118d270b44171cd` (historical; it is not evidence for current main `f098d650a9cbc5aaaaadee6a925e68dfa9dbdb9a`).
-- [x] Pre-sync integration head `0ae72b361772ad667ef4ef94d395eb8e14c9ecfb` passed OpenAPI validation (#41839209842), backend/web CI (#41839209748), and web-foundation checks (#41839209867). [ ] New synchronized head `aef189917f9eb13a9a4b97d0f5bc64e3da8b57de` requires fresh exact-head checks.
+- [x] Current integration head `e0b74cec14bc611fde48386645a257e55fe89cc1` passed OpenAPI validation (#42032834651), backend/web CI (#42032834719), and web-foundation checks (#42032834877).
 - [ ] Manual browser/device, responsive, RTL, keyboard, and screen-reader QA completed.
 
 ## API and adapters
@@ -33,12 +33,12 @@ This checklist is evidence-based. A checked item means the corresponding code or
 ## Religious content and licensing
 
 - [x] Tanzil importer validates official-source artifacts, exact structure, and hashes; explicit seed requires independent source approval bound to text + metadata digests.
-- [ ] Tanzil acquisition evidence completed: a public copy is now committed and displayed by the beta reader, but the exact official download options, retrieval timestamp, independently verified artifact digest, and independent source review are not recorded. Reconcile `SOURCE_INFO.md` and `docs/TANZIL-SOURCE-DOSSIER.md` before approval.
+- [ ] Tanzil acquisition evidence completed: a public copy remains committed and is still displayed by current `main`, but the exact official download options, retrieval timestamp, independently verified artifact digest, and independent source review are not recorded. The integration branch now routes the mounted reader through the backend approval gate; reconcile `SOURCE_INFO.md` and `docs/TANZIL-SOURCE-DOSSIER.md` before approval.
 - [ ] Per-Ayah human review gate merged and enforced before Quran text publication.
 - [ ] QuranEnc Bengali translation rights for web/mobile/caching/offline/export documented and approved.
 - [ ] Hadith source/edition/redistribution rights approved and content reviewed.
 - [ ] Tafsir and dua sources independently approved.
-- [ ] Audio/reciter rights approved; the beta reader currently references EveryAyah and Audiomack external sources without recording-specific rights evidence. Verify identity, ownership, attribution, streaming/cache/offline terms, and playback before calling this feature approved.
+- [ ] Audio/reciter rights approved; legacy `quran-beta-reader.tsx` still contains EveryAyah and Audiomack external references but is no longer mounted by the integration `AppShell`. Verify identity, ownership, attribution, streaming/cache/offline terms, and playback before re-enabling audio.
 - [ ] No unapproved or generated religious text is presented as canonical content.
 
 ## Operations and release
@@ -51,7 +51,7 @@ This checklist is evidence-based. A checked item means the corresponding code or
 
 ## PR disposition
 
-- [x] PR #1 pre-sync exact-head route-parity and backend/web CI passed. [ ] Current synchronized head needs fresh CI; PR #1 is open, mergeable, 71 commits ahead / 0 behind `main`, with 22 changed files and no submitted reviews. Human review and release-blocker review remain before merge.
+- [x] PR #1 current exact-head route-parity and backend/web CI passed; PR #1 is open, mergeable, 71 commits ahead / 0 behind `main`, with 24 changed files and no submitted reviews. Human review and release-blocker review remain before merge.
 - [ ] PR #11 reconciled against current implementation; do not merge its stale snapshot.
 - [ ] PR #43 exact-head CI and review complete.
 - [ ] PR #45 security review and exact-head CI complete.
@@ -66,3 +66,12 @@ This checklist is evidence-based. A checked item means the corresponding code or
 - `jules/backend-foundation` remains 3 ahead / 69 behind `main`, with only `AGENT_TASK.md` and `JULES_NEXT_TASK.md` in its diff. `queen/frontend-foundation` remains 2 ahead / 69 behind, with only `AGENT_TASK.md`. No new implementation work is attributed to either assignment branch.
 - The last recorded passing integration CI applies to pre-sync head `0ae72b361772ad667ef4ef94d395eb8e14c9ecfb`, not the new merge commit. The new head had no workflow run/status evidence returned at this checkpoint; do not infer a pass.
 - Tanzil's official published terms were verified, but the GitHub-uploaded artifact's exact acquisition and digest remain unverified. The public beta reader currently bypasses the backend approval gate by loading the raw repository file. Per-Ayah review remains a release blocker.
+
+
+## 2026-11-05 current-head implementation result
+
+- Current integration head: `e0b74cec14bc611fde48386645a257e55fe89cc1`.
+- The web shell now mounts `QuranAyahReader` rather than the raw-GitHub `QuranBetaReader`. The displayed Ayah must arrive through the backend API and pass client-side approval, licensing, and integrity metadata checks. The legacy component remains in the repository but is not mounted by the integration shell.
+- This removes the direct raw-GitHub Quran and unreviewed external audio links from the integration app shell. It does not create a full-Surah Arabic endpoint, approve any corpus, or complete per-Ayah human review. Full-Surah reading and audio remain gated.
+- Exact-head Actions: DEENVERSE CI #42032834719 passed backend locked install, typecheck, tests, build, high-severity audit and PostgreSQL 16 initialization; web locked install, typecheck, tests, build and high-severity audit. Web foundation #42032834877 passed install, audit capture, typecheck, tests and production build. OpenAPI route parity #42032834651 passed.
+- A preceding synchronized documentation head `fa6cebdc50e80ea3cd8ae026d378d35e5460984a` had one stale app-shell test failure because it still expected the removed Bengali full-reader region and a Surah combobox. Commit `e0b74cec14bc611fde48386645a257e55fe89cc1` updated the shell and test to the API-gated Ayah reader; all three exact-head workflows above then passed.
