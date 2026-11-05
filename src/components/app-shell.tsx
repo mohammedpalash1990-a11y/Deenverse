@@ -103,8 +103,8 @@ export function AppShell() {
                 <div className="continue-content">
                   <div className="card-kicker"><span className="tiny-star">✦</span> THE QURAN READER</div>
                   <h2>Begin with intention.</h2>
-                  <p>Verified Quran text and approved editions will appear here once their sources and redistribution rights have been reviewed.</p>
-                  <div className="card-actions"><button className="primary-button" onClick={() => document.getElementById("catalogue")?.scrollIntoView({ behavior: "smooth" })}>Explore the reader <span>↗</span></button><span className="edition-label">SOURCE-VERIFIED CONTENT ONLY</span></div>
+                  <p>আরবি পাঠ এখন Tanzil-এর মূল Uthmani ফাইল থেকে checksum মিলিয়ে Public Beta হিসেবে পড়া যাবে। বাংলা অনুবাদ QuranEnc থেকে সংস্করণ-পরিচয়সহ আসবে।</p>
+                  <div className="card-actions"><button className="primary-button" onClick={() => document.getElementById("catalogue")?.scrollIntoView({ behavior: "smooth" })}>Explore the reader <span>↗</span></button><span className="edition-label">PUBLIC BETA · TANZIL + QURANENC</span></div>
                 </div>
                 <div className="ornament" aria-hidden="true"><span>۞</span><i /><b /></div>
               </section>
@@ -114,11 +114,11 @@ export function AppShell() {
                 <div className="search-box"><span aria-hidden="true">⌕</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Find a section..." aria-label="Find a section" /></div>
                 <section className="reader-preview" aria-label="Reserved Arabic Quran text area" dir="rtl" lang="ar">
                   <div className="reader-preview-heading">
-                    <span className="source-tag">RTL READER FOUNDATION</span>
+                    <span className="source-tag">TANZIL PUBLIC BETA</span>
                     <span className="count-label">ARABIC · DIR=RTL</span>
                   </div>
                   <div className="reader-preview-page">
-                    <p id="reader-preview-title" dir="ltr">Arabic reader area — awaiting an approved source edition</p>
+                    <p id="reader-preview-title" dir="ltr">Tanzil Uthmani Arabic — Public Beta</p>
                     <div className="reader-preview-lines" aria-hidden="true"><span /><span /><span /></div>
                   </div>
                 </section>
