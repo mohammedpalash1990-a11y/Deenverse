@@ -82,3 +82,23 @@ Standard Error Codes:
 - `INTERNAL_ERROR`: Internal server failure (HTTP 500).
 
 The current backend uses HTTP 400 for validation errors, 401/403 for authentication/authorization errors when applicable, 404 for missing resources, 429 for rate limiting, 502 for integrity rejection, and 503 for `CONTENT_UNAVAILABLE` or `UNAVAILABLE`. Read-only route registration does not imply that any religious corpus is approved or populated.
+
+## Release-safety contract override — 2026-11-05
+
+The current mainline release-safety candidate is PR #75 (`qa/release-safety-2026-11-05`). Its exact-head CI passed, but it remains an unmerged draft. Until it is reviewed and merged:
+
+- Treat PR #75 as the required release-safety target, not as deployed behavior.
+- The candidate unregisters both public QuranEnc Bengali translation routes; the expected response is HTTP 404 with `NOT_FOUND`. The frontend translation adapter may remain in the codebase for future approved use, but it must not be described as an available production API.
+- The candidate replaces the raw-GitHub Quran text and unverified EveryAyah/Audiomack audio reader with a fail-closed approval-pending state, deletes the unverified committed Quran text copy, and removes `raw.githubusercontent.com` from browser `connect-src`.
+- PR #1's earlier route inventory and OpenAPI snapshot predate this safety candidate. Do not use the older translation-route registration as a release contract, and do not merge PR #1 without reconciling its OpenAPI paths, tests, and UI against PR #75.
+- The safety candidate does not establish source authenticity, independent scholarly approval, artifact acquisition/digest evidence, translation redistribution rights, or audio rights. No religious content may be imported, fabricated, or activated to make tests or UI appear complete.
+
+The candidate's exact-head evidence recorded in PR #75 is DEENVERSE CI run [42071843318](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/42071843318) and Web foundation run [42071843376](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/42071843376). These checks validate software behavior on that candidate SHA only; they do not authorize a merge, deployment, or content release.
+
+## Remaining contract work
+
+1. Remove or explicitly mark disabled paths from the OpenAPI snapshot when reconciling it with PR #75; validate route parity against the exact target SHA.
+2. Replace unsigned offset cursors with signed, query-bound opaque cursors and test cross-edition/search/filter replay.
+3. Extend contract tests to every response schema, error edge case, and pagination boundary.
+4. Require immutable artifact retrieval and independent SHA-256 recomputation before a source can become eligible.
+5. Keep Quran, translation, Hadith, tafsir, dua, and audio endpoints unavailable until each source's authenticity, edition, redistribution rights, attribution, and independent review are evidenced.
