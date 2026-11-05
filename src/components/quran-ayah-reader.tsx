@@ -77,7 +77,7 @@ export function QuranAyahReader({ client = defaultClient, translationClient = de
     const result = await client.getAyah(surahNumber, ayahNumber);
     if (result.ok) {
       setState({ status: "ready", record: result.data });
-    } else if (result.error.code === "CONTENT_UNAVAILABLE" || result.error.code === "UNAVAILABLE") {
+    } else if (result.error.code === "CONTENT_UNAVAILABLE") {
       try {
         const arabic = await loadTanzilBetaAyah(surahNumber, ayahNumber);
         setState({ status: "beta-ready", surahNumber, ayahNumber, arabic });
