@@ -9,7 +9,7 @@ This checklist is evidence-based. A checked item means the corresponding code or
 - [x] npm lockfiles committed; main CI uses `npm ci`.
 - [x] PostgreSQL 16 service is used in backend CI; production rejects SQLite.
 - [x] Main exact-head run #41812199822 passed backend/web typecheck, tests, builds, and high-severity dependency audits at `a7ff4130f6d74e9319b6d894c118d270b44171cd` (historical; it is not evidence for current main `f098d650a9cbc5aaaaadee6a925e68dfa9dbdb9a`).
-- [x] Current integration head `e0b74cec14bc611fde48386645a257e55fe89cc1` passed OpenAPI validation (#42032834651), backend/web CI (#42032834719), and web-foundation checks (#42032834877).
+- [x] Current implementation code head `4085196dc78580913c0f8b16700af38cac63f461` passed OpenAPI validation (#42033372745), backend/web CI (#42033372615), and web-foundation checks (#42033372656).
 - [ ] Manual browser/device, responsive, RTL, keyboard, and screen-reader QA completed.
 
 ## API and adapters
@@ -51,7 +51,7 @@ This checklist is evidence-based. A checked item means the corresponding code or
 
 ## PR disposition
 
-- [x] PR #1 current exact-head route-parity and backend/web CI passed; PR #1 is open, mergeable, 78 commits ahead / 0 behind `main`, with 24 changed files and no submitted reviews. Human review and release-blocker review remain before merge.
+- [x] PR #1 current exact-head route-parity and backend/web CI passed; PR #1 is open, mergeable, 81 commits ahead / 0 behind `main`, with 26 changed files and no submitted reviews. Human review and release-blocker review remain before merge.
 - [ ] PR #11 reconciled against current implementation; do not merge its stale snapshot.
 - [ ] PR #43 exact-head CI and review complete.
 - [ ] PR #45 security review and exact-head CI complete.
@@ -75,3 +75,10 @@ This checklist is evidence-based. A checked item means the corresponding code or
 - This removes the direct raw-GitHub Quran and unreviewed external audio links from the integration app shell. It does not create a full-Surah Arabic endpoint, approve any corpus, or complete per-Ayah human review. Full-Surah reading and audio remain gated.
 - Exact-head Actions: DEENVERSE CI #42032834719 passed backend locked install, typecheck, tests, build, high-severity audit and PostgreSQL 16 initialization; web locked install, typecheck, tests, build and high-severity audit. Web foundation #42032834877 passed install, audit capture, typecheck, tests and production build. OpenAPI route parity #42032834651 passed.
 - A preceding synchronized documentation head `fa6cebdc50e80ea3cd8ae026d378d35e5460984a` had one stale app-shell test failure because it still expected the removed Bengali full-reader region and a Surah combobox. Commit `e0b74cec14bc611fde48386645a257e55fe89cc1` updated the shell and test to the API-gated Ayah reader; all three exact-head workflows above then passed.
+
+
+## 2026-11-05 latest source-attribution check
+
+- `QuranAyahReader` now displays the source-provided edition, attribution, license identifier, and HTTPS source link. Test coverage asserts that the source link and license identifier are rendered from the returned provenance.
+- Exact implementation head `4085196dc78580913c0f8b16700af38cac63f461`: DEENVERSE CI #42033372615, Web foundation #42033372656, and OpenAPI validation #42033372745 all passed.
+- Per-Ayah review remains unmerged: PR #43 is open, 7 ahead / 41 behind current `main`, and GitHub reports mergeable=false; its recorded DEENVERSE CI run #41757958528 was cancelled. PR #45 is stacked on PR #43 (23 ahead / 0 behind its base); its recorded DEENVERSE CI run #41760877560 was cancelled. Neither branch is integrated into `main`.

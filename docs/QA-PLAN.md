@@ -482,3 +482,25 @@ All checks below are for exact implementation code head `e0b74cec14bc611fde48386
 - Main still exposes the legacy raw-GitHub reader until PR #1 is merged. Do not merge without review; the integration branch's gated UI change is not live yet.
 - Per-Ayah human review, full-Surah Arabic API, QuranEnc rights review, Hadith/tafsir/dua sources, audio recording rights, auth/authorization, manual RTL/accessibility/device QA, and hosted PostgreSQL operations remain open.
 - No Quran/Hadith/translation/tafsir/dua/audio corpus was fabricated, edited, or imported during this integration work. No secrets or production data were added.
+
+
+## 2026-11-05 — source attribution UI and per-Ayah gate dependency
+
+### Source attribution UI
+
+- Implementation commit `4085196dc78580913c0f8b16700af38cac63f461` adds the API-provided HTTPS source link and license identifier to the approval-gated Quran Ayah reader.
+- `src/components/quran-ayah-reader.test.tsx` verifies that the rendered source link uses the approved record's `sourceUrl` and that the returned `licenseId` is visible.
+- The exact implementation commit passed DEENVERSE CI #42033372615, Web foundation #42033372656, and OpenAPI route validation #42033372745. Backend/web install, typecheck, tests, production builds, and high-severity dependency audits all passed.
+- This remains single-Ayah API delivery. No full-Surah Arabic endpoint or complete Ayah-by-Ayah review gate is merged.
+
+### Per-Ayah review dependency status
+
+- PR #43 (`feat/quran-per-ayah-review-gate-20261104`) is open, 7 commits ahead / 41 behind current `main`, and GitHub reports mergeable=false. Its recorded DEENVERSE CI run #41757958528 was cancelled; Web foundation #41757958432 passed, but that is not backend CI evidence.
+- PR #45 (`feat/quran-team-review-links-20261104`) is stacked on PR #43, 23 commits ahead / 0 behind that base; its recorded DEENVERSE CI run #41760877560 was cancelled. It cannot be treated as integrated into current `main`.
+- Therefore the current source approval gate is source-level only. Do not claim per-Ayah human review is enforced in the live mainline reader. The integration AppShell now fails closed through the source-approved API, but per-Ayah release approval remains blocked pending a current, reviewed, CI-green PR #43 stack.
+
+### Branch snapshot at tested code commit
+
+- Tested implementation code commit: `4085196dc78580913c0f8b16700af38cac63f461`.
+- At that commit, integration compared 81 ahead / 0 behind current `main`; PR #1 had 26 changed files and was open/mergeable. Any later branch commits in this section are documentation-only.
+- Jules and Queen assignment branches remain documentation-only: Jules 3 ahead / 69 behind (two task files); Queen 2 ahead / 69 behind (one task file). No implementation PR is attributed to either branch.
