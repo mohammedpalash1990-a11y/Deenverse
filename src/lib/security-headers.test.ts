@@ -32,7 +32,7 @@ describe("browser security headers", () => {
     expect(csp).toContain("object-src 'none'");
     expect(csp).toContain("frame-ancestors 'none'");
     expect(csp).toContain("form-action 'self'");
-    expect(csp).toContain("connect-src 'self'");
+    expect(csp).toContain("connect-src 'self' https://raw.githubusercontent.com");
     expect(csp).not.toContain("'unsafe-eval'");
   });
 
@@ -45,7 +45,7 @@ describe("browser security headers", () => {
     const rules = await nextConfig.headers?.();
     const csp = rules?.[0]?.headers.find(({ key }) => key === "Content-Security-Policy")?.value;
     expect(csp?.split("; ").find((directive) => directive.startsWith("connect-src")))
-      .toBe("connect-src 'self' https://api.example.test:8443");
+      .toBe("connect-src 'self' https://raw.githubusercontent.com https://api.example.test:8443");
     expect(csp).not.toContain("deenverse-api.onrender.com");
     expect(csp).not.toContain("/service/api/v1");
   });
@@ -55,7 +55,7 @@ describe("browser security headers", () => {
     const rules = await nextConfig.headers?.();
     const csp = rules?.[0]?.headers.find(({ key }) => key === "Content-Security-Policy")?.value;
     expect(csp?.split("; ").find((directive) => directive.startsWith("connect-src")))
-      .toBe("connect-src 'self'");
+      .toBe("connect-src 'self' https://raw.githubusercontent.com");
   });
 
   it("rejects unsafe deployment configuration instead of inserting CSP directives", async () => {
