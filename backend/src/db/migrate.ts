@@ -6,6 +6,7 @@ import * as initialSchema from './migrations/20261102_000001_initial_schema.js';
 import * as sourceApprovalGate from './migrations/20261103_000002_source_approval_gate.js';
 import * as quranAyahs from './migrations/20261104_000003_quran_ayahs.js';
 import * as hadithLibrary from './migrations/20261104_000005_hadith_library.js';
+import * as quranTranslations from './migrations/20261105_000006_quran_translations.js';
 
 const BASE_REQUIRED_TABLES = ['content_sources', 'quran_surahs'] as const;
 
@@ -49,6 +50,10 @@ async function applyMigrations(db: import('knex').Knex): Promise<void> {
   // Always invoke its preflight: a lone hadith_books table must not conceal
   // missing companion tables, and orphan companion tables must not be ignored.
   await hadithLibrary.up(db);
+
+  if (!(await db.schema.hasTable('quran_translations'))) {
+    await quranTranslations.up(db);
+  }
 
   if (!(await hasRequiredSchema(db))) {
     throw new Error('DEENVERSE migrations did not create the complete required schema. Inspect missing tables or columns before retrying.');
