@@ -1,3 +1,5 @@
+import { EXPECTED_AYAH_COUNTS } from './quran-surah-counts.js';
+
 export interface QuranEncTranslation {
   surahNumber: number;
   ayahNumber: number;
@@ -61,7 +63,8 @@ export class QuranEncBengaliTranslationService {
 
   async getAyah(surahNumber: number, ayahNumber: number): Promise<QuranEncLookupResult> {
     if (!Number.isSafeInteger(surahNumber) || surahNumber < 1 || surahNumber > 114 ||
-        !Number.isSafeInteger(ayahNumber) || ayahNumber < 1) {
+        !Number.isSafeInteger(ayahNumber) || ayahNumber < 1 ||
+        ayahNumber > EXPECTED_AYAH_COUNTS[surahNumber - 1]) {
       return { status: 'not_found' };
     }
 
@@ -195,7 +198,7 @@ export class QuranEncBengaliTranslationService {
     } catch {
       return { status: 'invalid_source_response' };
     }
-    if (!Array.isArray(body) || body.length === 0) {
+    if (!Array.isArray(body) || body.length !== EXPECTED_AYAH_COUNTS[surahNumber - 1]) {
       return { status: 'invalid_source_response' };
     }
 
