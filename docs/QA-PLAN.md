@@ -449,3 +449,36 @@ This is a significant release-gate mismatch: public UI delivery exists while the
 | Hosted PostgreSQL migration/backup/restore rehearsal | NOT RUN |
 
 No religious corpus was fabricated, rewritten, imported into a database, or approved during this integration run. No secrets or production data were added.
+
+
+## 2026-11-05 — approval-gated reader integration and exact-head CI
+
+### Implementation change
+
+- Commit: `e0b74cec14bc611fde48386645a257e55fe89cc1`.
+- `src/components/app-shell.tsx` now mounts `QuranAyahReader` instead of `QuranBetaReader`; the status label now says `QURAN READER · APPROVAL GATED`.
+- `src/components/app-shell.test.tsx` now asserts the approval-gated single-Ayah reader and its initial unavailable/approval-required status. The previous repeated Arabic test fixture was removed; tests no longer use a copied Quran phrase as synthetic data.
+- The legacy `quran-beta-reader.tsx` component remains in the repository but is no longer mounted by the integration AppShell. This removes the direct raw-GitHub Quran fetch and unreviewed EveryAyah/Audiomack links from the integration app shell. Current `main` still mounts the legacy component until PR #1 is merged.
+- This is not a full-Surah reader and does not approve Quran content. The mounted reader shows Arabic only after the backend API returns an eligible source record with approval, licensing, and integrity metadata. The current backend gate is source-level; independent per-Ayah human review is still a separate release blocker. QuranEnc translation rights still require use-specific review.
+
+### Exact-head CI evidence
+
+All checks below are for exact integration head `e0b74cec14bc611fde48386645a257e55fe89cc1`:
+
+| Workflow | Run | Result | Verified steps |
+|---|---:|---|---|
+| DEENVERSE CI | #42032834719 | PASS | PostgreSQL 16 service, backend `npm ci`, typecheck, tests, build, `npm audit --audit-level=high`; web `npm ci`, typecheck, tests, production build, high-severity audit |
+| Web foundation checks | #42032834877 | PASS | `npm ci`, audit capture, typecheck, tests, production build |
+| OpenAPI contract validation | #42032834651 | PASS | YAML/OpenAPI parse and parity against registered backend GET routes |
+
+### Failure found and resolved
+
+- Previous exact head `fa6cebdc50e80ea3cd8ae026d378d35e5460984a`: DEENVERSE CI #42032489568 and Web foundation #42032489721 failed in the web test step. The stale `src/components/app-shell.test.tsx` assertion expected the old full Arabic/Bengali reader region and a Surah combobox, but current UI exposed the updated numbered Surah-button layout. One web test failed; 173 passed.
+- The integration fix replaced the stale shell/test expectation with the approval-gated Ayah reader and removed the repeated Quran phrase from the synthetic fixture. On `e0b74cec14bc611fde48386645a257e55fe89cc1`, all backend/web tests and builds passed.
+
+### Remaining release gates
+
+- Main's committed Tanzil text file still lacks a complete, independently evidenced acquisition record in `SOURCE_INFO.md`; the source dossier still says no artifact was acquired. Exact original download options, retrieval time, independent artifact digest, and source review remain unverified.
+- Main still exposes the legacy raw-GitHub reader until PR #1 is merged. Do not merge without review; the integration branch's gated UI change is not live yet.
+- Per-Ayah human review, full-Surah Arabic API, QuranEnc rights review, Hadith/tafsir/dua sources, audio recording rights, auth/authorization, manual RTL/accessibility/device QA, and hosted PostgreSQL operations remain open.
+- No Quran/Hadith/translation/tafsir/dua/audio corpus was fabricated, edited, or imported during this integration work. No secrets or production data were added.
