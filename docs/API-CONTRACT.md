@@ -56,6 +56,25 @@ The pagination cursor is an opaque, base64-encoded non-negative offset in the cu
 
 **Integrity limitation:** The current backend compares the approval record's `artifact_sha256` string with the source record's `checksum` string and validates provenance metadata. It does not download or hash an immutable source artifact. This equality check is not cryptographic artifact verification and must not be described as proof that published content matches an authentic source. Do not approve or publish production religious content until immutable artifact retrieval, SHA-256 recomputation, source identity, edition, licensing, and independent human review are implemented and evidenced.
 
+## Implemented public routes and publication state
+
+The current backend registers these read-only routes:
+
+- GET /api/v1/health and GET /api/v1/ready
+- GET /api/v1/quran/surahs and GET /api/v1/quran/surahs/{surahNumber}
+- GET /api/v1/ayah/{surahNumber}/{ayahNumber}
+- GET /api/v1/hadith/books
+- GET /api/v1/hadith/books/{bookId}/chapters
+- GET /api/v1/hadith/books/{bookId}/records
+- GET /api/v1/hadith/records/{recordId}
+- GET /api/v1/hadith/search
+
+The Quran catalogue and Ayah routes must return CONTENT_UNAVAILABLE until one independently approved source and its complete imported records pass the exact-artifact release gate. Hadith routes must fail closed until source approval, record digests, and required independent reviews pass.
+
+The QuranEnc Bengali translation routes are intentionally not registered. The translation parser/service unit tests do not constitute permission or source approval. Do not re-enable public translation routes until the exact edition artifact/response snapshot, redistribution terms, digest, and independent human approval are recorded. No public tafsir, dua, or recitation-audio route is currently approved.
+
+The pagination cursor is currently a canonical base64-encoded numeric offset. It is validated as a non-negative safe integer, but it is not cryptographically signed or bound to the book, search term, locale, or filters. Treat this as a pagination-consistency limitation; do not use it as an authorization token.
+
 ### Error Envelope
 
 ```json
