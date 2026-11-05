@@ -53,7 +53,7 @@ describe("QuranAyahReader", () => {
     render(<QuranAyahReader client={client} />);
 
     expect(screen.getByRole("heading", { name: "Read an Ayah" })).toBeInTheDocument();
-    expect(screen.getByRole("status")).toHaveTextContent(/valid approval, licensing and integrity metadata/);
+    expect(screen.getByRole("status")).toHaveTextContent(/checksum-verified Tanzil public-beta text/);
     expect(screen.queryByText(fixtureText)).not.toBeInTheDocument();
     expect(client.getAyah).not.toHaveBeenCalled();
     expect(screen.queryByRole("region", { name: "Hifz recall practice" })).not.toBeInTheDocument();
@@ -110,7 +110,7 @@ describe("QuranAyahReader", () => {
     render(<QuranAyahReader client={client} />);
     fireEvent.click(screen.getByRole("button", { name: "Load Ayah" }));
 
-    expect(screen.getByRole("status")).toHaveTextContent("Checking the approved source");
+    expect(screen.getByRole("status")).toHaveTextContent("Loading the source text");
     expect(screen.getByRole("button", { name: "Loading…" })).toBeDisabled();
     resolveRequest?.({ ok: false, error: { code: "UNAVAILABLE", message: "Unavailable", retryable: true } });
     expect(await screen.findByRole("alert")).toHaveTextContent("Unavailable");
