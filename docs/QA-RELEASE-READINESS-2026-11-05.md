@@ -70,6 +70,7 @@
 - PR #47, Add direct in-app problem reporting. Base main 339d9c66057137ba5d1d1a6ff36232bd32f4cc29; head feature/unified-problem-reporting be096ab7161b1336c7351d06f1ffcfc20574d0f2. Nine files: backend/src/app.ts; backend/src/db/migrate.ts; backend/src/db/migrations/20261104_000004_problem_reports.ts; backend/src/routes/problem-reports.ts; backend/test/migrate.test.ts; backend/test/problem-reports.test.ts; src/app/globals.css; src/components/app-shell.tsx; src/components/settings-panel.tsx. Dirty/conflicting. CI run 41763195016 failed: backend 64 tests, 61 pass, 3 fail, 0 skipped; web 18 files/174 tests passed. Backend failures include readiness fixture expecting 200 but receiving 503 and incomplete problem-report validation expecting 0 persisted rows but receiving 1.
 - PR #66, docs(qa): record Deenverse release-readiness evidence. Base main a7ff4130f6d74e9319b6d894c118d270b44171cd; head qa/release-readiness-evidence-20261104 7e2ba09349e92630c9c6be7fbbaff9ad5f9ac4ac. One file: docs/RELEASE-READINESS-2026-11-04.md. Mergeable clean but stale base; only web foundation run 41874698061 passed.
 - PR #69, Publish Quran reader in public beta. Base main abb4dd06531d7585b13b8f29af45e7d05a995574; head codex/quran-public-beta-reader 5ce130f5e6b312948e3ed0165295572aa509e5e3. Six files: next.config.ts; src/components/app-shell.test.tsx; src/components/app-shell.tsx; src/components/quran-ayah-reader.test.tsx; src/components/quran-ayah-reader.tsx; src/lib/security-headers.test.ts. Dirty/conflicting and stale; no Actions run.
+- PR #75, fix(release): fail closed for unapproved Quran and translation content. Base main f098d650a9cbc5aaaaadee6a925e68dfa9dbdb9a; head qa/release-safety-2026-11-05 a6cbb86a7bb43ef366ae8c6ecc811259b6848eb3. Eleven files; open draft, unmerged, mergeable clean. Exact-head CI run 42071469368 passed; web foundation run 42071469612 passed.
 
 ## QA branch changes in this PR
 
@@ -77,11 +78,22 @@
 - backend/test/quran-translation.test.ts — assert translation routes remain 404 until approval.
 - src/components/quran-beta-reader.tsx — replace direct raw-GitHub text and unapproved audio with an accessible fail-closed state.
 - src/components/app-shell.tsx — label the Quran section as approval-pending rather than live.
+- src/components/app-shell.tsx — label the Quran section as approval-pending rather than live.
 - src/components/app-shell.test.tsx — test the fail-closed state and no external source fetch.
 - next.config.ts and src/lib/security-headers.test.ts — remove and test removal of raw.githubusercontent.com from connect-src.
 - data/quran/tanzil/quran-uthmani.txt — delete the unverified public copy from the current tree.
 - docs/API-CONTRACT.md and docs/CONTENT-SOURCE-APPROVAL.md — document actual endpoint/publication gates.
 - docs/QA-RELEASE-READINESS-2026-11-05.md — preserve this evidence and next tasks.
+
+## QA branch exact-SHA verification
+
+- Functional candidate SHA: a6cbb86a7bb43ef366ae8c6ecc811259b6848eb3; base SHA: f098d650a9cbc5aaaaadee6a925e68dfa9dbdb9a.
+- PR #75 is open as a draft, not merged, and currently mergeable clean. It changes exactly 11 files: backend/src/app.ts; backend/test/quran-translation.test.ts; data/quran/tanzil/quran-uthmani.txt (deleted); docs/API-CONTRACT.md; docs/CONTENT-SOURCE-APPROVAL.md; docs/QA-RELEASE-READINESS-2026-11-05.md; next.config.ts; src/components/app-shell.test.tsx; src/components/app-shell.tsx; src/components/quran-beta-reader.tsx; src/lib/security-headers.test.ts.
+- DEENVERSE CI on the exact functional candidate SHA passed: https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/42071469368. Backend: typecheck/build passed; 80 tests, 80 pass, 0 fail, 0 skipped. Real PostgreSQL migration/runtime test passed. Production-startup subprocess test rejected SQLite before creating a database. Backend npm audit: 0 vulnerabilities.
+- Web: typecheck and production build passed; 18 test files, 171 tests passed, 0 failed. Web npm audit: 0 vulnerabilities.
+- Web foundation checks on the same exact SHA passed: https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/42071469612; 18 test files and 171 tests passed.
+- The preceding functional commit 9322e6d5682aafc6c28bcd2d3eb55f932a6ba19a also passed CI run 42071128952 and web foundation run 42071129238, but it was superseded by the approval-pending topbar label in a6cbb86.
+- These green checks resolve the main web test mismatch on the candidate branch; main remains at the failing base SHA until a reviewed merge. No merge or deployment was performed.
 
 ## Next release-blocking tasks
 
