@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { getSection, sections, type SectionId } from "@/lib/navigation";
 import { QuranCatalogue } from "@/components/quran-catalogue";
 import { ReaderControls } from "@/components/reader-controls";
@@ -18,6 +18,7 @@ const symbols: Record<SectionId, string> = {
 
 export function AppShell() {
   const [active, setActive] = useState<SectionId>("quran");
+  const [query, setQuery] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const closeMobileMenu = () => {
@@ -35,6 +36,10 @@ export function AppShell() {
   }, [menuOpen]);
 
   const section = getSection(active);
+  const filtered = useMemo(
+    () => sections.filter((item) => item.label.toLowerCase().includes(query.toLowerCase())),
+    [query]
+  );
 
   return (
     <div className="app-frame">
@@ -92,7 +97,16 @@ export function AppShell() {
           </section>
 
           {active === "quran" ? (
-            <QuranBetaReader />
+            <>
+              <QuranBetaReader />
+              <section className="catalogue-section" aria-label="Explore sections">
+                <div className="search-box"><span aria-hidden="true">⌕</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Find a section..." aria-label="Find a section" /></div>
+                <div className="quick-links" role="group" aria-label="Explore sections">
+                  {filtered.map((item) => <button key={item.id} onClick={() => setActive(item.id)}><span>{symbols[item.id]}</span>{item.label}<b>↗</b></button>)}
+                  {filtered.length === 0 && <p className="no-results">No matching sections.</p>}
+                </div>
+              </section>
+            </>
           ) : active === "hadith" ? (
             <HadithReader />
           ) : (
