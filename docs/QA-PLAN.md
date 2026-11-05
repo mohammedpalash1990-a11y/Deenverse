@@ -384,3 +384,68 @@ No local build or test commands were run during this checkpoint. No green CI sta
 ## OpenAPI validator hardening — 2026-11-04
 
 The first route-parity workflow passed on the exact sync head. The validator is now being hardened to reject duplicate YAML mapping keys and unresolved local component references before comparing all documented path/method pairs with the backend route registrations. The duplicate `SurahPage` schema key was removed. The hardened version requires a fresh exact-head Actions run; no pass is claimed for it yet.
+
+
+## 2026-11-05 — current repository reinspection and branch synchronization
+
+### Exact refs and agent evidence
+
+| Ref | Head SHA | Ahead / behind current `main` | Current diff evidence |
+|---|---|---:|---|
+| `main` | `f098d650a9cbc5aaaaadee6a925e68dfa9dbdb9a` | — | Current public beta reader and committed Tanzil text file are present |
+| `jules/backend-foundation` | Rechecked by GitHub compare | 3 / 69 | Only `AGENT_TASK.md` and `JULES_NEXT_TASK.md`; no backend source, migration, package manifest, tests, or PR from this branch |
+| `queen/frontend-foundation` | Rechecked by GitHub compare | 2 / 69 | Only `AGENT_TASK.md`; no frontend implementation or tests from this branch |
+| `integration/platform-foundation` | `aef189917f9eb13a9a4b97d0f5bc64e3da8b57de` | 71 / 0 | 22 cross-cutting files in PR #1; current main merged as a second parent |
+
+The integration branch was synchronized with current `main` using merge commit `aef189917f9eb13a9a4b97d0f5bc64e3da8b57de`. Before creating the merge commit, the main-only delta from merge base `a7ff4130f6d74e9319b6d894c118d270b44171cd` was compared with the integration-only delta. The changed-path intersection was empty (0 overlapping paths). The update used a non-force branch ref update with expected old head `0ae72b361772ad667ef4ef94d395eb8e14c9ecfb`; GitHub confirmed the update succeeded.
+
+PR #1 remains open and unmerged, head `aef189917f9eb13a9a4b97d0f5bc64e3da8b57de`, base `main` at `f098d650a9cbc5aaaaadee6a925e68dfa9dbdb9a`, 22 changed files, 2,663 additions, 118 deletions, and GitHub reports mergeable=true. No review submissions were present. This metadata is not approval to merge.
+
+### Current stack and checks
+
+- Web: Next.js 15.5.28, React 19.1.2, TypeScript 5.8.3, Vitest 5.1.0; root `package.json` and lockfile exist.
+- Backend: Node 22, Fastify 5.2.1, Knex 3.1.x, PostgreSQL runtime, Zod 4.6.7; `backend/package.json` and lockfile exist.
+- Main CI workflow is `.github/workflows/ci.yml`; it runs locked install, backend/web typecheck, tests, production builds, and `npm audit --audit-level=high`. PostgreSQL 16 is configured as the backend CI service.
+- OpenAPI route parity is checked by `scripts/verify-openapi-routes.rb` and `.github/workflows/openapi-contract.yml`.
+- Last recorded passing integration exact-head evidence remains pre-sync head `0ae72b361772ad667ef4ef94d395eb8e14c9ecfb`: DEENVERSE CI #41839209748, Web foundation #41839209867, and OpenAPI validation #41839209842 all concluded success.
+- The current merge head `aef189917f9eb13a9a4b97d0f5bc64e3da8b57de` had no workflow runs or commit statuses returned by the GitHub Actions/status lookups at this checkpoint. No local shell/npm execution was available in this run. **Current-head build/test status is pending, not passed.**
+- Current main `f098d650a9cbc5aaaaadee6a925e68dfa9dbdb9a` also returned no commit statuses in the inspected combined-status endpoint. The last recorded main CI run #41812199822 is for older main head `a7ff4130f6d74e9319b6d894c118d270b44171cd`; it must not be represented as current-head verification.
+
+### Quran source and publication review
+
+The official Tanzil download page and text-license page were checked on 2026-11-05. Tanzil's published terms allow verbatim copying/distribution for websites and applications when the source is clearly identified and linked; the copyright/license notice must be preserved and the text must not be changed. Official references: https://tanzil.net/download/ and https://tanzil.net/docs/Text_License.
+
+Current repository evidence:
+- Main contains `data/quran/tanzil/quran-uthmani.txt` and `data/quran/tanzil/SOURCE_INFO.md`; the source-info file only states source, Uthmani, Version 1.1, source URL, and that the original is unchanged.
+- `src/components/quran-beta-reader.tsx` fetches the raw GitHub file from the public `main` branch and displays it directly, bypassing the backend's source-approval/read gate.
+- `docs/TANZIL-SOURCE-DOSSIER.md` still labels the source candidate and says no artifact has been acquired. The current committed file makes that statement incomplete; however, its exact official download URL/options, acquisition timestamp, original-byte SHA-256, license-notice digest, and independent source-review record are not evidenced by the short `SOURCE_INFO.md`.
+- The importer/seed code contains official-domain, edition, metadata, count/order, license-footer, checksum, inactive-source, and separate-reviewer checks. Code existence is not evidence that the import was run or that a production source was approved.
+- No production DB import/activation or complete Ayah-by-Ayah human review is evidenced in this repository snapshot. Do not mark Quran Arabic release-approved on the basis of the file's presence, the importer tests, or Tanzil's published claims alone.
+
+This is a significant release-gate mismatch: public UI delivery exists while the source dossier and approval process still describe the corpus as unacquired/unapproved. Resolve the exact artifact provenance and human review, or route the public reader through the fail-closed backend approval gate before treating it as production content. No Quran text was edited or regenerated by this integration run.
+
+### Audio and translation rights
+
+- The beta reader references EveryAyah MP3 paths for named reciters and an Audiomack album for another reciter. Recording ownership, exact recording identity, attribution requirements, and streaming/cache/offline permissions are not evidenced. Treat these as unapproved external links; do not claim licensed audio playback.
+- QuranEnc Bengali translation is pinned to provider edition V1.1.1 in code. The source dossier records conditional republication terms, but a use-specific review for web/mobile display, hosting, caching, offline, and export is not evidenced as complete. Do not import or bundle the translation without that review.
+- No production Hadith, tafsir, or dua corpus is approved in the current source register.
+
+### QA result and remaining blockers
+
+| Check | Result |
+|---|---|
+| Main/agent/integration branch comparisons | VERIFIED |
+| Agent implementation attribution | VERIFIED — no code implementation on the two named assignment branches |
+| Integration sync | VERIFIED — 0 overlapping paths, merge commit created, branch now 0 behind main |
+| PR #1 mergeability | VERIFIED — open, unmerged, mergeable=true; no review submissions |
+| Previous integration exact-head CI | PASS — only for pre-sync head `0ae72b361772ad667ef4ef94d395eb8e14c9ecfb` |
+| New synchronized-head CI | PENDING — no run/status evidence returned |
+| Local build/test execution in this run | NOT RUN |
+| Tanzil published license terms | VERIFIED from official publisher pages |
+| Exact committed artifact provenance and SHA-256 | NOT VERIFIED |
+| Independent Quran source / per-Ayah review | NOT EVIDENCED |
+| Audio recording rights | NOT VERIFIED |
+| Manual browser, RTL, keyboard, screen-reader, device QA | NOT RUN |
+| Hosted PostgreSQL migration/backup/restore rehearsal | NOT RUN |
+
+No religious corpus was fabricated, rewritten, imported into a database, or approved during this integration run. No secrets or production data were added.
