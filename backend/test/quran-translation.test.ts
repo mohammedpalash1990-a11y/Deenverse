@@ -74,28 +74,16 @@ test('rejects invalid coordinates before making a source request', async () => {
 });
 
 
-test('serves the QuranEnc translation route with attribution and rejects invalid coordinates', async () => {
+test('keeps QuranEnc translation endpoints unavailable until source approval is implemented', async () => {
   const { buildApp } = await import('../src/app.js');
-  const fetcher: typeof fetch = async (input) => String(input).includes('/translations/list/')
-    ? jsonResponse(editionList)
-    : jsonResponse({
-        sura: 1,
-        aya: 1,
-        translation: 'প্রকাশকের মূল অনুবাদ',
-        footnotes: [{ id: 1, text: 'প্রকাশকের মূল টীকা' }]
-      });
-  const app = buildApp({ db: {} as never, enableRateLimit: false, quranTranslationFetcher: fetcher });
+  const app = buildApp({ db: {} as never, enableRateLimit: false });
 
   try {
-    const valid = await app.inject({ method: 'GET', url: '/api/v1/translation/bn/1/1' });
-    assert.equal(valid.statusCode, 200);
-    const payload = valid.json();
-    assert.equal(payload.data.translation, 'প্রকাশকের মূল অনুবাদ');
-    assert.equal(payload.data.provenance.publisher, 'QuranEnc.com');
-    assert.equal(payload.data.provenance.sourceDescription, editionList[0].description);
-
-    const invalid = await app.inject({ method: 'GET', url: '/api/v1/translation/bn/115/1' });
-    assert.equal(invalid.statusCode, 400);
+    for (const url of ['/api/v1/translation/bn/1', '/api/v1/translation/bn/1/1']) {
+      const response = await app.inject({ method: 'GET', url });
+      assert.equal(response.statusCode, 404, url);
+      assert.equal(response.json().error.code, 'NOT_FOUND');
+    }
   } finally {
     await app.close();
   }
@@ -147,46 +135,3 @@ test('returns an ordered full-Surah translation and rejects gaps or reordered Ay
   assert.equal(gapResult.status, 'invalid_source_response');
 });
 
-test('serves a complete ordered Surah through the public translation route', async () => {
-  const { buildApp } = await import('../src/app.js');
-  const fetcher: typeof fetch = async (input) => String(input).includes('/translations/list/')
-    ? jsonResponse(editionList)
-    : jsonResponse(Array.from({ length: EXPECTED_AYAH_COUNTS[0] }, (_, index) => ({
-        sura: 1,
-        aya: index + 1,
-        translation: `সূরা ফাতিহার আয়াত ${index + 1}`,
-        footnotes: []
-      })));
-  const app = buildApp({ db: {} as never, enableRateLimit: false, quranTranslationFetcher: fetcher });
-  try {
-    const response = await app.inject({ method: 'GET', url: '/api/v1/translation/bn/1' });
-    assert.equal(response.statusCode, 200);
-    const payload = response.json();
-    assert.equal(payload.data.surahNumber, 1);
-    assert.deepEqual(payload.data.ayahs.map((ayah: { ayahNumber: number }) => ayah.ayahNumber), [1, 2, 3, 4, 5, 6, 7]);
-    assert.equal(payload.data.provenance.publisher, 'QuranEnc.com');
-  } finally {
-    await app.close();
-  }
-});
-
-test('rejects a Surah response that is ordered but incomplete', async () => {
-  const fetcher: typeof fetch = async (input) => String(input).includes('/translations/list/')
-    ? jsonResponse(editionList)
-    : jsonResponse([{ sura: 1, aya: 1, translation: 'প্রথম আয়াত', footnotes: [] }]);
-
-  const result = await new QuranEncBengaliTranslationService(fetcher).getSurah(1);
-  assert.equal(result.status, 'invalid_source_response');
-});
-
-test('rejects an Ayah coordinate beyond the canonical Surah boundary before fetching', async () => {
-  let calls = 0;
-  const fetcher: typeof fetch = async () => {
-    calls += 1;
-    return jsonResponse(editionList);
-  };
-
-  const result = await new QuranEncBengaliTranslationService(fetcher).getAyah(1, 8);
-  assert.equal(result.status, 'not_found');
-  assert.equal(calls, 0);
-});

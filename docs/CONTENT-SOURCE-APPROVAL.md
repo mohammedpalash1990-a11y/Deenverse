@@ -35,7 +35,7 @@ The same gate is applied to collection and single-Surah reads. A source record w
 - The equality check binds the approval record to the registered digest; it does **not** independently download or hash an external artifact.
 - Before any production approval, an authorized human must obtain the exact source artifact, calculate its SHA-256 independently, verify edition/completeness and source attribution, confirm the applicable license and redistribution terms, and record the review decision through a controlled administrative process.
 - The current backend does not expose a public approval endpoint. Approval writes must remain restricted to a trusted administrative process; never expose direct approval writes to public clients.
-- Quran text must never be generated, normalized, repaired, or seeded by AI. This gate does not authorize importing Quran text. No public Ayah retrieval endpoint is implemented; Ayah reads must remain unavailable until a complete edition-specific source artifact has passed the same independent integrity, rights, and human-approval process.
+- Quran text must never be generated, normalized, repaired, or seeded by AI. The public Ayah route is registered but must fail closed and return CONTENT_UNAVAILABLE until a complete edition-specific source artifact has passed the same independent integrity, rights, and human-approval process. The QuranEnc Bengali translation route is not registered until its own exact-edition artifact, redistribution terms, digest, and independent approval are recorded.
 
 ## Test fixtures
 
