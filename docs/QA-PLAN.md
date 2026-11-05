@@ -395,7 +395,7 @@ The first route-parity workflow passed on the exact sync head. The validator is 
 | `main` | `f098d650a9cbc5aaaaadee6a925e68dfa9dbdb9a` | — | Current public beta reader and committed Tanzil text file are present |
 | `jules/backend-foundation` | Rechecked by GitHub compare | 3 / 69 | Only `AGENT_TASK.md` and `JULES_NEXT_TASK.md`; no backend source, migration, package manifest, tests, or PR from this branch |
 | `queen/frontend-foundation` | Rechecked by GitHub compare | 2 / 69 | Only `AGENT_TASK.md`; no frontend implementation or tests from this branch |
-| `integration/platform-foundation` | `aef189917f9eb13a9a4b97d0f5bc64e3da8b57de` | 71 / 0 | 22 cross-cutting files in PR #1; current main merged as a second parent |
+| `integration/platform-foundation` | `0e30a7ea481d5ae950b5cbce892285db56040ddd` | 78 / 0 | 24 cross-cutting files in PR #1; current main merged as a second parent; later docs-only evidence commits follow tested code head `e0b74cec14bc611fde48386645a257e55fe89cc1` |
 
 The integration branch was synchronized with current `main` using merge commit `aef189917f9eb13a9a4b97d0f5bc64e3da8b57de`. Before creating the merge commit, the main-only delta from merge base `a7ff4130f6d74e9319b6d894c118d270b44171cd` was compared with the integration-only delta. The changed-path intersection was empty (0 overlapping paths). The update used a non-force branch ref update with expected old head `0ae72b361772ad667ef4ef94d395eb8e14c9ecfb`; GitHub confirmed the update succeeded.
 
@@ -463,7 +463,7 @@ No religious corpus was fabricated, rewritten, imported into a database, or appr
 
 ### Exact-head CI evidence
 
-All checks below are for exact integration head `e0b74cec14bc611fde48386645a257e55fe89cc1`:
+All checks below are for exact implementation code head `e0b74cec14bc611fde48386645a257e55fe89cc1`. Subsequent branch commits `9d55a059794115ee6965212272c3fc8b37e0cfc1`, `78c3b74156a6eb46f8f85aab12344e7c62608a1b`, and `0e30a7ea481d5ae950b5cbce892285db56040ddd` update only the three evidence documents listed in this PR; they do not change application or backend code.
 
 | Workflow | Run | Result | Verified steps |
 |---|---:|---|---|
