@@ -1,9 +1,20 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AppShell } from "./app-shell";
  
 describe("DEENVERSE app shell", () => {
-  it("renders the primary navigation and approval-gated Quran Ayah reader", () => {
+  beforeEach(() => {
+    vi.stubGlobal("fetch", vi.fn(async () => ({
+      ok: true,
+      json: async () => ({
+        meta: { requestId: "test-request", nextCursor: null },
+        data: []
+      })
+    } as Response)));
+  });
+
+  afterEach(() => vi.unstubAllGlobals());
+  it("renders navigation and keeps unapproved Quran content unavailable", () => {
     render(<AppShell />);
     expect(screen.getByRole("navigation", { name: "Main navigation" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Skip to main content" })).toHaveAttribute("href", "#main-content");
@@ -11,10 +22,12 @@ describe("DEENVERSE app shell", () => {
     expect(screen.getByRole("heading", { name: "Return to the words." })).toBeInTheDocument();
     expect(screen.getByRole("complementary", { name: "Public beta notice" })).toHaveTextContent("DEENVERSE এখনো উন্নয়ন ও যাচাইয়ের পর্যায়ে আছে।");
     expect(screen.getByText(/নির্ভরযোগ্য মূল উৎসের সঙ্গে মিলিয়ে নিন/)).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Read an Ayah" })).toBeInTheDocument();
-    expect(screen.getByRole("textbox", { name: "Surah number" })).toBeInTheDocument();
-    expect(screen.getByRole("textbox", { name: "Ayah number" })).toBeInTheDocument();
-    expect(screen.getByRole("status")).toHaveTextContent(/valid approval, licensing and integrity metadata/);
+    expect(screen.getByText("CONTENT APPROVAL PENDING")).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "আল-কুরআন — যাচাইকৃত পাঠ" })).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent("কুরআনের আরবি পাঠ, বাংলা অনুবাদ ও অডিও এখনো প্রকাশের জন্য অনুমোদিত নয়।");
+    expect(screen.queryByRole("combobox", { name: "সূরা নির্বাচন" })).not.toBeInTheDocument();
+    expect(document.querySelector("audio")).toBeNull();
+    expect(fetch).not.toHaveBeenCalled();
   });
 
   it("keeps the active section announcement and selected navigation state in sync", () => {
