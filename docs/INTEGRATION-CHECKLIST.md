@@ -94,3 +94,25 @@ This checklist is evidence-based. A checked item means the corresponding code or
 - `QuranAyahReader` now displays the source-provided edition, attribution, license identifier, and HTTPS source link. Test coverage asserts that the source link and license identifier are rendered from the returned provenance.
 - Exact implementation head `4085196dc78580913c0f8b16700af38cac63f461`: DEENVERSE CI #42033372615, Web foundation #42033372656, and OpenAPI validation #42033372745 all passed.
 - Per-Ayah review remains unmerged: PR #43 is open, 7 ahead / 41 behind current `main`, and GitHub reports mergeable=false; its recorded DEENVERSE CI run #41757958528 was cancelled. PR #45 is stacked on PR #43 (23 ahead / 0 behind its base); its recorded DEENVERSE CI run #41760877560 was cancelled. Neither branch is integrated into `main`.
+
+## 2026-11-06 exact-head integration verification
+
+Evidence below was captured at integration implementation head `dc251bcc38dff3b7d0d975e31959a255e606960f`, before this checklist-only refresh. At that checkpoint the branch was 107 commits ahead / 0 behind main `f098d650a9cbc5aaaaadee6a925e68dfa9dbdb9a`.
+
+- [x] Backend source-approval regression fixture now uses a distinct synthetic artifact reviewer. This preserves the runtime rule that source and artifact reviewers must be independent.
+- [x] OpenAPI 3.1 snapshot has 10 paths / 10 operations; disabled QuranEnc routes and unused QuranEnc response schemas are absent.
+- [x] OpenAPI checksum documentation distinguishes stored digest metadata from independent upstream artifact re-hashing.
+- [x] Cursor contract documents that current offset cursors are unsigned and not query-bound.
+- [x] DEENVERSE CI #42224958000 passed: backend 86/86 tests, typecheck, build, PostgreSQL 16 migrations/runtime, production SQLite startup guard, backend audit 0 vulnerabilities; web 18 test files / 174 tests, typecheck, build, web audit 0 vulnerabilities.
+- [x] Web foundation #42224958140 passed: locked install, audit capture, typecheck, 18 test files / 174 tests, production build.
+- [x] OpenAPI validation #42224958031 passed: YAML parse, unique keys, local references, and route parity (10 paths / 10 operations).
+- [x] PR #69 received blocking review comment #6685706745 because its raw-GitHub fallback bypasses the fail-closed publication boundary.
+- [ ] PR #1 still requires human review and merge decision. Its changes are not live on main.
+- [ ] PR #75 remains an unmerged draft. Its latest documentation-only head was not independently CI-tested.
+- [ ] Independent source acquisition, artifact re-hash, qualified source approval, per-Ayah review, translation rights, Hadith/tafsir/dua rights, audio rights, authentication/authorization, hosted PostgreSQL operations, and manual RTL/accessibility/device QA remain release blockers.
+
+### Agent branch inspection
+
+- `jules/backend-foundation`: head `f84e35c242ab37ccafca0528a1d06e0d4b244834`, 3 ahead / 69 behind main; only `AGENT_TASK.md` and `JULES_NEXT_TASK.md` differ from main.
+- `queen/frontend-foundation`: head `9ef788c81de85e9ebfa139b35c42d606c38f2010`, 2 ahead / 69 behind main; only `AGENT_TASK.md` differs from main.
+- No implementation work is attributed to either assignment branch; neither branch was modified.
