@@ -14,9 +14,9 @@ This checklist is evidence-based. A checked item means the corresponding code or
 
 ## API and adapters
 
-- [x] Main API route inventory statically reconciled: 12 GET routes across system, Quran catalogue, Ayah, Bengali translation, and Hadith.
-- [x] Quran catalogue, Ayah, Bengali translation (single Ayah + full Surah), and Hadith adapters use the shared API-base resolver.
-- [x] Frontend adapter paths match registered backend paths; full-Surah translation adapter and safe error mapping have contract tests.
+- [x] Integration OpenAPI route inventory reconciled to 10 active GET routes: health, readiness, two Quran catalogue routes, one source-gated Ayah route, and five Hadith routes. Both QuranEnc translation routes are removed from registration and OpenAPI.
+- [x] Quran catalogue, Ayah, and Hadith adapters use the shared API-base resolver. Translation parser/client code remains dormant; no public translation route is registered.
+- [x] Active frontend adapter paths match registered backend paths. Translation service unit tests remain, while public endpoint tests assert canonical 404/NOT_FOUND.
 - [x] Success/error envelope and 400 validation convention documented.
 - [x] Shared Quran source selector fails closed unless exactly one active, redistribution-permitted, approved source exists; catalogue and Ayah regression tests cover ambiguity.
 - [ ] Bind pagination cursors to edition/query context.
@@ -41,6 +41,18 @@ This checklist is evidence-based. A checked item means the corresponding code or
 - [ ] Audio/reciter rights approved; legacy `quran-beta-reader.tsx` still contains EveryAyah and Audiomack external references but is no longer mounted by the integration `AppShell`. Verify identity, ownership, attribution, streaming/cache/offline terms, and playback before re-enabling audio.
 - [ ] No unapproved or generated religious text is presented as canonical content.
 
+## 2026-11-06 integration implementation
+
+- [x] Both public QuranEnc translation routes are unregistered; backend integration tests assert HTTP 404 with `NOT_FOUND`.
+- [x] The mounted Quran section is an approval-pending placeholder; it makes no fetch request and renders no scripture text or audio.
+- [x] Browser CSP no longer permits `raw.githubusercontent.com` in `connect-src`.
+- [x] The unverified `data/quran/tanzil/quran-uthmani.txt` file is deleted from the current integration branch. Git history is not rewritten.
+- [x] Quran source selection excludes approvals by the same reviewer as the source reviewer and excludes `project-owner-chat-authorization`; regression tests cover both conditions.
+- [x] OpenAPI route inventory has 10 active GET paths and the validator remains configured to run on integration-branch pushes and PR changes.
+- [ ] Exact official Tanzil artifact acquisition, independent SHA-256 recomputation, source-specific license evidence, and independent human approval are still missing. No production import is authorized.
+- [ ] Full backend/web CI, OpenAPI parity, PostgreSQL 16 integration, audit, and build checks must pass on the final updated integration head before PR #1 is considered ready.
+- [ ] PR #75 remains an unmerged draft. The integration safety changes are not live on `main`.
+
 ## Operations and release
 
 - [x] PostgreSQL migration/runtime CI exists and passes on main.
@@ -51,7 +63,7 @@ This checklist is evidence-based. A checked item means the corresponding code or
 
 ## PR disposition
 
-- [x] PR #1 current exact-head route-parity and backend/web CI passed; PR #1 is open, mergeable, 81 commits ahead / 0 behind `main`, with 26 changed files and no submitted reviews. Human review and release-blocker review remain before merge.
+- [ ] PR #1's earlier CI applies to an older integration head. The current fail-closed reconciliation requires fresh exact-head route-parity, backend/web CI, PostgreSQL, audit, and build checks before merge.
 - [ ] PR #11 reconciled against current implementation; do not merge its stale snapshot.
 - [ ] PR #43 exact-head CI and review complete.
 - [ ] PR #45 security review and exact-head CI complete.
