@@ -9,9 +9,7 @@ import { QuranAyahService } from './services/quran-ayah.js';
 import { HadithLibraryService } from './services/hadith-library.js';
 import { quranRoutes } from './routes/quran.js';
 import { quranAyahRoutes } from './routes/quran-ayah.js';
-import { quranTranslationRoutes } from './routes/quran-translation.js';
 import { hadithRoutes } from './routes/hadith.js';
-import { QuranEncBengaliTranslationService } from './services/quran-translation.js';
 import { hasRequiredSchema } from './db/schema-readiness.js';
 import { ApiErrorResponse } from './types/content.js';
 
@@ -21,7 +19,6 @@ export interface BuildAppOptions {
   allowedOrigins?: string[];
   rateLimitMax?: number;
   rateLimitWindowMs?: number;
-  quranTranslationFetcher?: typeof fetch;
 }
 
 export function buildApp(opts: BuildAppOptions): FastifyInstance {
@@ -97,7 +94,6 @@ export function buildApp(opts: BuildAppOptions): FastifyInstance {
 
   const quranCatalogueService = new QuranCatalogueService(db);
   const quranAyahService = new QuranAyahService(db);
-  const quranTranslationService = new QuranEncBengaliTranslationService(opts.quranTranslationFetcher);
   const hadithLibraryService = new HadithLibraryService(db);
 
   // Keep the rate limiter and its routes in one Fastify encapsulation scope.
@@ -171,10 +167,6 @@ export function buildApp(opts: BuildAppOptions): FastifyInstance {
     api.register(quranAyahRoutes, {
       prefix: '/api/v1/ayah',
       ayahService: quranAyahService
-    });
-    api.register(quranTranslationRoutes, {
-      prefix: '/api/v1/translation',
-      translationService: quranTranslationService
     });
     api.register(hadithRoutes, {
       prefix: '/api/v1/hadith',
