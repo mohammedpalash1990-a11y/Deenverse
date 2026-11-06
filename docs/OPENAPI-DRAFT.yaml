@@ -1,12 +1,16 @@
 openapi: 3.1.0
 info:
   title: DEENVERSE Implemented API
-  version: 1.1.0-implementation-snapshot
+  version: 1.2.0-release-gated
   description: >
-    Source-aligned snapshot of the GET routes registered in main commit
-    a7ff4130f6d74e9319b6d894c118d270b44171cd on 2026-11-04. This is an implementation contract, not a
-    content approval. The presence of a route does not mean approved
-    religious content is available. Open PR routes are intentionally excluded.
+    Release-gated snapshot of the 10 GET routes registered by
+    integration/platform-foundation at commit 9146c6925e94b2dcda89f0182ab6994a1af9190a
+    on 2026-11-06. The disabled QuranEnc Bengali translation routes are
+    intentionally absent. Route registration does not authorize or prove
+    that religious content is approved or populated. The Quran Ayah route
+    remains source-gated and must fail closed when no uniquely eligible
+    source exists. This contract describes the integration branch, not
+    deployed mainline behavior.
 servers:
   - url: http://localhost:4000
     description: Local backend
@@ -14,7 +18,6 @@ tags:
   - name: System
   - name: Quran catalogue
   - name: Quran Ayah
-  - name: Quran translation
   - name: Hadith
 paths:
   /api/v1/health:
@@ -590,79 +593,6 @@ components:
           $ref: '#/components/schemas/ApiMeta'
         data:
           $ref: '#/components/schemas/AyahRecord'
-    QuranEncProvenance:
-      type: object
-      required: [publisher, translator, sourceTitle, sourceDescription, translationKey, editionVersion, sourceUrl, termsUrl, lastUpdated]
-      properties:
-        publisher:
-          const: QuranEnc.com
-        translator:
-          const: Abu Bakr Muhammad Zakaria
-        sourceTitle:
-          type: string
-        sourceDescription:
-          type: string
-        translationKey:
-          const: bengali_zakaria
-        editionVersion:
-          const: V1.1.1
-        sourceUrl:
-          const: https://quranenc.com/bn/browse/bengali_zakaria
-        termsUrl:
-          const: https://quranenc.com/en/home
-        lastUpdated:
-          oneOf:
-            - type: string
-            - type: integer
-            - type: 'null'
-    QuranEncTranslation:
-      type: object
-      required: [surahNumber, ayahNumber, translation, footnotes, provenance]
-      properties:
-        surahNumber:
-          type: integer
-          minimum: 1
-          maximum: 114
-        ayahNumber:
-          type: integer
-          minimum: 1
-        translation:
-          type: string
-          minLength: 1
-          description: Exact provider-supplied translation; do not rewrite or normalize.
-        footnotes: {}
-        provenance:
-          $ref: '#/components/schemas/QuranEncProvenance'
-    TranslationAyahDetail:
-      type: object
-      required: [meta, data]
-      properties:
-        meta:
-          $ref: '#/components/schemas/ApiMeta'
-        data:
-          $ref: '#/components/schemas/QuranEncTranslation'
-    TranslationSurah:
-      type: object
-      required: [surahNumber, ayahs, provenance]
-      properties:
-        surahNumber:
-          type: integer
-          minimum: 1
-          maximum: 114
-        ayahs:
-          type: array
-          items:
-            $ref: '#/components/schemas/QuranEncTranslation'
-        provenance:
-          $ref: '#/components/schemas/QuranEncProvenance'
-    TranslationSurahDetail:
-      type: object
-      required: [meta, data]
-      properties:
-        meta:
-          $ref: '#/components/schemas/ApiMeta'
-        data:
-          $ref: '#/components/schemas/TranslationSurah'
     HadithProvenance:
       allOf:
         - $ref: '#/components/schemas/ContentProvenance'
