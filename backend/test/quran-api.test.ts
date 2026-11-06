@@ -302,7 +302,7 @@ test('Quran Catalogue API Integration', async (t) => {
       attribution: 'Synthetic test fixture only',
       license_id: 'TEST-FIXTURE-NOT-A-LICENSE',
       redistribution_allowed: true,
-      reviewer: 'test-reviewer',
+      reviewer: 'second-source-reviewer',
       reviewed_at: '2026-11-01T00:00:00.000Z',
       checksum: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
       is_active: true
@@ -311,7 +311,7 @@ test('Quran Catalogue API Integration', async (t) => {
       id: 'approval-test-fixture-second',
       source_id: 'src-test-fixture-second',
       decision: 'approved',
-      reviewer_id: 'test-reviewer',
+      reviewer_id: 'second-artifact-reviewer',
       approved_at: '2026-11-01T00:00:00.000Z',
       artifact_sha256: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
       review_notes: 'Synthetic ambiguity regression fixture only.'
