@@ -2,7 +2,8 @@ import { Knex } from 'knex';
 
 /**
  * Select a Quran source only when exactly one active, redistribution-permitted
- * source has an approved decision bound to its registered artifact digest.
+ * source has an approved digest-bound decision from a distinct, independent
+ * reviewer. The project-owner chat authorization identity is never a reviewer.
  *
  * Returning null for both zero and multiple eligible sources is deliberate:
  * row order must never choose which Quran edition a public reader receives.
@@ -17,6 +18,9 @@ export async function findSingleApprovedQuranSource(db: Knex) {
       'content_source_approvals.decision': 'approved'
     })
     .whereRaw('content_source_approvals.artifact_sha256 = content_sources.checksum')
+    .whereRaw('content_source_approvals.reviewer_id <> content_sources.reviewer')
+    .whereNot('content_sources.reviewer', 'project-owner-chat-authorization')
+    .whereNot('content_source_approvals.reviewer_id', 'project-owner-chat-authorization')
     .select(
       'content_sources.*',
       'content_source_approvals.id as approval_id',
