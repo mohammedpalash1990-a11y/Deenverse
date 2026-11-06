@@ -1,45 +1,90 @@
-# Release-safety reconciliation — 2026-11-05
+# Release-safety reconciliation — 2026-11-06
 
 ## Decision
 
-**Do not merge or deploy from this integration branch yet.** PR #75 is the current mainline release-safety candidate. It is open as a draft and its recorded exact-head CI passed. The integration branch's earlier API and UI work must be reconciled with that candidate before either PR can be treated as releasable.
+**Do not merge or deploy yet.** The integration branch now has a fail-closed Quran UI, disabled public QuranEnc translation routes, an OpenAPI snapshot aligned to the registered routes, and passing exact-head CI. These changes are still isolated to `integration/platform-foundation`; main has not received them. Religious-content approval and production operations remain release blockers.
 
-## Repository evidence
+## Exact repository state
 
-- Main at inspection: `f098d650a9cbc5aaaaadee6a925e68dfa9dbdb9a`.
-- `integration/platform-foundation` compares 82 commits ahead / 0 behind main.
-- PR #1 remains open and unmerged. Its API contract and OpenAPI snapshot predate PR #75 and still describe the QuranEnc translation routes as registered.
-- PR #75 changes 11 files and disables those public translation routes, removes the unverified Quran text copy, removes the raw-GitHub Quran reader/audio references from the mounted public UI, and removes `raw.githubusercontent.com` from `connect-src`.
-- PR #75's latest reported head in the release-readiness record is `7c19026d8c15d6bb7b4654fa6a4ae70a5f50b61d`; its exact-head CI run 42071843318 and Web foundation run 42071843376 passed.
-- PR #75 has no submitted review and no inline review threads at inspection. It remains a draft; no merge or deployment was performed.
+- Main: `f098d650a9cbc5aaaaadee6a925e68dfa9dbdb9a`.
+- Integration implementation head at evidence capture: `dc251bcc38dff3b7d0d975e31959a255e606960f`.
+- Compare at that checkpoint: 107 commits ahead / 0 behind main.
+- PR #1: open, unmerged, mergeable; no submitted reviews or inline review threads were present at inspection. Do not merge automatically.
+- No files were written to main, `jules/backend-foundation`, or `queen/frontend-foundation`.
 
-## Integration compatibility findings
+## Integration changes and contract
 
-1. The integration app shell's API-gated single-Ayah reader is safer than the old raw-file reader, but it is not sufficient evidence of source approval. The current production database has no Quran Ayah/Surah rows.
-2. The current source approval row is not valid independent approval: both reviewer identities are `project-owner-chat-authorization`. The guarded importer rejects this identity.
-3. The production database contains zero Quran corpus rows and zero Hadith rows. No approved tafsir, dua, or audio corpus is recorded.
-4. QuranEnc translation routes must be considered unavailable until exact edition bytes, publisher terms for the intended web/mobile/caching/offline/export uses, and independent review are recorded. PR #75 expects 404/NOT_FOUND for both public translation paths.
-5. EveryAyah and Audiomack references in the legacy component do not establish recording ownership or redistribution/streaming rights. Audio remains disabled.
-6. The existing OpenAPI contract must be regenerated/reconciled against the route registry after PR #75's route removal. Do not leave the disabled translation endpoints represented as active operations.
-7. The source-selector's stored digest-string equality is not equivalent to downloading and hashing an immutable official artifact. Do not describe it as cryptographic verification.
+1. The backend registers 10 GET operations: health, readiness, two Quran catalogue reads, one source-gated Ayah read, and five Hadith reads.
+2. Both public QuranEnc Bengali translation routes are unregistered. The expected response for both paths is HTTP 404 with the canonical `NOT_FOUND` envelope.
+3. QuranEnc-specific OpenAPI response schemas and the inactive Quran translation tag were removed. The OpenAPI snapshot now describes the 10 registered GET operations only.
+4. The mounted Quran section is an approval-pending placeholder. Regression tests assert that it makes no fetch request and renders no audio element.
+5. The unverified `data/quran/tanzil/quran-uthmani.txt` file is absent from the integration tree. Browser CSP does not allow `raw.githubusercontent.com`.
+6. Quran source selection fails closed unless exactly one active, redistribution-permitted source has a matching approval digest, a distinct source/artifact reviewer, and no `project-owner-chat-authorization` reviewer identity.
+7. The API contract now explicitly states that the read path compares stored digest strings; it does not download and independently re-hash the upstream artifact. Pagination cursors remain unsigned offsets and are not bound to edition/filter/search context.
 
-## Agent branch status
+The single-Ayah API route remains registered for future use, but the production source/artifact and independent per-Ayah review evidence are not complete. The route must remain unavailable when the source gate has no uniquely eligible source. No corpus was imported or activated.
 
-The repository branch search confirms that `jules/backend-foundation` and `queen/frontend-foundation` exist. The previously recorded comparisons show Jules' branch contains assignment/handoff documents rather than a completed backend feature, and Queen's branch contains its assignment document rather than a completed frontend feature. Do not attribute PR #75 or the integration work to either agent without matching author/commit evidence. Do not write to either branch.
+## Exact CI evidence
 
-## Required next steps
+The latest verified integration head `dc251bcc38dff3b7d0d975e31959a255e606960f` was checked through PR #1's merge ref with main `f098d650a9cbc5aaaaadee6a925e68dfa9dbdb9a`:
 
-1. Review PR #75 as the security baseline; retain draft status until human review is complete.
-2. Reconcile PR #1's OpenAPI snapshot and route-parity workflow with the disabled translation routes in PR #75.
-3. Add regression tests proving both QuranEnc routes return 404 and the public Quran reader emits no raw-GitHub request or unlicensed audio element.
-4. Re-run backend, web, production build, dependency audit, PostgreSQL runtime/migration, and OpenAPI route parity on the exact reconciled integration head.
-5. Resolve PR #1 and PR #75's changed-file overlap before combining them. Never force-push or overwrite either branch.
-6. Keep religious corpora unavailable until exact immutable artifacts, independently recomputed digests, source-specific redistribution terms, and independent qualified human approval are recorded.
-7. Treat hosted PostgreSQL least-privilege/network protection, branch protection, deployed CORS/CSP verification, and manual browser/RTL/accessibility QA as release blockers.
+| Workflow | Run | Result |
+|---|---:|---|
+| DEENVERSE CI | [#42224958000](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/42224958000) | PASS |
+| Web foundation | [#42224958140](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/42224958140) | PASS |
+| OpenAPI contract validation | [#42224958031](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/42224958031) | PASS |
 
-## Exact changed files in this documentation-only reconciliation
+Backend evidence: typecheck, 86/86 tests, PostgreSQL 16 migrations/runtime, production SQLite startup guard, production build, and `npm audit --audit-level=high` with 0 vulnerabilities.
 
+Web evidence: typecheck, 18 test files / 174 tests, production build, and high-severity dependency audit with 0 vulnerabilities.
+
+OpenAPI evidence: OpenAPI 3.1 YAML parsing, unique mapping keys, local-reference resolution, and backend route parity; 10 paths / 10 operations.
+
+### Failures found and corrected in this run
+
+- At earlier head `9146c6925e94b2dcda89f0182ab6994a1af9190a`, one source-approval test fixture used the same synthetic reviewer for source review and artifact approval. The runtime correctly rejected it with 503; the test incorrectly expected 200. Commit `073fb540a5dbf3583249f828383b1f9c9ab4d142` changed only the synthetic approval reviewer to a distinct test identity. The later backend run passed 86/86.
+- The first OpenAPI checksum-description edit produced invalid YAML at line 489. Commit `dc251bcc38dff3b7d0d975e31959a255e606960f` restored the quoted SHA-256 pattern and placed the integrity limitation in the correct schema property. OpenAPI validation #42224958031 then passed.
+
+## Mainline candidate and conflicting PR review
+
+### PR #75 — fail-closed release candidate
+
+- Branch: `qa/release-safety-2026-11-05`.
+- Current head: `33ad1020bde7c91c0a42239ebf915198c830362c`.
+- State: open, draft, unmerged.
+- Its functional safety changes were tested on predecessor `773378d82e0396358aecd6cb6a148b48ae2cfbfa`: DEENVERSE CI #42075029048 and Web foundation #42075029010 passed; backend 80/80, web 171/171, both audits 0 vulnerabilities.
+- The current head is a documentation-only commit and has no separate workflow run. Keep it draft; no merge or deployment was performed.
+
+### PR #69 — public-beta raw-file fallback
+
+- Branch: `codex/quran-public-beta-reader`.
+- State: open, mergeable=false.
+- It reintroduces a browser fetch from `raw.githubusercontent.com` when the approved API returns `CONTENT_UNAVAILABLE`, re-allows that host in CSP, and displays the fetched text as public beta.
+- A hard-coded SHA-256 comparison proves byte equality only; it does not prove publisher acquisition, independent review, or redistribution rights.
+- Blocking review findings and the integration review were recorded in PR conversation comment #6685706745. Do not merge or deploy this branch.
+
+## Jules / Queen branch review
+
+- `jules/backend-foundation`: head `f84e35c242ab37ccafca0528a1d06e0d4b244834`; 3 commits ahead / 69 behind main. Its branch-specific diff contains only `AGENT_TASK.md` and `JULES_NEXT_TASK.md`; no completed backend implementation is present.
+- `queen/frontend-foundation`: head `9ef788c81de85e9ebfa139b35c42d606c38f2010`; 2 commits ahead / 69 behind main. Its branch-specific diff contains only `AGENT_TASK.md`; no completed frontend implementation is present.
+- No implementation work is attributed to either agent. Neither branch was modified.
+
+## Release blockers
+
+1. Independently acquire the exact immutable Quran publisher artifact, recompute SHA-256, and record the exact edition, retrieval date, publisher URL, and preserved license notice.
+2. Obtain qualified independent source approval and enforce the per-Ayah human-review gate before any Arabic text is served. PR #43 is still unmerged and non-mergeable; PR #45 remains stacked on it and is not integrated.
+3. Review QuranEnc's terms for the exact intended web/mobile/hosting/caching/offline/export uses before enabling Bengali translation.
+4. Approve Hadith collection/edition, grading provenance, translation rights, tafsir and dua sources, and audio recording ownership/streaming/offline rights separately.
+5. Implement and review authentication, authorization, session lifecycle, and cross-user isolation before protected personal data or admin writes.
+6. Verify hosted PostgreSQL connection, least privilege, migrations, readiness, backup/restore, rollback, and production secret configuration.
+7. Complete deployed CORS/CSP network smoke tests and manual RTL, keyboard, screen-reader, responsive, and device QA.
+
+No Quran Arabic, Hadith, translation, tafsir, dua, or audio content was fabricated, rewritten, imported, or activated in this work. No secrets or production data were committed.
+
+## Files changed in this integration run
+
+- `backend/test/source-approval-integrity.test.ts`
+- `docs/OPENAPI-DRAFT.yaml`
 - `docs/API-CONTRACT.md`
 - `docs/RELEASE-SAFETY-RECONCILIATION.md`
 
-No application code, religious content, database data, or secrets were changed.
