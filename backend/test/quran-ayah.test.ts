@@ -23,7 +23,7 @@ before(async () => {
     attribution: 'Test fixture only',
     license_id: 'test-license',
     redistribution_allowed: true,
-    reviewer: 'test-reviewer',
+    reviewer: 'test-source-reviewer',
     reviewed_at: '2026-11-04 00:00:00',
     checksum: 'a'.repeat(64),
     is_active: true
@@ -32,7 +32,7 @@ before(async () => {
     id: 'approval-1',
     source_id: sourceId,
     decision: 'approved',
-    reviewer_id: 'test-reviewer',
+    reviewer_id: 'test-artifact-reviewer',
     approved_at: '2026-11-04 00:00:00',
     artifact_sha256: 'a'.repeat(64),
     review_notes: 'Automated test fixture'
@@ -69,9 +69,25 @@ test('returns an ayah only from an approved source with matching text digest', a
   assert.equal(response.json().data.payload.surahNumber, 1);
   assert.equal(response.json().data.payload.ayahNumber, 1);
   assert.equal(response.json().data.provenance.approvalStatus, 'approved');
-  assert.equal(response.json().data.provenance.approvedByAuthority, 'test-reviewer');
+  assert.equal(response.json().data.provenance.approvedByAuthority, 'test-artifact-reviewer');
   assert.equal(response.json().data.provenance.redistributionAllowed, true);
   assert.equal(response.json().data.provenance.sourceId, sourceId);
+});
+
+test('fails closed when source and artifact approval use the same reviewer', async () => {
+  await db('content_source_approvals').where({ id: 'approval-1' }).update({ reviewer_id: 'test-source-reviewer' });
+  const response = await app.inject({ method: 'GET', url: '/api/v1/ayah/1/1' });
+  assert.equal(response.statusCode, 503);
+  assert.equal(response.json().error.code, 'CONTENT_UNAVAILABLE');
+  await db('content_source_approvals').where({ id: 'approval-1' }).update({ reviewer_id: 'test-artifact-reviewer' });
+});
+
+test('rejects the project-owner chat authorization identity as an artifact approver', async () => {
+  await db('content_source_approvals').where({ id: 'approval-1' }).update({ reviewer_id: 'project-owner-chat-authorization' });
+  const response = await app.inject({ method: 'GET', url: '/api/v1/ayah/1/1' });
+  assert.equal(response.statusCode, 503);
+  assert.equal(response.json().error.code, 'CONTENT_UNAVAILABLE');
+  await db('content_source_approvals').where({ id: 'approval-1' }).update({ reviewer_id: 'test-artifact-reviewer' });
 });
 
 test('rejects non-canonical or invalid ayah parameters', async () => {
@@ -104,7 +120,7 @@ test('fails closed when multiple active approved Quran editions exist', async ()
     attribution: 'Synthetic test fixture only',
     license_id: 'test-license',
     redistribution_allowed: true,
-    reviewer: 'second-test-reviewer',
+    reviewer: 'second-source-reviewer',
     reviewed_at: '2026-11-04 00:00:00',
     checksum: 'b'.repeat(64),
     is_active: true
@@ -113,7 +129,7 @@ test('fails closed when multiple active approved Quran editions exist', async ()
     id: 'approval-second-quran-source',
     source_id: 'second-approved-quran-source',
     decision: 'approved',
-    reviewer_id: 'second-test-reviewer',
+    reviewer_id: 'second-artifact-reviewer',
     approved_at: '2026-11-04 00:00:00',
     artifact_sha256: 'b'.repeat(64),
     review_notes: 'Synthetic ambiguity regression fixture only'
