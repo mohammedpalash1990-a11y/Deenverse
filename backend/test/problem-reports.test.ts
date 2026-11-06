@@ -41,6 +41,7 @@ test('accepts a problem report and stores it without a content approval workflow
 });
 
 test('rejects incomplete ayah references and short descriptions', async () => {
+  const before = Number(await db('problem_reports').count({ count: '*' }).first().then((row) => row?.count ?? 0));
   const response = await app.inject({
     method: 'POST',
     url: '/api/v1/problem-reports',
@@ -53,5 +54,5 @@ test('rejects incomplete ayah references and short descriptions', async () => {
     }
   });
   assert.equal(response.statusCode, 400);
-  assert.equal(await db('problem_reports').count({ count: '*' }).first().then((row) => Number(row?.count)), 0);
+  assert.equal(Number(await db('problem_reports').count({ count: '*' }).first().then((row) => row?.count ?? 0)), before);
 });
