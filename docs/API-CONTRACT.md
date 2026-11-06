@@ -95,6 +95,31 @@ The current mainline release-safety candidate is PR #75 (`qa/release-safety-2026
 
 The candidate's exact-head evidence recorded in PR #75 is DEENVERSE CI run [42071843318](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/42071843318) and Web foundation run [42071843376](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/42071843376). These checks validate software behavior on that candidate SHA only; they do not authorize a merge, deployment, or content release.
 
+## Integration branch release state — 2026-11-06
+
+This section describes `integration/platform-foundation` only. It is not a claim that these changes are live on `main`.
+
+The integration branch now documents **10 registered GET routes**:
+
+- `/api/v1/health` and `/api/v1/ready`
+- `/api/v1/quran/surahs` and `/api/v1/quran/surahs/{surahNumber}`
+- `/api/v1/ayah/{surah}/{ayah}`
+- `/api/v1/hadith/books`
+- `/api/v1/hadith/books/{bookId}/chapters`
+- `/api/v1/hadith/books/{bookId}/records`
+- `/api/v1/hadith/records/{recordId}`
+- `/api/v1/hadith/search`
+
+Both public QuranEnc Bengali translation routes have been removed from backend registration and from this OpenAPI snapshot. Requests to `/api/v1/translation/bn/{surahNumber}` and `/api/v1/translation/bn/{surahNumber}/{ayahNumber}` must return the canonical HTTP 404 `NOT_FOUND` envelope. The translation parser/client remain dormant code for possible future review; they are not a public API or an approved content source.
+
+The integration AppShell mounts an approval-pending placeholder. It does not request Quran text, Bengali translation, or audio. The old raw-GitHub Quran file is deleted from the current integration tree, and browser `connect-src` no longer allows `raw.githubusercontent.com`. Historical Git objects are not rewritten.
+
+The single-Ayah backend route remains registered for future source-approved use. Its shared source selector now requires exactly one active, redistribution-permitted source with a matching approval digest, distinct source and artifact reviewers, and no `project-owner-chat-authorization` reviewer identity. The Tanzil importer separately downloads and validates the official artifact, recomputes its digest, checks edition/metadata, and rejects non-independent approvals. The API does not independently download and hash the upstream artifact on each read; stored digest equality alone is not proof of authenticity.
+
+No production Quran artifact is currently evidenced as independently acquired and approved. The Tanzil source dossier remains candidate/not approved, the production source row was reported inactive, and no Quran Ayah rows were present in the latest QA evidence. Do not activate or import content based on synthetic test fixtures.
+
+`main` remains unchanged by this integration work. PR #75 is still a draft and unmerged; PR #69 remains open and non-mergeable, and its raw-GitHub fallback is blocked by content-integrity review. Therefore the fail-closed integration behavior is not yet live on the public main deployment.
+
 ## Remaining contract work
 
 1. Remove or explicitly mark disabled paths from the OpenAPI snapshot when reconciling it with PR #75; validate route parity against the exact target SHA.
