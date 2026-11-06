@@ -52,7 +52,7 @@ All responses adhere to the standard REST envelope specified in `docs/CONTENT-AP
 }
 ```
 
-The pagination cursor is an opaque, base64-encoded non-negative offset in the current implementation. Clients must treat it as an opaque token and must not construct or modify it.
+The pagination cursor is an unsigned, Base64-encoded non-negative offset. It is not cryptographically signed or bound to an edition, filter, search, or query fingerprint; cross-query cursor replay is not rejected by the current implementation. Clients must still treat it as opaque and must not construct or modify it.
 
 **Integrity limitation:** The current backend compares the approval record's `artifact_sha256` string with the source record's `checksum` string and validates provenance metadata. It does not download or hash an immutable source artifact. This equality check is not cryptographic artifact verification and must not be described as proof that published content matches an authentic source. Do not approve or publish production religious content until immutable artifact retrieval, SHA-256 recomputation, source identity, edition, licensing, and independent human review are implemented and evidenced.
 
@@ -83,23 +83,19 @@ Standard Error Codes:
 
 The current backend uses HTTP 400 for validation errors, 401/403 for authentication/authorization errors when applicable, 404 for missing resources, 429 for rate limiting, 502 for integrity rejection, and 503 for `CONTENT_UNAVAILABLE` or `UNAVAILABLE`. Read-only route registration does not imply that any religious corpus is approved or populated.
 
-## Release-safety contract override — 2026-11-05
+## Release-safety and integration contract — 2026-11-06
 
-The current mainline release-safety candidate is PR #75 (`qa/release-safety-2026-11-05`). Its exact-head CI passed, but it remains an unmerged draft. Until it is reviewed and merged:
+### Public mainline and candidate PRs
 
-- Treat PR #75 as the required release-safety target, not as deployed behavior.
-- The candidate unregisters both public QuranEnc Bengali translation routes; the expected response is HTTP 404 with `NOT_FOUND`. The frontend translation adapter may remain in the codebase for future approved use, but it must not be described as an available production API.
-- The candidate replaces the raw-GitHub Quran text and unverified EveryAyah/Audiomack audio reader with a fail-closed approval-pending state, deletes the unverified committed Quran text copy, and removes `raw.githubusercontent.com` from browser `connect-src`.
-- PR #1's earlier route inventory and OpenAPI snapshot predate this safety candidate. Do not use the older translation-route registration as a release contract, and do not merge PR #1 without reconciling its OpenAPI paths, tests, and UI against PR #75.
-- The safety candidate does not establish source authenticity, independent scholarly approval, artifact acquisition/digest evidence, translation redistribution rights, or audio rights. No religious content may be imported, fabricated, or activated to make tests or UI appear complete.
+- `main` remains at `f098d650a9cbc5aaaaadee6a925e68dfa9dbdb9a`. No integration changes in this document are live on main.
+- PR #75 (`qa/release-safety-2026-11-05`) remains open, draft, and unmerged at head `33ad1020bde7c91c0a42239ebf915198c830362c`. Its functional safety changes were tested on predecessor `773378d82e0396358aecd6cb6a148b48ae2cfbfa`: DEENVERSE CI #42075029048 and Web foundation #42075029010 passed; backend 80/80, web 171/171, and both audits reported zero vulnerabilities. The current PR head is documentation-only and has no separate workflow run.
+- PR #69 (`codex/quran-public-beta-reader`) remains open and non-mergeable. It reintroduces a browser fetch from `raw.githubusercontent.com` when the approved API returns `CONTENT_UNAVAILABLE`, re-allows that host in CSP, and presents the fetched text as public beta. A client-side SHA-256 comparison does not establish official artifact acquisition, independent approval, or redistribution rights. Blocking review comment #6685706745 records this finding. Do not merge or deploy PR #69.
 
-The candidate's exact-head evidence recorded in PR #75 is DEENVERSE CI run [42071843318](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/42071843318) and Web foundation run [42071843376](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/42071843376). These checks validate software behavior on that candidate SHA only; they do not authorize a merge, deployment, or content release.
+### Integration branch contract
 
-## Integration branch release state — 2026-11-06
+The following evidence describes `integration/platform-foundation`, not deployed mainline behavior. At the latest verified implementation head `dc251bcc38dff3b7d0d975e31959a255e606960f`, the branch compared 107 commits ahead / 0 behind main. PR #1 remains open and unmerged; no review submissions or inline review threads were recorded. Do not merge automatically.
 
-This section describes `integration/platform-foundation` only. It is not a claim that these changes are live on `main`.
-
-The integration branch now documents **10 registered GET routes**:
+The OpenAPI snapshot contains exactly 10 registered GET operations:
 
 - `/api/v1/health` and `/api/v1/ready`
 - `/api/v1/quran/surahs` and `/api/v1/quran/surahs/{surahNumber}`
@@ -110,15 +106,33 @@ The integration branch now documents **10 registered GET routes**:
 - `/api/v1/hadith/records/{recordId}`
 - `/api/v1/hadith/search`
 
-Both public QuranEnc Bengali translation routes have been removed from backend registration and from this OpenAPI snapshot. Requests to `/api/v1/translation/bn/{surahNumber}` and `/api/v1/translation/bn/{surahNumber}/{ayahNumber}` must return the canonical HTTP 404 `NOT_FOUND` envelope. The translation parser/client remain dormant code for possible future review; they are not a public API or an approved content source.
+Both public QuranEnc Bengali translation routes are unregistered and absent from OpenAPI. Requests to `/api/v1/translation/bn/{surahNumber}` and `/api/v1/translation/bn/{surahNumber}/{ayahNumber}` return the canonical HTTP 404 `NOT_FOUND` envelope. The translation parser/client remain dormant code only; they are not a public API or an approved content source. QuranEnc-specific response schemas were removed from the OpenAPI snapshot.
 
-The integration AppShell mounts an approval-pending placeholder. It does not request Quran text, Bengali translation, or audio. The old raw-GitHub Quran file is deleted from the current integration tree, and browser `connect-src` no longer allows `raw.githubusercontent.com`. Historical Git objects are not rewritten.
+The mounted Quran section is an approval-pending placeholder. It makes no Quran, translation, or audio request and renders no religious text. The unverified repository Quran text file is absent from the integration tree, and browser `connect-src` does not allow `raw.githubusercontent.com`. The public Hadith reader requests only backend-approved records and displays an empty/unavailable state when no approved collection exists.
 
-The single-Ayah backend route remains registered for future source-approved use. Its shared source selector now requires exactly one active, redistribution-permitted source with a matching approval digest, distinct source and artifact reviewers, and no `project-owner-chat-authorization` reviewer identity. The Tanzil importer separately downloads and validates the official artifact, recomputes its digest, checks edition/metadata, and rejects non-independent approvals. The API does not independently download and hash the upstream artifact on each read; stored digest equality alone is not proof of authenticity.
+The source selector requires exactly one active, redistribution-permitted source with a matching approval digest, distinct source and artifact reviewers, and no `project-owner-chat-authorization` reviewer identity. The stored digest comparison is metadata gating only: the read path does not download and independently re-hash the upstream artifact. The OpenAPI checksum description now states this limitation. Pagination cursors remain unsigned offsets and are not bound to query context; this is a known API hardening gap.
 
-No production Quran artifact is currently evidenced as independently acquired and approved. The Tanzil source dossier remains candidate/not approved, the production source row was reported inactive, and no Quran Ayah rows were present in the latest QA evidence. Do not activate or import content based on synthetic test fixtures.
+### Exact CI evidence
 
-`main` remains unchanged by this integration work. PR #75 is still a draft and unmerged; PR #69 remains open and non-mergeable, and its raw-GitHub fallback is blocked by content-integrity review. Therefore the fail-closed integration behavior is not yet live on the public main deployment.
+The latest verified integration head `dc251bcc38dff3b7d0d975e31959a255e606960f` was tested through PR #1's merge ref, combining that head with main `f098d650a9cbc5aaaaadee6a925e68dfa9dbdb9a`:
+
+- DEENVERSE CI #42224958000 — PASS. Backend: typecheck, 86/86 tests, PostgreSQL 16 migrations/runtime, production SQLite startup guard, build, and `npm audit --audit-level=high` (0 vulnerabilities). Web: typecheck, 18 test files / 174 tests, production build, and high-severity audit (0 vulnerabilities).
+- Web foundation #42224958140 — PASS: locked install, audit capture, typecheck, 18 test files / 174 tests, production build.
+- OpenAPI validation #42224958031 — PASS: OpenAPI 3.1 YAML parse, unique keys, local references, and backend route parity; 10 paths / 10 operations.
+
+An earlier backend run on head `9146c6925e94b2dcda89f0182ab6994a1af9190a` exposed one fixture defect: the test approval reviewer was identical to the source reviewer, so the new independence gate correctly returned 503 instead of the fixture's expected 200. Commit `073fb540a5dbf3583249f828383b1f9c9ab4d142` changed the synthetic approval reviewer to a distinct test identity; the later exact-head backend suite passed 86/86.
+
+The first OpenAPI metadata edit had a YAML quoting error at line 489. Commit `dc251bcc38dff3b7d0d975e31959a255e606960f` repaired the checksum schema, and OpenAPI validation #42224958031 passed on the repaired head.
+
+### Agent branch evidence
+
+- `jules/backend-foundation` head `f84e35c242ab37ccafca0528a1d06e0d4b244834`: 3 commits ahead / 69 behind main; its only branch-specific files are `AGENT_TASK.md` and `JULES_NEXT_TASK.md`.
+- `queen/frontend-foundation` head `9ef788c81de85e9ebfa139b35c42d606c38f2010`: 2 commits ahead / 69 behind main; its only branch-specific file is `AGENT_TASK.md`.
+- No backend/frontend implementation is attributed to either assignment branch. Neither branch was modified.
+
+### Content and release restrictions
+
+No Quran Arabic, Hadith, translation, tafsir, dua, or audio corpus was fabricated, imported, or activated by this integration work. No secrets or production data were committed. No production content is authorized until exact immutable artifacts, independently recomputed digests, source/edition identity, use-specific redistribution terms, and qualified independent human approval are evidenced. Per-Ayah review, translation rights, Hadith/tafsir/dua source approvals, audio ownership/streaming/offline rights, authentication/authorization, hosted PostgreSQL operations, and manual RTL/accessibility/device QA remain release blockers.
 
 ## Remaining contract work
 
