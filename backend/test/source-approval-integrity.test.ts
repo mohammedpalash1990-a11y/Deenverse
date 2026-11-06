@@ -37,7 +37,7 @@ test('catalogue publication requires the approval digest to match the registered
     id: 'synthetic-approval-fixture',
     source_id: 'synthetic-source-fixture',
     decision: 'approved',
-    reviewer_id: 'synthetic-test-reviewer',
+    reviewer_id: 'synthetic-independent-artifact-reviewer',
     approved_at: '2026-11-03T00:00:00.000Z',
     artifact_sha256: differentDigest,
     review_notes: 'Synthetic mismatch fixture; never approve or publish.'
