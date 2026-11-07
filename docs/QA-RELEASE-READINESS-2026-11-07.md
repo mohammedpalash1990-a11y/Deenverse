@@ -224,3 +224,21 @@ P2 — manual product QA:
 - No production SQL writes or permissions changes were made.
 - No agent-owned branches were modified.
 - This report is evidence-only and does not authorize a release.
+
+
+## Documentation drift and migration tracking
+
+The current mainline source was compared with two documents that still contain obsolete snapshots:
+- docs/SOURCE-REGISTER.md says main still mounts the raw-GitHub beta reader and says PR #1 is unmerged. Current main a7ad2eb4dae5d2fdcfb682e1747d4b17d56dab29 mounts the fail-closed placeholder, and data/quran/tanzil/quran-uthmani.txt returns 404 (not present on main).
+- docs/API-CONTRACT.md still contains a historical section saying main is f098d650a9cbc5aaaaadee6a925e68dfa9dbdb9a, PR #1 is open/unmerged, and pagination cursors are unsigned offsets. Those statements contradict current main and the HMAC/query-bound cursor implementation integrated by PR #1. Treat those sections as stale history, not current implementation evidence. Reconcile these documents in a separate documentation-only change after the release-safety PRs are reviewed.
+
+Migration tracking:
+- backend/src/db/migrate.ts uses a custom idempotent schema-introspection runner and a PostgreSQL transaction-scoped advisory lock; it does not create or use the standard knex_migrations/knex_migrations_lock tables.
+- The inspected Neon database has all ten required tables and the required column names listed by backend/src/db/schema-readiness.ts. No knex_migrations history table exists. The runtime readiness check validates table/column presence, not exact column types, constraints, migration provenance, or approved content.
+- Therefore schema presence is verified, but the precise sequence of migration executions is not recorded in a migration history table. Execute the migration CLI and deployed /api/v1/ready against the actual Neon PostgreSQL 17.11 database during the controlled deployment rehearsal; do not infer successful migration history from table presence alone.
+
+PR #84 report metadata:
+- Draft PR: https://github.com/mohammedpalash1990-a11y/Deenverse/pull/84
+- Base SHA: a7ad2eb4dae5d2fdcfb682e1747d4b17d56dab29
+- Initial report commit SHA: 386159da1358ff1a53d74564b44ce35d200fa61f
+- The report branch contains only this QA report file. Exact-head Web foundation run 42396117945 was still in progress at the last poll; typecheck and tests had completed successfully, production build was still running. Do not claim final CI until the run completes.
