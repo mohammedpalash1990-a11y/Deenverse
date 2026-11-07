@@ -69,7 +69,9 @@ function signCursorPayload(payload: string): Buffer {
   return createHmac('sha256', CURSOR_KEY).update(payload, 'utf8').digest();
 }
 
-export function decodeCursor(cursor: string | undefined, scope: string): number {
+const DEFAULT_CURSOR_SCOPE = 'default';
+
+export function decodeCursor(cursor: string | undefined, scope: string = DEFAULT_CURSOR_SCOPE): number {
   if (!cursor) return 0;
   const [encodedPayload, encodedSignature, extra] = cursor.split('.');
   if (!encodedPayload || !encodedSignature || extra !== undefined ||
@@ -93,12 +95,12 @@ export function decodeCursor(cursor: string | undefined, scope: string): number 
   }
   if (payload.v !== 1 || payload.scope !== scope ||
       !Number.isSafeInteger(payload.offset) || payload.offset < 0) {
-    throw new Error('Pagination cursor does not match this query');
+    throw new Error('Pagination cursor is invalid or belongs to a different query');
   }
   return payload.offset;
 }
 
-export function encodeCursor(offset: number, scope: string): string {
+export function encodeCursor(offset: number, scope: string = DEFAULT_CURSOR_SCOPE): string {
   if (!Number.isSafeInteger(offset) || offset < 0) {
     throw new Error('Cursor offset must be a non-negative safe integer');
   }
