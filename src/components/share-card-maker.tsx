@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import type { FormEvent } from "react";
 
 type CardKind = "quran" | "hadith";
 
@@ -47,8 +46,7 @@ export function ShareCardMaker() {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
-  async function createImage(event: FormEvent<HTMLFormElement>, action: "download" | "share") {
-    event.preventDefault();
+  async function createImage(action: "download" | "share") {
     if (!meaning.trim() || !reference.trim()) {
       setError("বাংলা অর্থ/বর্ণনা এবং নির্ভুল সূত্র লিখুন।");
       return;
@@ -61,6 +59,11 @@ export function ShareCardMaker() {
       canvas.height = 1350;
       const context = canvas.getContext("2d");
       if (!context) throw new Error("এই ব্রাউজারে ছবি তৈরি করা যাচ্ছে না।");
+      await document.fonts.ready;
+      await Promise.all([
+        document.fonts.load("500 44px \"Noto Sans Bengali\""),
+        document.fonts.load("500 52px \"Noto Naskh Arabic\"")
+      ]);
 
       const gradient = context.createLinearGradient(0, 0, 1080, 1350);
       gradient.addColorStop(0, "#102b23");
@@ -83,7 +86,7 @@ export function ShareCardMaker() {
       context.fillText("QURAN  ·  HADITH  ·  GUIDANCE", 540, 174);
 
       context.fillStyle = "#e3c88c";
-      context.font = "600 27px Arial, sans-serif";
+      context.font = '600 27px "Noto Sans Bengali", sans-serif';
       context.fillText(kind === "quran" ? "কোরআনের আয়াত" : "হাদিস শরীফ", 540, 292);
       context.fillStyle = "#d6bd89";
       context.fillRect(420, 320, 240, 2);
@@ -91,22 +94,22 @@ export function ShareCardMaker() {
       let y = 420;
       if (arabic.trim()) {
         context.fillStyle = "#fff9e9";
-        context.font = "52px Georgia, serif";
+        context.font = '500 52px "Noto Naskh Arabic", serif';
         y = drawLines(context, arabic.trim(), 540, y, 850, 86, "rtl") + 38;
       }
       context.fillStyle = "#fffaf0";
-      context.font = "44px Arial, sans-serif";
+      context.font = '500 44px "Noto Sans Bengali", sans-serif';
       y = drawLines(context, meaning.trim(), 540, y, 850, 76) + 42;
 
       context.fillStyle = "#d8c18f";
       context.fillRect(190, Math.min(y, 1040), 700, 2);
       context.fillStyle = "#f1dfb8";
-      context.font = "28px Arial, sans-serif";
+      context.font = '500 28px "Noto Sans Bengali", sans-serif';
       drawLines(context, reference.trim(), 540, Math.min(y + 65, 1110), 850, 42);
 
       if (note.trim()) {
         context.fillStyle = "#c5d2c7";
-        context.font = "22px Arial, sans-serif";
+        context.font = '400 22px "Noto Sans Bengali", sans-serif';
         drawLines(context, note.trim(), 540, 1180, 850, 32);
       }
       context.fillStyle = "#d8c18f";
@@ -149,7 +152,7 @@ export function ShareCardMaker() {
         <small>{reference || "সূত্র / রেফারেন্স"}</small>
         <b>Read Quran · Follow Sunnah · Spread Goodness</b>
       </div>
-      <form className="share-card-form" onSubmit={(event) => void createImage(event, "download")}>
+      <form className="share-card-form" onSubmit={(event) => { event.preventDefault(); void createImage("download"); }}>
         <label>কার্ডের ধরন
           <select value={kind} onChange={(event) => setKind(event.target.value as CardKind)}>
             <option value="quran">কোরআনের আয়াত</option>
@@ -171,10 +174,7 @@ export function ShareCardMaker() {
         {error && <p className="share-card-error" role="alert">{error}</p>}
         <div className="share-card-actions">
           <button type="submit" disabled={busy}>{busy ? "তৈরি হচ্ছে…" : "PNG ছবি ডাউনলোড"}</button>
-          <button type="button" disabled={busy} onClick={(event) => {
-            const form = event.currentTarget.form;
-            if (form) void createImage({ preventDefault: () => undefined } as FormEvent<HTMLFormElement>, "share");
-          }}>শেয়ার করুন</button>
+          <button type="button" disabled={busy} onClick={() => void createImage("share")}>শেয়ার করুন</button>
         </div>
       </form>
       <p className="share-card-integrity">গুরুত্বপূর্ণ: Deenverse এখনো অনুমোদিত আয়াত/হাদিসের পূর্ণ ডেটাসেট পায়নি। তাই এখানে নিজে যাচাইকৃত লেখা ও সূত্র দিতে হবে; অ্যাপ কোনো ধর্মীয় উদ্ধৃতি নিজে থেকে তৈরি বা যাচাই করা বলে দাবি করে না।</p>
