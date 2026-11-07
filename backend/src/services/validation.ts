@@ -1,4 +1,5 @@
 import { createHash, createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
+import { z } from 'zod';
 import { ReligiousContentType, ContentProvenance, SourceApprovalStatus } from '../types/content.js';
 
 export const ContentProvenanceSchema = z.object({
