@@ -217,4 +217,14 @@ test('Hadith API publishes only source-approved, independently reviewed, intact 
   await db('content_source_approvals').where({ id: 'hadith-source-approval' }).update({ artifact_sha256: '0'.repeat(64) });
   const mismatchedSource = await app.inject({ method: 'GET', url: '/api/v1/hadith/books' });
   assert.equal(mismatchedSource.statusCode, 503, 'a checksum-mismatched source approval must fail closed');
+
+  await db('content_source_approvals').where({ id: 'hadith-source-approval' }).update({ artifact_sha256: sourceChecksum });
+  await db('content_sources').where({ id: 'hadith-source-fixture' }).update({ reviewer: 'test-source-authority' });
+  const sameSourceReviewer = await app.inject({ method: 'GET', url: '/api/v1/hadith/books' });
+  assert.equal(sameSourceReviewer.statusCode, 503, 'source reviewer and approval reviewer must be independent');
+
+  await db('content_sources').where({ id: 'hadith-source-fixture' }).update({ reviewer: 'test-reviewer' });
+  await db('content_source_approvals').where({ id: 'hadith-source-approval' }).update({ reviewer_id: 'project-owner-chat-authorization' });
+  const reservedReviewer = await app.inject({ method: 'GET', url: '/api/v1/hadith/books' });
+  assert.equal(reservedReviewer.statusCode, 503, 'the reserved project-owner authorization identity must never approve Hadith sources');
 });
