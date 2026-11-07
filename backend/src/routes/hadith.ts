@@ -12,7 +12,7 @@ const SearchQuerySchema = z.object({
   q: z.string().trim().min(1).max(120),
   locale: z.enum(['ar', 'bn', 'en']).optional(),
   limit: z.coerce.number().int().min(1).max(50).default(20),
-  cursor: z.string().max(512).optional().refine((value) => value === undefined || /^[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+$/.test(value), {
+  cursor: z.string().max(512).optional().refine((value) => value === undefined || (value.split('.').length === 2 && value.split('.').every((part) => /^[A-Za-z0-9_-]+$/.test(part))), {
     message: 'Cursor must be a signed pagination token'
   })
 });
