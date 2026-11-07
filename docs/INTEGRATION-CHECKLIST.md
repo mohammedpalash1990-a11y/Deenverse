@@ -19,7 +19,8 @@ This checklist is evidence-based. A checked item means the corresponding code or
 - [x] Active frontend adapter paths match registered backend paths. Translation service unit tests remain, while public endpoint tests assert canonical 404/NOT_FOUND.
 - [x] Success/error envelope and 400 validation convention documented.
 - [x] Shared Quran source selector fails closed unless exactly one active, redistribution-permitted, approved source exists; catalogue and Ayah regression tests cover ambiguity.
-- [ ] Bind pagination cursors to edition/query context.
+- [x] Bind pagination cursors to canonical endpoint/query/page-size scope with HMAC-SHA-256; reject tampering and cross-query replay.
+- [x] Require distinct source and approval reviewers for Hadith and translation sources; reject the reserved project-owner authorization identity.
 - [ ] Expand contract tests to cover every response schema and pagination/error edge case; current coverage includes source ambiguity, full-Surah ordering/provenance, and safe error mapping.
 
 ## Security and user data
@@ -116,3 +117,14 @@ Evidence below was captured at integration implementation head `dc251bcc38dff3b7
 - `jules/backend-foundation`: head `f84e35c242ab37ccafca0528a1d06e0d4b244834`, 3 ahead / 69 behind main; only `AGENT_TASK.md` and `JULES_NEXT_TASK.md` differ from main.
 - `queen/frontend-foundation`: head `9ef788c81de85e9ebfa139b35c42d606c38f2010`, 2 ahead / 69 behind main; only `AGENT_TASK.md` differs from main.
 - No implementation work is attributed to either assignment branch; neither branch was modified.
+
+
+## 2026-11-07 pagination and Hadith approval hardening
+
+- [x] Replace unsigned Base64 offsets with HMAC-SHA-256 signed, versioned cursors.
+- [x] Bind Quran Surah cursors to route and page size.
+- [x] Bind Hadith book cursors to route and page size; record cursors to book, chapter, locale, and page size; search cursors to normalized search text, locale, and page size.
+- [x] Reject malformed signatures, tampering, and cursor replay against another query with HTTP 400 `VALIDATION_ERROR`.
+- [x] Require source reviewer and approval reviewer to be distinct for Hadith and translation source selection/search; reject `project-owner-chat-authorization`.
+- [x] Add focused unit tests for cursor round-trip, tampering, cross-scope replay, page-size changes, and unsafe offsets; add Hadith source-reviewer regression tests.
+- [ ] Exact-head backend, web, and OpenAPI CI must all finish successfully before PR #1 is ready for review.
