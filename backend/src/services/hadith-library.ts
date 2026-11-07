@@ -389,6 +389,8 @@ export class HadithLibraryService {
               'ts.redistribution_allowed': true,
               'tsa.decision': 'approved'
             })
+            .whereRaw('LOWER(TRIM(ts.reviewer)) <> LOWER(TRIM(tsa.reviewer_id))')
+            .whereRaw("LOWER(TRIM(tsa.reviewer_id)) <> 'project-owner-chat-authorization'")
             .whereRaw('tsa.artifact_sha256 = ts.checksum')
             .whereRaw('ht.license_id = ts.license_id')
             .whereRaw('LOWER(??) LIKE ?', ['ht.translation_text', pattern]);
