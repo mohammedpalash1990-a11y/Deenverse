@@ -82,12 +82,32 @@ test('fails closed when source and artifact approval use the same reviewer', asy
   await db('content_source_approvals').where({ id: 'approval-1' }).update({ reviewer_id: 'test-artifact-reviewer' });
 });
 
+test('rejects reviewer identities that differ only by case or surrounding whitespace', async () => {
+  await db('content_source_approvals').where({ id: 'approval-1' }).update({ reviewer_id: ' TEST-SOURCE-REVIEWER ' });
+  const duplicateIdentity = await app.inject({ method: 'GET', url: '/api/v1/ayah/1/1' });
+  assert.equal(duplicateIdentity.statusCode, 503);
+  assert.equal(duplicateIdentity.json().error.code, 'CONTENT_UNAVAILABLE');
+  await db('content_source_approvals').where({ id: 'approval-1' }).update({ reviewer_id: 'test-artifact-reviewer' });
+});
+
 test('rejects the project-owner chat authorization identity as an artifact approver', async () => {
   await db('content_source_approvals').where({ id: 'approval-1' }).update({ reviewer_id: 'project-owner-chat-authorization' });
   const response = await app.inject({ method: 'GET', url: '/api/v1/ayah/1/1' });
   assert.equal(response.statusCode, 503);
   assert.equal(response.json().error.code, 'CONTENT_UNAVAILABLE');
   await db('content_source_approvals').where({ id: 'approval-1' }).update({ reviewer_id: 'test-artifact-reviewer' });
+});
+
+test('rejects reserved reviewer identities regardless of case or surrounding whitespace', async () => {
+  await db('content_source_approvals').where({ id: 'approval-1' }).update({ reviewer_id: ' PROJECT-OWNER-CHAT-AUTHORIZATION ' });
+  const reservedApproval = await app.inject({ method: 'GET', url: '/api/v1/ayah/1/1' });
+  assert.equal(reservedApproval.statusCode, 503);
+  await db('content_source_approvals').where({ id: 'approval-1' }).update({ reviewer_id: 'test-artifact-reviewer' });
+
+  await db('content_sources').where({ id: sourceId }).update({ reviewer: ' PROJECT-OWNER-CHAT-AUTHORIZATION ' });
+  const reservedSource = await app.inject({ method: 'GET', url: '/api/v1/ayah/1/1' });
+  assert.equal(reservedSource.statusCode, 503);
+  await db('content_sources').where({ id: sourceId }).update({ reviewer: 'test-source-reviewer' });
 });
 
 test('rejects non-canonical or invalid ayah parameters', async () => {
