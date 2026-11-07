@@ -6,10 +6,12 @@ import { QuranCatalogue } from "@/components/quran-catalogue";
 import { ReaderControls } from "@/components/reader-controls";
 import { QuranBetaReader } from "@/components/quran-beta-reader";
 import { HadithReader } from "@/components/hadith-reader";
+import { ShareCardMaker } from "@/components/share-card-maker";
 
 const symbols: Record<SectionId, string> = {
   quran: "۞",
   hadith: "◈",
+  cards: "▧",
   duas: "✧",
   learn: "⌘",
   bookmarks: "◇",
@@ -109,6 +111,8 @@ export function AppShell() {
             </>
           ) : active === "hadith" ? (
             <HadithReader />
+          ) : active === "cards" ? (
+            <ShareCardMaker />
           ) : (
             <section className="section-placeholder">
               <div className="placeholder-icon">{symbols[active]}</div>
