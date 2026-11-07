@@ -14,7 +14,7 @@ describe("DEENVERSE app shell", () => {
     expect(screen.getByRole("heading", { name: "Return to the words." })).toBeInTheDocument();
     expect(screen.getByRole("complementary", { name: "Public beta notice" })).toHaveTextContent("DEENVERSE এখনো উন্নয়ন ও যাচাইয়ের পর্যায়ে আছে।");
     expect(screen.getByText(/নির্ভরযোগ্য মূল উৎসের সঙ্গে মিলিয়ে নিন/)).toBeInTheDocument();
-    expect(screen.getByRole("region", { name: "আল-কুরআন — আরবি ও বাংলা" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "আল-কুরআন" })).toBeInTheDocument();
     expect(screen.getByRole("status")).toHaveTextContent("উৎস ও প্রকাশনা যাচাই চলছে");
     expect(fetchSpy).not.toHaveBeenCalled();
   });
