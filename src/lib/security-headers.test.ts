@@ -45,17 +45,17 @@ describe("browser security headers", () => {
     const rules = await nextConfig.headers?.();
     const csp = rules?.[0]?.headers.find(({ key }) => key === "Content-Security-Policy")?.value;
     expect(csp?.split("; ").find((directive) => directive.startsWith("connect-src")))
-      .toBe("connect-src 'self' https://api.example.test:8443 https://raw.githubusercontent.com");
+      .toBe("connect-src 'self' https://api.example.test:8443");
     expect(csp).not.toContain("deenverse-api.onrender.com");
     expect(csp).not.toContain("/service/api/v1");
   });
 
-  it.each(["", "/api/v1", "/proxy/api/v1", "/"])("keeps %j same-origin for API and allows the pinned Quran text host", async (apiBase) => {
+  it.each(["", "/api/v1", "/proxy/api/v1", "/"])("keeps %j same-origin for API and blocks unverified raw-content hosts", async (apiBase) => {
     vi.stubEnv("NEXT_PUBLIC_API_BASE_URL", apiBase);
     const rules = await nextConfig.headers?.();
     const csp = rules?.[0]?.headers.find(({ key }) => key === "Content-Security-Policy")?.value;
     expect(csp?.split("; ").find((directive) => directive.startsWith("connect-src")))
-      .toBe("connect-src 'self' https://raw.githubusercontent.com");
+      .toBe("connect-src 'self'");
   });
 
   it("rejects unsafe deployment configuration instead of inserting CSP directives", async () => {

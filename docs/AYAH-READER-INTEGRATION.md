@@ -2,7 +2,7 @@
 
 ## Frontend flow
 
-The Quran page mounts `QuranAyahReader`, which calls the typed client in `src/lib/quran-ayah-client.ts` for one requested Surah/Ayah coordinate. The client validates the request coordinates, response envelope, returned record ID, payload coordinates, Arabic text presence, approval metadata, HTTPS source URL, redistribution flag, and SHA-256 digest format before returning a record to the component.
+The reusable `QuranAyahReader` and typed client in `src/lib/quran-ayah-client.ts` remain in the repository, but the current `integration/platform-foundation` AppShell does not mount that reader. It mounts the fail-closed `QuranBetaReader` approval-pending placeholder instead. The public Quran section therefore makes no Quran API, translation API, raw-GitHub, or audio request and displays no religious text. The reusable reader must not be re-mounted until the exact source artifact, redistribution rights, independent human approval, and backend publication gate are evidenced.
 
 The reader:
 - starts with no scripture text rendered;
@@ -34,4 +34,4 @@ The existing service worker caches only the application shell and public immutab
 
 ## Current implementation boundary
 
-The frontend contract client and reader UI are implemented, and the backend Ayah route/service already exists. The backend verifies stored Ayah text against its per-record SHA-256 and compares the approval digest with the registered source checksum, but it does not yet independently retrieve and hash the immutable upstream artifact. Independent source approval, a licensed production Quran edition, authentication policy, and offline Quran content delivery remain separate release gates.
+The frontend contract client and reusable reader component exist, and the backend Ayah route/service remains registered. The active integration AppShell is deliberately fail-closed and does not mount the reader. The source selector requires distinct source and artifact reviewers and rejects the project-owner chat authorization identity. The Tanzil importer implements official-artifact retrieval, validation, digest recomputation, and independent-approval checks; however, the exact official artifact acquisition and completed independent approval are not evidenced, so no production Quran content may be imported or published. The API does not re-download and hash the upstream artifact per request. Translation routes and audio playback remain disabled pending separate source-specific rights and review.

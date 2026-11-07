@@ -75,7 +75,7 @@ export function AppShell() {
         <header className="topbar">
           <button ref={menuButtonRef} type="button" className="mobile-menu" onClick={() => setMenuOpen(!menuOpen)} aria-label="Toggle navigation" aria-controls="primary-sidebar" aria-expanded={menuOpen}>☰</button>
           <div className="breadcrumb" aria-live="polite" aria-atomic="true">DEENVERSE <span>/</span> {section.label.toUpperCase()}</div>
-          <div className="topbar-right"><span className="status-dot" /> QURAN PUBLIC BETA LIVE</div>
+          <div className="topbar-right"><span className="status-dot" /> CONTENT APPROVAL PENDING</div>
         </header>
 
         <aside className="beta-notice" aria-label="Public beta notice">

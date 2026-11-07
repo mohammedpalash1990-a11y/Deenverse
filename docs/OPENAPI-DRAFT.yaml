@@ -1,0 +1,798 @@
+openapi: 3.1.0
+info:
+  title: DEENVERSE Implemented API
+  version: 1.2.1-release-gated
+  description: >
+    Release-gated snapshot of the 10 GET routes registered by
+    integration/platform-foundation at commit 45ec2723b6f0eaa259c8f9e81b536bdc0f41b63c
+    on 2026-11-06. The disabled QuranEnc Bengali translation routes are
+    intentionally absent. Route registration does not authorize or prove
+    that religious content is approved or populated. The Quran Ayah route
+    remains source-gated and must fail closed when no uniquely eligible
+    source exists. This contract describes the integration branch, not
+    deployed mainline behavior.
+servers:
+  - url: http://localhost:4000
+    description: Local backend
+tags:
+  - name: System
+  - name: Quran catalogue
+  - name: Quran Ayah
+  - name: Hadith
+paths:
+  /api/v1/health:
+    get:
+      tags: [System]
+      operationId: getHealth
+      summary: Liveness probe
+      responses:
+        '200':
+          description: Backend process is responding.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+        '403':
+          $ref: '#/components/responses/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/ErrorResponse'
+  /api/v1/ready:
+    get:
+      tags: [System]
+      operationId: getReadiness
+      summary: Database and required-schema readiness
+      responses:
+        '200':
+          description: Database is connected and the required schema is ready.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadinessResponse'
+        '403':
+          $ref: '#/components/responses/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/ErrorResponse'
+        '503':
+          $ref: '#/components/responses/ErrorResponse'
+  /api/v1/quran/surahs:
+    get:
+      tags: [Quran catalogue]
+      operationId: listSurahs
+      summary: List approved-source-gated Surah metadata
+      description: >
+        Metadata only; no Ayah text. Fails closed unless exactly one active,
+        redistribution-permitted Quran source has a matching approved decision.
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Paginated Surah metadata.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SurahPage'
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '403':
+          $ref: '#/components/responses/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/ErrorResponse'
+        '503':
+          $ref: '#/components/responses/ErrorResponse'
+  /api/v1/quran/surahs/{surahNumber}:
+    get:
+      tags: [Quran catalogue]
+      operationId: getSurah
+      summary: Get one Surah metadata record
+      parameters:
+        - name: surahNumber
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^(?:[1-9]|[1-9][0-9]|10[0-9]|11[0-4])$'
+      responses:
+        '200':
+          description: One Surah metadata record.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SurahDetail'
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '403':
+          $ref: '#/components/responses/ErrorResponse'
+        '404':
+          $ref: '#/components/responses/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/ErrorResponse'
+        '503':
+          $ref: '#/components/responses/ErrorResponse'
+  /api/v1/ayah/{surah}/{ayah}:
+    get:
+      tags: [Quran Ayah]
+      operationId: getQuranAyah
+      summary: Get one source-gated Arabic Ayah
+      description: >
+        Returns the exact stored source string after source/provenance and
+        per-record digest checks. The current route has no editionId parameter.
+        The service returns CONTENT_UNAVAILABLE unless exactly one eligible
+        active, approved Quran source exists; it never selects by row order.
+      parameters:
+        - name: surah
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^(?:[1-9]|[1-9][0-9]|10[0-9]|11[0-4])$'
+        - name: ayah
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^[1-9][0-9]{0,2}$'
+      responses:
+        '200':
+          description: Exact Ayah record with source provenance.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AyahDetail'
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '403':
+          $ref: '#/components/responses/ErrorResponse'
+        '404':
+          $ref: '#/components/responses/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/ErrorResponse'
+        '502':
+          $ref: '#/components/responses/ErrorResponse'
+        '503':
+          $ref: '#/components/responses/ErrorResponse'
+  /api/v1/hadith/books:
+    get:
+      tags: [Hadith]
+      operationId: listHadithBooks
+      summary: List approved Hadith collections
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Paginated approved Hadith collection metadata.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HadithBookPage'
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '403':
+          $ref: '#/components/responses/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/ErrorResponse'
+        '502':
+          $ref: '#/components/responses/ErrorResponse'
+        '503':
+          $ref: '#/components/responses/ErrorResponse'
+  /api/v1/hadith/books/{bookId}/chapters:
+    get:
+      tags: [Hadith]
+      operationId: listHadithChapters
+      summary: List chapters for an approved collection
+      parameters:
+        - name: bookId
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 128
+      responses:
+        '200':
+          description: Chapter metadata.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HadithChapterList'
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '403':
+          $ref: '#/components/responses/ErrorResponse'
+        '404':
+          $ref: '#/components/responses/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/ErrorResponse'
+        '502':
+          $ref: '#/components/responses/ErrorResponse'
+        '503':
+          $ref: '#/components/responses/ErrorResponse'
+  /api/v1/hadith/books/{bookId}/records:
+    get:
+      tags: [Hadith]
+      operationId: listHadithRecords
+      summary: List reviewed narrations for an approved collection
+      parameters:
+        - name: bookId
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 128
+        - name: chapterId
+          in: query
+          required: false
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 128
+        - name: locale
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Locale'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Paginated reviewed Hadith records.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HadithRecordPage'
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '403':
+          $ref: '#/components/responses/ErrorResponse'
+        '404':
+          $ref: '#/components/responses/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/ErrorResponse'
+        '502':
+          $ref: '#/components/responses/ErrorResponse'
+        '503':
+          $ref: '#/components/responses/ErrorResponse'
+  /api/v1/hadith/records/{recordId}:
+    get:
+      tags: [Hadith]
+      operationId: getHadithRecord
+      summary: Get one reviewed Hadith record
+      parameters:
+        - name: recordId
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 128
+        - name: locale
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Locale'
+      responses:
+        '200':
+          description: One reviewed Hadith record.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HadithRecordDetail'
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '403':
+          $ref: '#/components/responses/ErrorResponse'
+        '404':
+          $ref: '#/components/responses/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/ErrorResponse'
+        '502':
+          $ref: '#/components/responses/ErrorResponse'
+        '503':
+          $ref: '#/components/responses/ErrorResponse'
+  /api/v1/hadith/search:
+    get:
+      tags: [Hadith]
+      operationId: searchHadith
+      summary: Search approved and reviewed Hadith records
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 120
+        - name: locale
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Locale'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Paginated search results.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HadithRecordPage'
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '403':
+          $ref: '#/components/responses/ErrorResponse'
+        '404':
+          $ref: '#/components/responses/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/ErrorResponse'
+        '502':
+          $ref: '#/components/responses/ErrorResponse'
+        '503':
+          $ref: '#/components/responses/ErrorResponse'
+components:
+  parameters:
+    Limit:
+      name: limit
+      in: query
+      required: false
+      description: Page size; defaults to 20 and is limited to 1–50.
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 50
+        default: 20
+    Cursor:
+      name: cursor
+      in: query
+      required: false
+      description: >
+        Opaque HMAC-SHA-256 signed pagination token. Authenticated to the exact
+        endpoint query scope and page size; cross-query replay and tampering are
+        rejected with HTTP 400 VALIDATION_ERROR. Clients must return the token
+        unchanged and must not construct or modify it.
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 512
+        pattern: '^[A-Za-z0-9_-]+[.][A-Za-z0-9_-]+$'
+  schemas:
+    Locale:
+      type: string
+      enum: [ar, bn, en]
+    HealthResponse:
+      type: object
+      required: [status, probe, timestamp, requestId]
+      properties:
+        status:
+          const: healthy
+        probe:
+          const: liveness
+        timestamp:
+          type: string
+          format: date-time
+        requestId:
+          type: string
+          minLength: 1
+    ReadinessResponse:
+      type: object
+      required: [status, probe, database, migrations, timestamp, requestId]
+      properties:
+        status:
+          const: ready
+        probe:
+          const: readiness
+        database:
+          const: connected
+        migrations:
+          const: applied
+        timestamp:
+          type: string
+          format: date-time
+        requestId:
+          type: string
+          minLength: 1
+    ApiMeta:
+      type: object
+      required: [requestId]
+      properties:
+        requestId:
+          type: string
+          minLength: 1
+        nextCursor:
+          type: [string, 'null']
+    PageMeta:
+      type: object
+      required: [requestId, nextCursor]
+      properties:
+        requestId:
+          type: string
+          minLength: 1
+        nextCursor:
+          type: [string, 'null']
+    ContentProvenance:
+      type: object
+      required:
+        - contentType
+        - sourceId
+        - edition
+        - sourceUrl
+        - attribution
+        - licenseId
+        - redistributionAllowed
+        - reviewer
+        - reviewedAt
+        - approvalStatus
+        - reviewDecisionId
+        - approvedByAuthority
+        - approvedAt
+        - checksum
+      properties:
+        contentType:
+          type: string
+          enum: [quran, translation, hadith, tafsir, dua, audio]
+        sourceId:
+          type: string
+          minLength: 1
+        edition:
+          type: string
+          minLength: 1
+        sourceUrl:
+          type: string
+          format: uri
+          pattern: '^https://'
+        attribution:
+          type: string
+          minLength: 1
+        licenseId:
+          type: string
+          minLength: 1
+        redistributionAllowed:
+          const: true
+        reviewer:
+          type: string
+          minLength: 1
+        reviewedAt:
+          type: string
+          format: date-time
+        approvalStatus:
+          const: approved
+        reviewDecisionId:
+          type: string
+          minLength: 1
+        approvedByAuthority:
+          type: string
+          minLength: 1
+        approvedAt:
+          type: string
+          format: date-time
+        checksum:
+          type: string
+          pattern: '^[a-f0-9]{64}$'
+          description: >
+            Stored source-artifact SHA-256 metadata. The current read path
+            compares this value with the approval record but does not download
+            and independently re-hash the upstream artifact; this field alone
+            is not proof of source authenticity.
+    SurahPayload:
+      type: object
+      required: [surahNumber, nameArabic, nameSimple, nameEnglish, revelationPlace, revelationOrder, versesCount]
+      properties:
+        surahNumber:
+          type: integer
+          minimum: 1
+          maximum: 114
+        nameArabic:
+          type: string
+        nameSimple:
+          type: string
+        nameEnglish:
+          type: string
+        revelationPlace:
+          type: string
+          enum: [makkah, madinah]
+        revelationOrder:
+          type: integer
+        versesCount:
+          type: integer
+    SurahRecord:
+      type: object
+      required: [id, type, title, locale, provenance, payload]
+      properties:
+        id:
+          type: string
+          pattern: '^quran:surah:(?:[1-9]|[1-9][0-9]|10[0-9]|11[0-4])$'
+        type:
+          const: quran
+        title:
+          type: string
+        locale:
+          const: ar
+        provenance:
+          allOf:
+            - $ref: '#/components/schemas/ContentProvenance'
+            - type: object
+              properties:
+                contentType:
+                  const: quran
+        payload:
+          $ref: '#/components/schemas/SurahPayload'
+    SurahPage:
+      type: object
+      required: [meta, data]
+      properties:
+        meta:
+          $ref: '#/components/schemas/PageMeta'
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/SurahRecord'
+    SurahDetail:
+      type: object
+      required: [meta, data]
+      properties:
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+        data:
+          $ref: '#/components/schemas/SurahRecord'
+    AyahPayload:
+      type: object
+      required: [surahNumber, ayahNumber, textArabic]
+      properties:
+        surahNumber:
+          type: integer
+          minimum: 1
+          maximum: 114
+        ayahNumber:
+          type: integer
+          minimum: 1
+        textArabic:
+          type: string
+          minLength: 1
+          description: Exact source string; never normalize or rewrite.
+    AyahRecord:
+      type: object
+      required: [id, type, title, locale, provenance, payload]
+      properties:
+        id:
+          type: string
+          pattern: '^quran:ayah:[1-9][0-9]*:[1-9][0-9]*$'
+        type:
+          const: quran
+        title:
+          type: string
+        locale:
+          const: ar
+        provenance:
+          allOf:
+            - $ref: '#/components/schemas/ContentProvenance'
+            - type: object
+              properties:
+                contentType:
+                  const: quran
+        payload:
+          $ref: '#/components/schemas/AyahPayload'
+    AyahDetail:
+      type: object
+      required: [meta, data]
+      properties:
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+        data:
+          $ref: '#/components/schemas/AyahRecord'
+    HadithProvenance:
+      allOf:
+        - $ref: '#/components/schemas/ContentProvenance'
+        - type: object
+          properties:
+            contentType:
+              type: string
+              enum: [hadith, translation]
+    HadithBook:
+      type: object
+      required: [id, slug, titleArabic, titleEnglish, titleBengali, compilerName, collectionType, edition, provenance]
+      properties:
+        id:
+          type: string
+        slug:
+          type: string
+        titleArabic:
+          type: string
+          minLength: 1
+        titleEnglish:
+          type: [string, 'null']
+        titleBengali:
+          type: [string, 'null']
+        compilerName:
+          type: [string, 'null']
+        collectionType:
+          type: string
+        edition:
+          type: string
+        provenance:
+          allOf:
+            - $ref: '#/components/schemas/HadithProvenance'
+            - type: object
+              properties:
+                contentType:
+                  const: hadith
+    HadithChapter:
+      type: object
+      required: [id, bookId, chapterNumber, titleArabic, titleEnglish, titleBengali, sortOrder]
+      properties:
+        id:
+          type: string
+        bookId:
+          type: string
+        chapterNumber:
+          type: string
+        titleArabic:
+          type: [string, 'null']
+        titleEnglish:
+          type: [string, 'null']
+        titleBengali:
+          type: [string, 'null']
+        sortOrder:
+          type: integer
+    HadithTranslation:
+      type: object
+      required: [id, locale, translatorName, text, licenseId, provenance]
+      properties:
+        id:
+          type: string
+        locale:
+          $ref: '#/components/schemas/Locale'
+        translatorName:
+          type: string
+        text:
+          type: string
+        licenseId:
+          type: string
+        provenance:
+          allOf:
+            - $ref: '#/components/schemas/HadithProvenance'
+            - type: object
+              properties:
+                contentType:
+                  const: translation
+    HadithRecordBook:
+      type: object
+      required: [id, slug, titleArabic, titleEnglish, titleBengali, compilerName, collectionType, edition]
+      properties:
+        id:
+          type: string
+        slug:
+          type: string
+        titleArabic:
+          type: string
+        titleEnglish:
+          type: [string, 'null']
+        titleBengali:
+          type: [string, 'null']
+        compilerName:
+          type: [string, 'null']
+        collectionType:
+          type: string
+        edition:
+          type: string
+    HadithRecord:
+      type: object
+      required: [id, hadithNumber, numberingSystem, book, chapterId, arabicText, narratorText, isnadText, sourceReference, provenance, translations]
+      properties:
+        id:
+          type: string
+        hadithNumber:
+          type: string
+        numberingSystem:
+          type: string
+        book:
+          $ref: '#/components/schemas/HadithRecordBook'
+        chapterId:
+          type: [string, 'null']
+        arabicText:
+          type: string
+        narratorText:
+          type: [string, 'null']
+        isnadText:
+          type: [string, 'null']
+        sourceReference:
+          type: string
+        provenance:
+          allOf:
+            - $ref: '#/components/schemas/HadithProvenance'
+            - type: object
+              properties:
+                contentType:
+                  const: hadith
+        translations:
+          type: array
+          items:
+            $ref: '#/components/schemas/HadithTranslation'
+    HadithBookPage:
+      type: object
+      required: [meta, data]
+      properties:
+        meta:
+          $ref: '#/components/schemas/PageMeta'
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/HadithBook'
+    HadithChapterList:
+      type: object
+      required: [meta, data]
+      properties:
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/HadithChapter'
+    HadithRecordPage:
+      type: object
+      required: [meta, data]
+      properties:
+        meta:
+          $ref: '#/components/schemas/PageMeta'
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/HadithRecord'
+    HadithRecordDetail:
+      type: object
+      required: [meta, data]
+      properties:
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+        data:
+          $ref: '#/components/schemas/HadithRecord'
+    Error:
+      type: object
+      required: [code, message, requestId, details, retryable]
+      properties:
+        code:
+          type: string
+          enum: [UNAVAILABLE, UNAUTHORIZED, UNAUTHENTICATED, FORBIDDEN, INVALID_QUERY, VALIDATION_ERROR, NOT_FOUND, RATE_LIMITED, CONTENT_UNAVAILABLE, INTEGRITY_REJECTED, INTERNAL_ERROR]
+        message:
+          type: string
+        requestId:
+          type: string
+          minLength: 1
+        details:
+          type: array
+          items: {}
+        retryable:
+          type: boolean
+    ErrorEnvelope:
+      type: object
+      required: [error]
+      properties:
+        error:
+          $ref: '#/components/schemas/Error'
+  responses:
+    ErrorResponse:
+      description: Stable error envelope; no stack trace, SQL, token, or provider diagnostics.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'

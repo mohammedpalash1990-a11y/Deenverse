@@ -76,6 +76,9 @@ export class HadithLibraryService {
         'cs.redistribution_allowed': true,
         'csa.decision': 'approved'
       })
+      .whereRaw('LOWER(TRIM(cs.reviewer)) <> LOWER(TRIM(csa.reviewer_id))')
+      .whereRaw("LOWER(TRIM(cs.reviewer)) <> 'project-owner-chat-authorization'")
+      .whereRaw("LOWER(TRIM(csa.reviewer_id)) <> 'project-owner-chat-authorization'")
       .whereRaw('csa.artifact_sha256 = cs.checksum')
       .select(
         'cs.id as source_id',
@@ -124,7 +127,12 @@ export class HadithLibraryService {
       .whereRaw('csa.artifact_sha256 = cs.checksum')
       .whereRaw('pr.artifact_sha256 = cs.checksum')
       .whereRaw('ir.artifact_sha256 = cs.checksum')
-      .whereRaw('pr.reviewer_id <> ir.reviewer_id')
+      .whereRaw('LOWER(TRIM(pr.reviewer_id)) <> LOWER(TRIM(ir.reviewer_id))')
+      .whereRaw("LOWER(TRIM(pr.reviewer_id)) <> 'project-owner-chat-authorization'")
+      .whereRaw("LOWER(TRIM(ir.reviewer_id)) <> 'project-owner-chat-authorization'")
+      .whereRaw('LOWER(TRIM(cs.reviewer)) <> LOWER(TRIM(csa.reviewer_id))')
+      .whereRaw("LOWER(TRIM(cs.reviewer)) <> 'project-owner-chat-authorization'")
+      .whereRaw("LOWER(TRIM(csa.reviewer_id)) <> 'project-owner-chat-authorization'")
       .select(
         'hr.id as id',
         'hr.book_id as book_id',
@@ -174,6 +182,9 @@ export class HadithLibraryService {
         'ts.redistribution_allowed': true,
         'tsa.decision': 'approved'
       })
+      .whereRaw('LOWER(TRIM(ts.reviewer)) <> LOWER(TRIM(tsa.reviewer_id))')
+      .whereRaw("LOWER(TRIM(ts.reviewer)) <> 'project-owner-chat-authorization'")
+      .whereRaw("LOWER(TRIM(tsa.reviewer_id)) <> 'project-owner-chat-authorization'")
       .whereRaw('tsa.artifact_sha256 = ts.checksum')
       .whereRaw('ht.license_id = ts.license_id');
     if (locale) query = query.where('ht.locale', locale);
@@ -383,6 +394,8 @@ export class HadithLibraryService {
               'ts.redistribution_allowed': true,
               'tsa.decision': 'approved'
             })
+            .whereRaw('LOWER(TRIM(ts.reviewer)) <> LOWER(TRIM(tsa.reviewer_id))')
+            .whereRaw("LOWER(TRIM(tsa.reviewer_id)) <> 'project-owner-chat-authorization'")
             .whereRaw('tsa.artifact_sha256 = ts.checksum')
             .whereRaw('ht.license_id = ts.license_id')
             .whereRaw('LOWER(??) LIKE ?', ['ht.translation_text', pattern]);

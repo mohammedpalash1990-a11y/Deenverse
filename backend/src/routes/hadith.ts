@@ -8,20 +8,12 @@ export interface HadithRoutesOptions {
   hadithService: HadithLibraryService;
 }
 
-const isCanonicalCursor = (cursor: string): boolean => {
-  if (!/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(cursor)) return false;
-  const decoded = Buffer.from(cursor, 'base64').toString('utf8');
-  return /^(0|[1-9]\d*)$/.test(decoded) &&
-    Number.isSafeInteger(Number(decoded)) &&
-    Buffer.from(decoded, 'utf8').toString('base64') === cursor;
-};
-
 const SearchQuerySchema = z.object({
   q: z.string().trim().min(1).max(120),
   locale: z.enum(['ar', 'bn', 'en']).optional(),
   limit: z.coerce.number().int().min(1).max(50).default(20),
-  cursor: z.string().optional().refine((value) => value === undefined || isCanonicalCursor(value), {
-    message: 'Cursor must be a valid pagination offset'
+  cursor: z.string().max(512).optional().refine((value) => value === undefined || (value.split('.').length === 2 && value.split('.').every((part) => /^[A-Za-z0-9_-]+$/.test(part))), {
+    message: 'Cursor must be a signed pagination token'
   })
 });
 
@@ -35,9 +27,9 @@ function sendServiceError(reply: any, requestId: string, status: 'unavailable' |
   return reply.status(502).send(errorResponse(requestId, 'INTEGRITY_REJECTED', 'Hadith content failed integrity verification and was blocked.', false));
 }
 
-function sendPage(reply: any, requestId: string, value: { items: unknown[]; total: number }, limit: number, offset: number) {
+function sendPage(reply: any, requestId: string, value: { items: unknown[]; total: number }, limit: number, offset: number, scope: string) {
   return reply.status(200).send({
-    meta: { requestId, nextCursor: offset + limit < value.total ? encodeCursor(offset + limit) : null },
+    meta: { requestId, nextCursor: offset + limit < value.total ? encodeCursor(offset + limit, scope) : null },
     data: value.items
   });
 }
@@ -52,10 +44,13 @@ export const hadithRoutes: FastifyPluginAsync<HadithRoutesOptions> = async (
     const parsed = PaginationQuerySchema.safeParse(request.query);
     if (!parsed.success) return reply.status(400).send(errorResponse(request.id, 'VALIDATION_ERROR', 'Invalid pagination parameters.'));
     const { limit, cursor } = parsed.data;
-    const offset = decodeCursor(cursor);
+    const scope = JSON.stringify(['hadith', 'books', limit]);
+    let offset: number;
+    try { offset = decodeCursor(cursor, scope); }
+    catch { return reply.status(400).send(errorResponse(request.id, 'VALIDATION_ERROR', 'Pagination cursor is invalid or belongs to a different query.')); }
     const result = await hadithService.listBooks({ limit, offset });
     if (result.status !== 'ok') return sendServiceError(reply, request.id, result.status);
-    return sendPage(reply, request.id, result.value, limit, offset);
+    return sendPage(reply, request.id, result.value, limit, offset, scope);
   });
 
   fastify.get<{ Params: { bookId: string } }>('/books/:bookId/chapters', async (request, reply) => {
@@ -74,10 +69,14 @@ export const hadithRoutes: FastifyPluginAsync<HadithRoutesOptions> = async (
     if (!parsed.success) return reply.status(400).send(errorResponse(request.id, 'VALIDATION_ERROR', 'Invalid record query parameters.'));
     if (!request.params.bookId || request.params.bookId.length > 128) return reply.status(400).send(errorResponse(request.id, 'VALIDATION_ERROR', 'Invalid book identifier.'));
     const { limit, cursor, chapterId } = parsed.data;
-    const offset = decodeCursor(cursor);
-    const result = await hadithService.listRecords(request.params.bookId, { limit, offset, chapterId, locale: parsed.data.locale });
+    const locale = parsed.data.locale;
+    const scope = JSON.stringify(['hadith', 'records', request.params.bookId, chapterId ?? null, locale ?? null, limit]);
+    let offset: number;
+    try { offset = decodeCursor(cursor, scope); }
+    catch { return reply.status(400).send(errorResponse(request.id, 'VALIDATION_ERROR', 'Pagination cursor is invalid or belongs to a different query.')); }
+    const result = await hadithService.listRecords(request.params.bookId, { limit, offset, chapterId, locale });
     if (result.status !== 'ok') return sendServiceError(reply, request.id, result.status);
-    return sendPage(reply, request.id, result.value, limit, offset);
+    return sendPage(reply, request.id, result.value, limit, offset, scope);
   });
 
   fastify.get<{ Params: { recordId: string }; Querystring: { locale?: 'ar' | 'bn' | 'en' } }>('/records/:recordId', async (request, reply) => {
@@ -93,9 +92,12 @@ export const hadithRoutes: FastifyPluginAsync<HadithRoutesOptions> = async (
     const parsed = SearchQuerySchema.safeParse(request.query);
     if (!parsed.success) return reply.status(400).send(errorResponse(request.id, 'VALIDATION_ERROR', 'Invalid Hadith search parameters.'));
     const { q, locale, limit, cursor } = parsed.data;
-    const offset = decodeCursor(cursor);
+    const scope = JSON.stringify(['hadith', 'search', q.normalize('NFC'), locale ?? null, limit]);
+    let offset: number;
+    try { offset = decodeCursor(cursor, scope); }
+    catch { return reply.status(400).send(errorResponse(request.id, 'VALIDATION_ERROR', 'Pagination cursor is invalid or belongs to a different query.')); }
     const result = await hadithService.search(q, locale, { limit, offset, locale });
     if (result.status !== 'ok') return sendServiceError(reply, request.id, result.status);
-    return sendPage(reply, request.id, result.value, limit, offset);
+    return sendPage(reply, request.id, result.value, limit, offset, scope);
   });
 };

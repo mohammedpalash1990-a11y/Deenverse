@@ -82,7 +82,7 @@ Do not expose internal provider diagnostics, storage paths, SQL errors, or secre
 
 This single-record route has no pagination cursor. If a list route is added, its cursor must be opaque, validated, bounded, and bound to the edition/query context; clients must not construct or modify it.
 
-Until multi-edition selection is explicitly implemented, only a single configured approved edition may be served. Do not silently switch editions.
+Until explicit edition selection is implemented, the backend must find exactly one eligible active, redistribution-permitted, approved Quran source globally. Zero or multiple eligible sources return `503 CONTENT_UNAVAILABLE`; the backend must never choose an arbitrary row or silently switch editions.
 
 ## Contract test matrix
 
@@ -95,6 +95,14 @@ Until multi-edition selection is explicitly implemented, only a single configure
 - Network failures map to a safe retryable unavailable result.
 - HTTP error bodies never expose server-provided diagnostic messages.
 - Exact `textArabic` string is preserved byte-for-byte at the JavaScript string boundary; no normalization is applied.
+
+## Integration release state — 2026-11-06
+
+The route remains registered in the integration backend, but the active AppShell does not mount `QuranAyahReader`; the public Quran section shows an approval-pending placeholder and makes no content request. The frontend reader/client are dormant until source approval and redistribution evidence are complete.
+
+The shared backend selector now rejects a source unless the source reviewer and artifact approver are distinct and neither identity is `project-owner-chat-authorization`. The Tanzil import path performs official artifact retrieval, edition/metadata validation, SHA-256 recomputation, and independent approval checks before import. The API read path still compares stored approval/source digest values and verifies the stored Ayah record digest; it does not independently download and hash the official artifact on each request.
+
+Both public QuranEnc translation routes are disabled and absent from the current OpenAPI route list. Translation client/service unit tests do not authorize public display or redistribution. No Quran Arabic, translation, Hadith, tafsir, dua, or audio corpus is approved for production delivery by this contract update.
 
 ## Ownership
 

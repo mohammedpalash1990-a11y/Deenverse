@@ -209,6 +209,12 @@ test('Hadith API publishes only source-approved, independently reviewed, intact 
   assert.equal(bengaliSearch.statusCode, 200);
   assert.equal(JSON.parse(bengaliSearch.body).data.length, 1);
 
+  await db('content_sources').where({ id: 'hadith-translation-fixture' }).update({ reviewer: 'test-translation-authority' });
+  const sameTranslationReviewer = await app.inject({ method: 'GET', url: '/api/v1/hadith/records/fixture-hadith-1?locale=bn' });
+  assert.equal(sameTranslationReviewer.statusCode, 200);
+  assert.equal(JSON.parse(sameTranslationReviewer.body).data.translations.length, 0, 'translation source and approval reviewers must be independent');
+  await db('content_sources').where({ id: 'hadith-translation-fixture' }).update({ reviewer: 'test-reviewer' });
+
   await db('hadith_records').where({ id: 'fixture-hadith-1' }).update({ text_sha256: '0'.repeat(64) });
   const corrupt = await app.inject({ method: 'GET', url: '/api/v1/hadith/records/fixture-hadith-1' });
   assert.equal(corrupt.statusCode, 502);
@@ -217,4 +223,28 @@ test('Hadith API publishes only source-approved, independently reviewed, intact 
   await db('content_source_approvals').where({ id: 'hadith-source-approval' }).update({ artifact_sha256: '0'.repeat(64) });
   const mismatchedSource = await app.inject({ method: 'GET', url: '/api/v1/hadith/books' });
   assert.equal(mismatchedSource.statusCode, 503, 'a checksum-mismatched source approval must fail closed');
+
+  await db('content_source_approvals').where({ id: 'hadith-source-approval' }).update({ artifact_sha256: sourceChecksum });
+  await db('content_sources').where({ id: 'hadith-source-fixture' }).update({ reviewer: 'test-source-authority' });
+  const sameSourceReviewer = await app.inject({ method: 'GET', url: '/api/v1/hadith/books' });
+  assert.equal(sameSourceReviewer.statusCode, 503, 'source reviewer and approval reviewer must be independent');
+
+  await db('content_sources').where({ id: 'hadith-source-fixture' }).update({ reviewer: 'test-reviewer' });
+  await db('content_source_approvals').where({ id: 'hadith-source-approval' }).update({ reviewer_id: 'project-owner-chat-authorization' });
+  const reservedReviewer = await app.inject({ method: 'GET', url: '/api/v1/hadith/books' });
+  assert.equal(reservedReviewer.statusCode, 503, 'the reserved project-owner authorization identity must never approve Hadith sources');
+
+  await db('content_source_approvals').where({ id: 'hadith-source-approval' }).update({ reviewer_id: 'test-source-authority' });
+  await db('hadith_record_reviews').where({ id: 'review-independent-1' }).update({ reviewer_id: 'REVIEWER-PRIMARY' });
+  const caseFoldedDuplicateReviewers = await app.inject({ method: 'GET', url: '/api/v1/hadith/records/fixture-hadith-1' });
+  assert.equal(caseFoldedDuplicateReviewers.statusCode, 404, 'reviewer identities differing only by case are not independent');
+
+  await db('hadith_record_reviews').where({ id: 'review-independent-1' }).update({ reviewer_id: 'project-owner-chat-authorization' });
+  const reservedRecordReviewer = await app.inject({ method: 'GET', url: '/api/v1/hadith/records/fixture-hadith-1' });
+  assert.equal(reservedRecordReviewer.statusCode, 404, 'reserved project-owner identity cannot perform independent narration review');
+
+  await db('hadith_record_reviews').where({ id: 'review-independent-1' }).update({ reviewer_id: 'reviewer-independent' });
+  await db('content_sources').where({ id: 'hadith-source-fixture' }).update({ reviewer: 'project-owner-chat-authorization' });
+  const reservedSourceReviewer = await app.inject({ method: 'GET', url: '/api/v1/hadith/books' });
+  assert.equal(reservedSourceReviewer.statusCode, 503, 'reserved project-owner identity cannot register a Hadith source review');
 });

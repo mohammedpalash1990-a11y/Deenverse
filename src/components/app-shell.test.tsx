@@ -1,40 +1,20 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AppShell } from "./app-shell";
-
-const arabicFixture = Array.from({ length: 6236 }, (_, index) => "1|" + (index + 1) + "|بِسْمِ اللَّهِ").join("\n");
-
+ 
 describe("DEENVERSE app shell", () => {
   beforeEach(() => {
-    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
-      if (String(input).includes("raw.githubusercontent.com")) {
-        return { ok: true, text: async () => arabicFixture } as Response;
-      }
-      return {
-        ok: true,
-        json: async () => ({
-          meta: { requestId: "test-request" },
-          data: {
-            surahNumber: 1,
-            ayahs: Array.from({ length: 7 }, (_, index) => ({
-              surahNumber: 1, ayahNumber: index + 1, translation: "বাংলা অনুবাদ", footnotes: ""
-            })),
-            provenance: {
-              publisher: "QuranEnc.com",
-              translator: "Abu Bakr Muhammad Zakaria",
-              sourceTitle: "Bengali translation",
-              editionVersion: "V1.1.1",
-              sourceUrl: "https://quranenc.com/bn/browse/bengali_zakaria",
-              termsUrl: "https://quranenc.com/en/home"
-            }
-          }
-        })
-      } as Response;
-    }));
+    vi.stubGlobal("fetch", vi.fn(async () => ({
+      ok: true,
+      json: async () => ({
+        meta: { requestId: "test-request", nextCursor: null },
+        data: []
+      })
+    } as Response)));
   });
 
   afterEach(() => vi.unstubAllGlobals());
-  it("renders the primary navigation and public beta Quran reader", () => {
+  it("renders navigation and keeps unapproved Quran content unavailable", () => {
     render(<AppShell />);
     expect(screen.getByRole("navigation", { name: "Main navigation" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Skip to main content" })).toHaveAttribute("href", "#main-content");
@@ -42,8 +22,12 @@ describe("DEENVERSE app shell", () => {
     expect(screen.getByRole("heading", { name: "Return to the words." })).toBeInTheDocument();
     expect(screen.getByRole("complementary", { name: "Public beta notice" })).toHaveTextContent("DEENVERSE এখনো উন্নয়ন ও যাচাইয়ের পর্যায়ে আছে।");
     expect(screen.getByText(/নির্ভরযোগ্য মূল উৎসের সঙ্গে মিলিয়ে নিন/)).toBeInTheDocument();
-    expect(screen.getByRole("region", { name: "আল-কুরআন — আরবি ও বাংলা" })).toBeInTheDocument();
-    expect(screen.getByRole("combobox", { name: "সূরা নির্বাচন" })).toBeInTheDocument();
+    expect(screen.getByText("CONTENT APPROVAL PENDING")).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "আল-কুরআন — যাচাইকৃত পাঠ" })).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent("কুরআনের আরবি পাঠ, বাংলা অনুবাদ ও অডিও এখনো প্রকাশের জন্য অনুমোদিত নয়।");
+    expect(screen.queryByRole("combobox", { name: "সূরা নির্বাচন" })).not.toBeInTheDocument();
+    expect(document.querySelector("audio")).toBeNull();
+    expect(fetch).not.toHaveBeenCalled();
   });
 
   it("keeps the active section announcement and selected navigation state in sync", () => {
