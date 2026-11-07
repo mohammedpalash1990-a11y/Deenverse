@@ -44,7 +44,7 @@ export const hadithRoutes: FastifyPluginAsync<HadithRoutesOptions> = async (
     const parsed = PaginationQuerySchema.safeParse(request.query);
     if (!parsed.success) return reply.status(400).send(errorResponse(request.id, 'VALIDATION_ERROR', 'Invalid pagination parameters.'));
     const { limit, cursor } = parsed.data;
-    const scope = `hadith:books|limit:${limit}`;
+    const scope = JSON.stringify(['hadith', 'books', limit]);
     let offset: number;
     try { offset = decodeCursor(cursor, scope); }
     catch { return reply.status(400).send(errorResponse(request.id, 'VALIDATION_ERROR', 'Pagination cursor is invalid or belongs to a different query.')); }
@@ -70,7 +70,7 @@ export const hadithRoutes: FastifyPluginAsync<HadithRoutesOptions> = async (
     if (!request.params.bookId || request.params.bookId.length > 128) return reply.status(400).send(errorResponse(request.id, 'VALIDATION_ERROR', 'Invalid book identifier.'));
     const { limit, cursor, chapterId } = parsed.data;
     const locale = parsed.data.locale;
-    const scope = `hadith:records|book:${request.params.bookId}|chapter:${chapterId ?? ''}|locale:${locale ?? ''}|limit:${limit}`;
+    const scope = JSON.stringify(['hadith', 'records', request.params.bookId, chapterId ?? null, locale ?? null, limit]);
     let offset: number;
     try { offset = decodeCursor(cursor, scope); }
     catch { return reply.status(400).send(errorResponse(request.id, 'VALIDATION_ERROR', 'Pagination cursor is invalid or belongs to a different query.')); }
@@ -92,7 +92,7 @@ export const hadithRoutes: FastifyPluginAsync<HadithRoutesOptions> = async (
     const parsed = SearchQuerySchema.safeParse(request.query);
     if (!parsed.success) return reply.status(400).send(errorResponse(request.id, 'VALIDATION_ERROR', 'Invalid Hadith search parameters.'));
     const { q, locale, limit, cursor } = parsed.data;
-    const scope = `hadith:search|q:${q.normalize('NFC')}|locale:${locale ?? ''}|limit:${limit}`;
+    const scope = JSON.stringify(['hadith', 'search', q.normalize('NFC'), locale ?? null, limit]);
     let offset: number;
     try { offset = decodeCursor(cursor, scope); }
     catch { return reply.status(400).send(errorResponse(request.id, 'VALIDATION_ERROR', 'Pagination cursor is invalid or belongs to a different query.')); }
