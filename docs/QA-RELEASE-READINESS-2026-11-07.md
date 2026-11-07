@@ -241,4 +241,4 @@ PR #84 report metadata:
 - Draft PR: https://github.com/mohammedpalash1990-a11y/Deenverse/pull/84
 - Base SHA: a7ad2eb4dae5d2fdcfb682e1747d4b17d56dab29
 - Initial report commit SHA: 386159da1358ff1a53d74564b44ce35d200fa61f
-- The report branch contains only this QA report file. Exact-head Web foundation run 42396117945 was still in progress at the last poll; typecheck and tests had completed successfully, production build was still running. Do not claim final CI until the run completes.
+- The report branch contains only this QA report file. Web foundation run 42396117945 completed successfully on the initial report commit 386159da1358ff1a53d74564b44ce35d200fa61f: locked install, audit capture, typecheck, 18 files / 174 tests, production build; audit 0 vulnerabilities. This run predates the subsequent documentation-only amendment commit 8899d5cee40f51fe21982223c7f2c243ee2b2817. The final amended PR head has no associated workflow run returned (the docs-only update did not trigger another run), so no exact-head CI is claimed for the final report head.
