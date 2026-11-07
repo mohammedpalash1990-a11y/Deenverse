@@ -242,3 +242,17 @@ PR #84 report metadata:
 - Base SHA: a7ad2eb4dae5d2fdcfb682e1747d4b17d56dab29
 - Initial report commit SHA: 386159da1358ff1a53d74564b44ce35d200fa61f
 - The report branch contains only this QA report file. Web foundation run 42396117945 completed successfully on the initial report commit 386159da1358ff1a53d74564b44ce35d200fa61f: locked install, audit capture, typecheck, 18 files / 174 tests, production build; audit 0 vulnerabilities. This run predates the subsequent documentation-only amendment commit 8899d5cee40f51fe21982223c7f2c243ee2b2817. The final amended PR head has no associated workflow run returned (the docs-only update did not trigger another run), so no exact-head CI is claimed for the final report head.
+
+
+## Remaining open PR inventory
+
+The repository search returned these additional open PRs. Their branches are stale/diverged from current main or their current exact-head verification is incomplete; none was merged in this run.
+
+- PR #47, direct in-app problem reporting: branch head 7be7c2dfb3006f77695b8e41841d4ef1afa4bfb6; compared with current main, 15 commits ahead / 41 behind, 10 changed files; no exact-head workflow runs returned. The feature direction matches the community problem-report preference and does not introduce a 3–5-person content-review process, but it must be rebased and receive fresh backend/web CI before merge.
+- PR #43, per-Ayah human review gate: head 12c9b3590b1d96274d84039bc29d4314648aa8a6; 7 ahead / 42 behind, 6 changed files. Web foundation run 41757958432 passed, but DEENVERSE CI run 41757958528 was cancelled. No current exact-head backend verification. Review its workflow separately; it is not a substitute for source-artifact rights approval.
+- PR #45, shareable 3–5 reviewer workspace: head 36054fbb5986b645a87e25fd6bc8e12abaf30762; 30 ahead / 42 behind, 14 changed files; DEENVERSE CI run 41760877560 was cancelled. Its 3–5 invited-reviewer workflow conflicts with the current preference not to make that the community reporting model. Do not merge without an explicit product decision.
+- PR #75, historical fail-closed release-safety patch: head 33ad1020bde7c91c0a42239ebf915198c830362c; compared with current main, 5 ahead / 1 behind, 11 changed files. Its safety intent is already represented in current main; rebase/reconcile or close rather than merging a stale duplicate.
+- PR #11 is a documentation-only API gap audit targeting integration/platform-foundation rather than current main. Its body claims static comparison only, not live API/build/test/CI evidence.
+- PR #66 is the 2026-11-04 QA report and is superseded by this 2026-11-07 evidence report.
+
+Do not merge these stale PRs based only on their original branch CI. Rebase each candidate to current main, inspect the complete resulting diff, and run the required exact-head workflows before review.
