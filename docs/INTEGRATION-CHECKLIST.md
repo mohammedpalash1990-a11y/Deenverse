@@ -128,3 +128,39 @@ Evidence below was captured at integration implementation head `dc251bcc38dff3b7
 - [x] Require source reviewer and approval reviewer to be distinct for Hadith and translation source selection/search; reject `project-owner-chat-authorization`.
 - [x] Add focused unit tests for cursor round-trip, tampering, cross-scope replay, page-size changes, and unsafe offsets; add Hadith source-reviewer regression tests.
 - [ ] Exact-head backend, web, and OpenAPI CI must all finish successfully before PR #1 is ready for review.
+
+
+## Exact integration review — 2026-11-07
+
+### Branch and agent audit
+
+- [x] Compared `main` with `integration/platform-foundation`: integration is 2 commits ahead / 0 behind; exact reviewed head before this documentation update was `001673e6c7287e7562fd1fd6d385cc0194cf4e0d`.
+- [x] Jules branch comparison: `jules/backend-foundation` is 3 commits ahead / 70 behind and changes only `AGENT_TASK.md` and `JULES_NEXT_TASK.md`; no backend implementation was present in the branch diff.
+- [x] Queen branch comparison: `queen/frontend-foundation` is 2 commits ahead / 70 behind and changes only `AGENT_TASK.md`; no frontend implementation was present in the branch diff.
+- [x] Did not write to either agent branch or to `main`. Do not report Jules/Queen implementation as in progress without actual implementation commits or PRs.
+
+### Contract and adapter reconciliation
+
+- [x] Reconfirmed 10 registered GET operations against the backend route registrations and the existing integration inventory.
+- [x] Reconfirmed Quran catalogue, Ayah, and Hadith clients use the shared `resolveApiBaseUrl()` boundary; public configuration is `NEXT_PUBLIC_API_BASE_URL`, with same-origin `/api/v1` fallback.
+- [x] Reconfirmed Quran translation adapter code is dormant on this integration line and public translation routes are unregistered; do not expose the client as a live feature.
+- [x] Documented the exact integration-head Hadith search cursor scope (NFC-normalized query + locale + page size) and explicitly separated it from the proposed exact-query behavior in PR #82. Route, service, tests, and contract must move together if that proposal is adopted.
+- [x] Documented PR #80's source-specific review binding and exact-head CI evidence without treating CI as deployment approval.
+
+### Exact-head verification evidence
+
+- [x] DEENVERSE CI run `42374891938`: completed successfully on `001673e6c7287e7562fd1fd6d385cc0194cf4e0d`; backend 91/91 tests, typecheck/build, PostgreSQL 16 verification, SQLite production guard, web 174/174 tests, typecheck/build, and high-severity audits passed per the run record.
+- [x] Web foundation run `42374891780`: completed successfully on the same commit; locked install, audit capture, typecheck, 174/174 tests, and production build passed per the run record.
+- [ ] These runs do not cover the documentation-only commits added by this review; obtain fresh checks if the repository workflow runs on docs changes or before merge policy requires exact-head checks.
+- [ ] No local shell/test execution, production deployment, or live database operation is claimed in this review.
+
+### Still blocked before public release
+
+- [ ] Independently acquire and hash the exact licensed Quran source artifact; record source-specific attribution and redistribution rights; obtain independent human source approval and required per-Ayah review.
+- [ ] Verify Quran Bengali translation redistribution rights for hosting, mobile, caching, offline use, and export before enabling the translation adapter/routes.
+- [ ] Approve Hadith collection editions, authenticity/grading metadata, attribution, and redistribution terms before importing records.
+- [ ] Complete production PostgreSQL deployment/migration/readiness, backup/restore, rollback, and secret-store verification.
+- [ ] Complete browser/device RTL, keyboard, screen-reader, responsive, CORS/CSP, and offline QA with evidence.
+- [ ] Implement and review authentication, authorization, user data isolation, bookmarks/progress, and abuse controls before adding private write APIs.
+
+This review updates integration evidence only. It does not authorize merge, deployment, or religious-content publication.
