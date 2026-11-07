@@ -34,7 +34,7 @@ export const quranRoutes: FastifyPluginAsync<QuranRoutesOptions> = async (
     }
 
     const { limit, cursor } = queryValidation.data;
-    const cursorScope = `quran:surahs:limit:${limit}`;
+    const cursorScope = JSON.stringify(['quran', 'surahs', limit]);
     let offset: number;
     try {
       offset = decodeCursor(cursor, cursorScope);
