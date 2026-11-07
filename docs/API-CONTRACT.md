@@ -52,7 +52,7 @@ All responses adhere to the standard REST envelope specified in `docs/CONTENT-AP
 }
 ```
 
-The pagination cursor is an unsigned, Base64-encoded non-negative offset. It is not cryptographically signed or bound to an edition, filter, search, or query fingerprint; cross-query cursor replay is not rejected by the current implementation. Clients must still treat it as opaque and must not construct or modify it.
+Pagination cursors are opaque HMAC-SHA-256 signed tokens. Their authenticated payload includes a version, non-negative offset, and canonical query scope. Quran Surah cursors are bound to the route and page size; Hadith book cursors are bound to the route and page size; Hadith record cursors are additionally bound to book, chapter, locale, and page size; Hadith search cursors are bound to normalized search text, locale, and page size. Invalid signatures, tampering, malformed tokens, and cross-query/page-size replay return HTTP 400 `VALIDATION_ERROR`. Clients must treat cursors as opaque and must not construct or modify them. The signing key is derived from `API_CURSOR_SECRET` when configured, otherwise from `DATABASE_URL`; development without either uses a process-local random key, so cursors created in that local mode are not portable across process restarts.
 
 **Integrity limitation:** The current backend compares the approval record's `artifact_sha256` string with the source record's `checksum` string and validates provenance metadata. It does not download or hash an immutable source artifact. This equality check is not cryptographic artifact verification and must not be described as proof that published content matches an authentic source. Do not approve or publish production religious content until immutable artifact retrieval, SHA-256 recomputation, source identity, edition, licensing, and independent human review are implemented and evidenced.
 
@@ -141,3 +141,8 @@ No Quran Arabic, Hadith, translation, tafsir, dua, or audio corpus was fabricate
 3. Extend contract tests to every response schema, error edge case, and pagination boundary.
 4. Require immutable artifact retrieval and independent SHA-256 recomputation before a source can become eligible.
 5. Keep Quran, translation, Hadith, tafsir, dua, and audio endpoints unavailable until each source's authenticity, edition, redistribution rights, attribution, and independent review are evidenced.
+
+
+## Pagination cursor hardening — 2026-11-07
+
+The integration implementation replaces unsigned Base64 offsets with HMAC-SHA-256 authenticated cursor tokens. Query scope is checked after signature verification. Search text is normalized to Unicode NFC before scope construction; Hadith record scope includes the selected book, chapter, locale, and page size. The implementation does not claim snapshot isolation: inserts/deletes between page requests can still change offset-based page boundaries, so consumers should deduplicate by stable record ID when traversing a changing catalogue.
