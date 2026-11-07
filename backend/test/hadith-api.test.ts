@@ -4,6 +4,7 @@ import test from 'node:test';
 import { buildApp } from '../src/app.js';
 import { createDatabaseConnection } from '../src/db/connection.js';
 import { runMigrations } from '../src/db/migrate.js';
+import { encodeCursor } from '../src/services/validation.js';
 
 const digest = (value: string) => createHash('sha256').update(value, 'utf8').digest('hex');
 
@@ -23,6 +24,16 @@ test('Hadith API publishes only source-approved, independently reviewed, intact 
 
   const emptySearch = await app.inject({ method: 'GET', url: '/api/v1/hadith/search?q=' });
   assert.equal(emptySearch.statusCode, 400);
+
+  const canonicalSearch = 'নিশ্চয়';
+  const canonicallyEquivalentSearch = 'নিশ্চয়';
+  const cursorScope = JSON.stringify(['hadith', 'search', canonicalSearch, 'bn', 20]);
+  const canonicalSearchCursor = encodeCursor(0, cursorScope);
+  const crossNormalizationReplay = await app.inject({
+    method: 'GET',
+    url: `/api/v1/hadith/search?q=${encodeURIComponent(canonicallyEquivalentSearch)}&locale=bn&limit=20&cursor=${encodeURIComponent(canonicalSearchCursor)}`
+  });
+  assert.equal(crossNormalizationReplay.statusCode, 400, 'cursor must not be replayed across code-point-distinct search strings');
 
   const sourceChecksum = 'a'.repeat(64);
   await db('content_sources').insert({
