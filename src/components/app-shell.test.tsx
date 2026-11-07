@@ -47,6 +47,17 @@ describe("DEENVERSE app shell", () => {
     expect(screen.getByRole("heading", { name: "Hadith library" })).toBeInTheDocument();
   });
 
+  it("opens the Quran and Hadith share-card maker from navigation", () => {
+    render(<AppShell />);
+    fireEvent.click(within(screen.getByRole("navigation", { name: "Main navigation" })).getByRole("button", { name: "Share Cards" }));
+    expect(screen.getByRole("heading", { name: "ইসলামিক ফটোকার্ড তৈরি করুন" })).toBeInTheDocument();
+    expect(screen.getByLabelText("বাংলা অর্থ / বর্ণনা")).toBeRequired();
+    expect(screen.getByLabelText("সূত্র ও রেফারেন্স")).toBeRequired();
+    expect(screen.getByRole("button", { name: "PNG ছবি ডাউনলোড" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "শেয়ার করুন" })).toBeInTheDocument();
+    expect(screen.getByText(/অ্যাপ কোনো ধর্মীয় উদ্ধৃতি নিজে থেকে তৈরি বা যাচাই করা বলে দাবি করে না/)).toBeInTheDocument();
+  });
+
   it("announces mobile navigation expanded state", () => {
     render(<AppShell />);
     const toggle = screen.getByRole("button", { name: "Toggle navigation" });
