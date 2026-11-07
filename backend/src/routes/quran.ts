@@ -34,7 +34,22 @@ export const quranRoutes: FastifyPluginAsync<QuranRoutesOptions> = async (
     }
 
     const { limit, cursor } = queryValidation.data;
-    const offset = decodeCursor(cursor);
+    const cursorScope = `quran:surahs:limit:${limit}`;
+    let offset: number;
+    try {
+      offset = decodeCursor(cursor, cursorScope);
+    } catch {
+      const errResponse: ApiErrorResponse = {
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Pagination cursor is invalid or belongs to a different query.',
+          requestId: request.id,
+          details: [],
+          retryable: false
+        }
+      };
+      return reply.status(400).send(errResponse);
+    }
 
     const result = await catalogueService.listSurahs({ limit, offset });
 
@@ -58,7 +73,7 @@ export const quranRoutes: FastifyPluginAsync<QuranRoutesOptions> = async (
     const response: ApiSuccessResponse<ContentRecord<SurahPayload>[]> = {
       meta: {
         requestId: request.id,
-        nextCursor: hasNext ? encodeCursor(nextOffset) : null
+        nextCursor: hasNext ? encodeCursor(nextOffset, cursorScope) : null
       },
       data: result.items
     };
