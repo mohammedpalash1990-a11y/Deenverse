@@ -209,6 +209,12 @@ test('Hadith API publishes only source-approved, independently reviewed, intact 
   assert.equal(bengaliSearch.statusCode, 200);
   assert.equal(JSON.parse(bengaliSearch.body).data.length, 1);
 
+  await db('content_sources').where({ id: 'hadith-translation-fixture' }).update({ reviewer: 'test-translation-authority' });
+  const sameTranslationReviewer = await app.inject({ method: 'GET', url: '/api/v1/hadith/records/fixture-hadith-1?locale=bn' });
+  assert.equal(sameTranslationReviewer.statusCode, 200);
+  assert.equal(JSON.parse(sameTranslationReviewer.body).data.translations.length, 0, 'translation source and approval reviewers must be independent');
+  await db('content_sources').where({ id: 'hadith-translation-fixture' }).update({ reviewer: 'test-reviewer' });
+
   await db('hadith_records').where({ id: 'fixture-hadith-1' }).update({ text_sha256: '0'.repeat(64) });
   const corrupt = await app.inject({ method: 'GET', url: '/api/v1/hadith/records/fixture-hadith-1' });
   assert.equal(corrupt.statusCode, 502);
