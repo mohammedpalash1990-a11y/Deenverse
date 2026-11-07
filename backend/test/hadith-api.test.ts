@@ -244,6 +244,17 @@ test('Hadith API publishes only source-approved, independently reviewed, intact 
   assert.equal(reservedRecordReviewer.statusCode, 404, 'reserved project-owner identity cannot perform independent narration review');
 
   await db('hadith_record_reviews').where({ id: 'review-independent-1' }).update({ reviewer_id: 'reviewer-independent' });
+
+  await db('hadith_record_reviews').where({ id: 'review-independent-1' }).update({ source_id: 'unrelated-source' });
+  const mismatchedIndependentReviewSource = await app.inject({ method: 'GET', url: '/api/v1/hadith/records/fixture-hadith-1' });
+  assert.equal(mismatchedIndependentReviewSource.statusCode, 404, 'independent review must be bound to the exact Hadith source');
+  await db('hadith_record_reviews').where({ id: 'review-independent-1' }).update({ source_id: 'hadith-source-fixture' });
+
+  await db('hadith_record_reviews').where({ id: 'review-primary-1' }).update({ source_id: 'unrelated-source' });
+  const mismatchedPrimaryReviewSource = await app.inject({ method: 'GET', url: '/api/v1/hadith/records/fixture-hadith-1' });
+  assert.equal(mismatchedPrimaryReviewSource.statusCode, 404, 'primary review must be bound to the exact Hadith source');
+  await db('hadith_record_reviews').where({ id: 'review-primary-1' }).update({ source_id: 'hadith-source-fixture' });
+
   await db('content_sources').where({ id: 'hadith-source-fixture' }).update({ reviewer: 'project-owner-chat-authorization' });
   const reservedSourceReviewer = await app.inject({ method: 'GET', url: '/api/v1/hadith/books' });
   assert.equal(reservedSourceReviewer.statusCode, 503, 'reserved project-owner identity cannot register a Hadith source review');
