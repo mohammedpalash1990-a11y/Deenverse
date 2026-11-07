@@ -10,7 +10,6 @@ export function QuranBetaReader() {
   return (
     <section
       role="region"
-      aria-label="আল-কুরআন — আরবি ও বাংলা"
       aria-labelledby="quran-reader-title"
       style={{
         marginTop: 28,
