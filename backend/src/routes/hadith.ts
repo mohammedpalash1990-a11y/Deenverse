@@ -92,7 +92,7 @@ export const hadithRoutes: FastifyPluginAsync<HadithRoutesOptions> = async (
     const parsed = SearchQuerySchema.safeParse(request.query);
     if (!parsed.success) return reply.status(400).send(errorResponse(request.id, 'VALIDATION_ERROR', 'Invalid Hadith search parameters.'));
     const { q, locale, limit, cursor } = parsed.data;
-    const scope = JSON.stringify(['hadith', 'search', q.normalize('NFC'), locale ?? null, limit]);
+    const scope = JSON.stringify(['hadith', 'search', q, locale ?? null, limit]);
     let offset: number;
     try { offset = decodeCursor(cursor, scope); }
     catch { return reply.status(400).send(errorResponse(request.id, 'VALIDATION_ERROR', 'Pagination cursor is invalid or belongs to a different query.')); }
