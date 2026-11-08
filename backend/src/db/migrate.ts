@@ -55,10 +55,15 @@ async function applyMigrations(db: import('knex').Knex): Promise<void> {
   }
 }
 
-function createDatabaseConfigForMigration(): DatabaseConfig {
-  const config = resolveDatabaseConfig();
-  if (process.env.NODE_ENV === 'production' && config.client !== 'pg') {
-    throw new Error('Production migrations require PostgreSQL. Set DATABASE_URL to a PostgreSQL connection string.');
+/**
+ * Production migrations use a separate owner/migrator credential.
+ * The HTTP runtime must use DATABASE_URL with a read-only role.
+ */
+export function createDatabaseConfigForMigration(): DatabaseConfig {
+  const migrationUrl = process.env.MIGRATION_DATABASE_URL?.trim();
+  const config = resolveDatabaseConfig(migrationUrl || undefined);
+  if (process.env.NODE_ENV === 'production' && (!migrationUrl || config.client !== 'pg')) {
+    throw new Error('Production migrations require MIGRATION_DATABASE_URL with a PostgreSQL connection string.');
   }
   return config;
 }
