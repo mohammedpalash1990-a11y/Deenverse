@@ -146,3 +146,24 @@ No Quran Arabic, Hadith, translation, tafsir, dua, or audio corpus was fabricate
 ## Pagination cursor hardening — 2026-11-07
 
 The integration implementation replaces unsigned Base64 offsets with HMAC-SHA-256 authenticated cursor tokens. Query scope is checked after signature verification. Search text is normalized to Unicode NFC before scope construction; Hadith record scope includes the selected book, chapter, locale, and page size. The implementation does not claim snapshot isolation: inserts/deletes between page requests can still change offset-based page boundaries, so consumers should deduplicate by stable record ID when traversing a changing catalogue.
+
+
+## Integration reconciliation — 2026-11-07 (exact branch review)
+
+This section supersedes older branch-count and PR-state snapshots above where they conflict with the exact refs reviewed on this date. It describes `integration/platform-foundation`, not deployed `main`.
+
+### Verified branch and API boundary
+
+- Reviewed integration head: `001673e6c7287e7562fd1fd6d385cc0194cf4e0d` (Hadith record-review source binding; PR #80). The branch is 2 commits ahead / 0 behind `main` at `a7ad2eb4dae5d2fdcfb682e1747d4b17d56dab29`; its two changed files are `backend/src/services/hadith-library.ts` and `backend/test/hadith-api.test.ts`.
+- The registered backend boundary remains 10 GET operations: `/api/v1/health`, `/api/v1/ready`, `/api/v1/quran/surahs`, `/api/v1/quran/surahs/{surahNumber}`, `/api/v1/ayah/{surah}/{ayah}`, `/api/v1/hadith/books`, `/api/v1/hadith/books/{bookId}/chapters`, `/api/v1/hadith/books/{bookId}/records`, `/api/v1/hadith/records/{recordId}`, and `/api/v1/hadith/search`.
+- Quran catalogue, Ayah, and Hadith browser clients share `resolveApiBaseUrl()`. The public build-time setting is `NEXT_PUBLIC_API_BASE_URL`; absent configuration resolves to same-origin `/api/v1`. It must never contain credentials. The Quran translation client remains dormant and its public backend routes are not registered on this integration line.
+- On this exact integration head, Hadith search cursor scope uses the NFC-normalized query, locale, and page size. Cursors remain opaque HMAC-signed values; clients must not construct, normalize, or edit cursor tokens themselves. PR #82 proposes changing this to exact trimmed-query binding and adds Bengali Unicode regression coverage, but that change is not present on this branch. Do not describe PR #82's proposed semantics as implemented here; reconcile route, service, tests, and this contract together before adopting it.
+- The Hadith source-review patch requires primary and independent record reviews to match the record's own `source_id`, in addition to the existing artifact digest and reviewer-independence checks. It adds no religious content.
+
+### Exact-head CI evidence
+
+GitHub Actions reports successful completed runs for this exact commit: DEENVERSE CI run `42374891938` and Web foundation run `42374891780`. The workflow records report backend typecheck/build, 91/91 backend tests, PostgreSQL 16 verification, production SQLite startup guard, web typecheck/build, 174/174 web tests, and zero high-severity dependency findings. These are CI results, not local execution or production deployment evidence. No combined commit status entries were returned by the status endpoint.
+
+### Current release boundary
+
+No Quran, translation, tafsir, Hadith, dua, or audio corpus is approved for production publication by this integration review. The code-level approval gates do not replace independent artifact acquisition, recomputed digest, rights review, and qualified human review. Authentication, user-specific writes, audio, dua/tafsir endpoints, production database operations, and manual device/accessibility QA remain outside the verified read-only API boundary.
