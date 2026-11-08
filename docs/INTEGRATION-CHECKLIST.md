@@ -173,7 +173,8 @@ See [INTEGRATION-REVIEW-2026-11-08.md](INTEGRATION-REVIEW-2026-11-08.md) for exa
 ### Branch and contribution audit
 
 - [x] Main reviewed at `aa6e283de36a72d56f347dc474d9f29f92286fc8`.
-- [x] `integration/platform-foundation` compared with main: 4 commits ahead / 1 behind; merge base `a7ad2eb4dae5d2fdcfb682e1747d4b17d56dab29`. Last confirmed integration documentation commit: `ae3af983e812e3b121e1d0578562d142d8b2e1f2`. Re-fetch branch head before any merge decision.
+- [x] Pre-correction 2026-11-08 compare snapshot for `integration/platform-foundation`: 9 commits ahead / 1 behind; merge base `a7ad2eb4dae5d2fdcfb682e1747d4b17d56dab29`; last commit at that snapshot `80e9078b2a72a9acd751172344f648e1de51bf26`. Re-fetch branch head before any merge decision.
+- [x] Confirmed the PR #80 backend service/test blob SHAs are identical on main and integration; the compare's historical file entries are due to squash-merge ancestry, not current code differences. Do not open a new PR from this branch until it is synchronized with main through a normal merge.
 - [x] Jules assignment branch diff contains only `AGENT_TASK.md` and `JULES_NEXT_TASK.md`; Queen assignment branch diff contains only `AGENT_TASK.md`. No implementation is attributed to either current assignment branch.
 - [x] Recorded merged mainline work separately: PR #18 backend foundation, PR #16 Queen accessibility contribution, and PR #17 typed Quran catalogue REST adapter. These merged PRs do not make the current named assignment branches implementation branches.
 - [x] PR #1 and PR #80 are closed/merged; PR #80 source binding is present in current main.
