@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { resolveDatabaseConfig } from '../src/db/connection.js';
+import { createDatabaseConfigForMigration } from '../src/db/migrate.js';
 
 test('Database Configuration Resolver', async (t) => {
   const origEnv = { ...process.env };
@@ -27,10 +28,41 @@ test('Database Configuration Resolver', async (t) => {
     assert.equal(config.connection, 'postgresql://user:secret@localhost:5432/deenverse_prod');
   });
 
+  await t.test('resolves PostgreSQL configuration from an explicit URL override', () => {
+    process.env.DATABASE_URL = 'postgresql://runtime:secret@localhost:5432/deenverse';
+    const migrationUrl = 'postgresql://migrator:secret@localhost:5432/deenverse';
+
+    const config = resolveDatabaseConfig(migrationUrl);
+    assert.equal(config.client, 'pg');
+    assert.equal(config.connection, migrationUrl);
+  });
+
+  await t.test('requires a separate PostgreSQL migration URL in production', () => {
+    process.env.NODE_ENV = 'production';
+    process.env.DATABASE_URL = 'postgresql://runtime:secret@localhost:5432/deenverse';
+    delete process.env.MIGRATION_DATABASE_URL;
+
+    assert.throws(
+      () => createDatabaseConfigForMigration(),
+      /Production migrations require MIGRATION_DATABASE_URL/
+    );
+  });
+
+  await t.test('uses the separate migration URL in production', () => {
+    process.env.NODE_ENV = 'production';
+    process.env.DATABASE_URL = 'postgresql://runtime:secret@localhost:5432/deenverse';
+    process.env.MIGRATION_DATABASE_URL = 'postgresql://migrator:secret@localhost:5432/deenverse';
+
+    const config = createDatabaseConfigForMigration();
+    assert.equal(config.client, 'pg');
+    assert.equal(config.connection, process.env.MIGRATION_DATABASE_URL);
+  });
+
   await t.test('rejects PostgreSQL mode without an explicit database URL', () => {
     delete process.env.DATABASE_URL;
-    process.env.DB_CLIENT = 'pg';
+    delete process.env.DB_CLIENT;
 
+    process.env.DB_CLIENT = 'pg';
     assert.throws(() => resolveDatabaseConfig(), /DATABASE_URL is required/);
   });
 
