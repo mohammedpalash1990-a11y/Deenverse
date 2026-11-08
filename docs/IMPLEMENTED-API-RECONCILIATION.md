@@ -154,3 +154,27 @@ The earlier failure #41835304798 was a validator implementation bug, not an Open
 - Authentication, sessions, private bookmarks/progress, protected writes, manual RTL/keyboard/screen-reader/device QA, and hosted PostgreSQL operations remain release blockers.
 
 No Quran Arabic, Hadith, translation, tafsir, dua, or audio corpus was imported or fabricated by this integration update. CI success is software verification only; it is not religious-content approval.
+
+
+## Current mainline API and adapter inventory — 2026-11-08
+
+This section supersedes the historical twelve-route inventory and branch snapshots above. The current main SHA is `aa6e283de36a72d56f347dc474d9f29f92286fc8`. Exact evidence is recorded in [INTEGRATION-REVIEW-2026-11-08.md](INTEGRATION-REVIEW-2026-11-08.md).
+
+The currently registered backend has exactly ten GET routes:
+
+| Method | Route | Frontend boundary |
+|---|---|---|
+| GET | `/api/v1/health` | deployment/monitoring |
+| GET | `/api/v1/ready` | deployment/monitoring |
+| GET | `/api/v1/quran/surahs` | `src/lib/content-api-client.ts` — metadata list |
+| GET | `/api/v1/quran/surahs/{surahNumber}` | `src/lib/content-api-client.ts` — metadata detail |
+| GET | `/api/v1/ayah/{surah}/{ayah}` | `src/lib/quran-ayah-client.ts` — source-gated single Ayah |
+| GET | `/api/v1/hadith/books` | `src/lib/hadith-api-client.ts` |
+| GET | `/api/v1/hadith/books/{bookId}/chapters` | `src/lib/hadith-api-client.ts` |
+| GET | `/api/v1/hadith/books/{bookId}/records` | `src/lib/hadith-api-client.ts` |
+| GET | `/api/v1/hadith/records/{recordId}` | `src/lib/hadith-api-client.ts` |
+| GET | `/api/v1/hadith/search` | `src/lib/hadith-api-client.ts` |
+
+The former `/api/v1/translation/bn/{surahNumber}` and `/api/v1/translation/bn/{surahNumber}/{ayahNumber}` routes are not registered and must not appear as active operations in the current OpenAPI contract. Translation client code is dormant. Audio, authentication/session, private bookmarks/progress, dua/adhkar, tafsir, admin publishing, and problem-report submission routes are also absent.
+
+All browser API adapters use `src/lib/api-config.ts::resolveApiBaseUrl()` with `NEXT_PUBLIC_API_BASE_URL` and same-origin `/api/v1` fallback. The Quran UI remains fail-closed and does not request scripture/audio. The current mainline contract and PR dispositions are maintained in `docs/API-CONTRACT.md` and `docs/INTEGRATION-REVIEW-2026-11-08.md`.
