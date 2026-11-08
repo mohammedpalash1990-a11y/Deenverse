@@ -167,3 +167,17 @@ GitHub Actions reports successful completed runs for this exact commit: DEENVERS
 ### Current release boundary
 
 No Quran, translation, tafsir, Hadith, dua, or audio corpus is approved for production publication by this integration review. The code-level approval gates do not replace independent artifact acquisition, recomputed digest, rights review, and qualified human review. Authentication, user-specific writes, audio, dua/tafsir endpoints, production database operations, and manual device/accessibility QA remain outside the verified read-only API boundary.
+
+
+## Current mainline contract reconciliation — 2026-11-08
+
+This section supersedes older branch/PR snapshots in this document. Exact repository evidence is recorded in [INTEGRATION-REVIEW-2026-11-08.md](INTEGRATION-REVIEW-2026-11-08.md).
+
+- Current main SHA: `aa6e283de36a72d56f347dc474d9f29f92286fc8`. PR #1's API/source-selection integration and PR #80's Hadith record-source binding are present in main.
+- Main registers exactly ten GET operations: health, readiness, Quran Surah list/detail, source-gated single Ayah, Hadith book list, chapters, records, single record, and search. The two former QuranEnc translation routes are not registered.
+- Browser clients share `src/lib/api-config.ts::resolveApiBaseUrl()`; public build-time configuration is `NEXT_PUBLIC_API_BASE_URL`, defaulting to same-origin `/api/v1`. The resolver rejects credentials, query/fragment data, and unsafe/ambiguous URL forms. The same configured external origin is used for browser CSP.
+- Active adapter boundaries: `content-api-client.ts` for Surah metadata, `quran-ayah-client.ts` for the single-Ayah route, and `hadith-api-client.ts` for Hadith reads. The Quran UI remains approval-pending and does not fetch or render scripture/audio. `quran-translation-client.ts` is dormant; no public translation route backs it.
+- Main's current Hadith search cursor scope is NFC-normalized query + locale + page size. PR #82 proposes exact validated-query binding to prevent replay across canonically equivalent Unicode inputs; it remains an open draft and is not part of main. Do not describe its proposed semantics as implemented until it is merged.
+- PR #80's source binding is now in main: both primary and independent Hadith record-review rows must match the record's own `source_id`, in addition to artifact-digest and reviewer-independence checks.
+
+Current main SHA `aa6e283...` returned no PR-triggered workflow runs and no combined commit statuses during the 2026-11-08 inspection. Exact-main CI is therefore unverified by that inspection. Passing CI on PR heads is not a substitute for a fresh check on the exact main/release SHA.
