@@ -6,8 +6,8 @@ export interface DatabaseConfig {
   useNullAsDefault?: boolean;
 }
 
-export function resolveDatabaseConfig(): DatabaseConfig {
-  const databaseUrl = process.env.DATABASE_URL?.trim();
+export function resolveDatabaseConfig(databaseUrlOverride?: string): DatabaseConfig {
+  const databaseUrl = (databaseUrlOverride ?? process.env.DATABASE_URL)?.trim();
   const requestedClient = process.env.DB_CLIENT?.trim();
 
   if (requestedClient && requestedClient !== 'sqlite3' && requestedClient !== 'pg') {
