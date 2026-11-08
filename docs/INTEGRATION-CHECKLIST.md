@@ -164,3 +164,42 @@ Evidence below was captured at integration implementation head `dc251bcc38dff3b7
 - [ ] Implement and review authentication, authorization, user data isolation, bookmarks/progress, and abuse controls before adding private write APIs.
 
 This review updates integration evidence only. It does not authorize merge, deployment, or religious-content publication.
+
+
+## Current integration review — 2026-11-08
+
+See [INTEGRATION-REVIEW-2026-11-08.md](INTEGRATION-REVIEW-2026-11-08.md) for exact SHAs, route inventory, adapter mapping, open PR review, CI evidence, and limitations.
+
+### Branch and contribution audit
+
+- [x] Main reviewed at `aa6e283de36a72d56f347dc474d9f29f92286fc8`.
+- [x] `integration/platform-foundation` compared with main: 4 commits ahead / 1 behind; merge base `a7ad2eb4dae5d2fdcfb682e1747d4b17d56dab29`. Last confirmed integration documentation commit: `ae3af983e812e3b121e1d0578562d142d8b2e1f2`. Re-fetch branch head before any merge decision.
+- [x] Jules assignment branch diff contains only `AGENT_TASK.md` and `JULES_NEXT_TASK.md`; Queen assignment branch diff contains only `AGENT_TASK.md`. No implementation is attributed to either current assignment branch.
+- [x] Recorded merged mainline work separately: PR #18 backend foundation, PR #16 Queen accessibility contribution, and PR #17 typed Quran catalogue REST adapter. These merged PRs do not make the current named assignment branches implementation branches.
+- [x] PR #1 and PR #80 are closed/merged; PR #80 source binding is present in current main.
+
+### Contract and adapters
+
+- [x] Current backend route inventory is ten GET operations; QuranEnc translation routes are not registered.
+- [x] Shared API resolver is `src/lib/api-config.ts`; `NEXT_PUBLIC_API_BASE_URL` defaults to same-origin `/api/v1`.
+- [x] Quran catalogue, single-Ayah, and Hadith clients use the shared resolver and validate response/provenance boundaries.
+- [x] Translation client is dormant; the mounted Quran UI remains approval-pending and makes no scripture/audio request.
+- [x] Current main Hadith search cursor scope remains NFC-normalized. PR #82's exact-query change is open draft, not merged.
+- [x] PR #81 reviewer-identity normalization, PR #82 Unicode cursor binding, and PR #83 awaited service-worker cache persistence were inspected as separate open drafts; exact-head CI passed on each recorded PR head. Re-run after any rebase/base update.
+
+### CI evidence and limitations
+
+- [x] PR #81 head `bf5ed09c8c4b5603c40d897ae558e2a7095de396`: backend 93/93; web 174 tests; PostgreSQL 16 and production SQLite guard passed; audits reported zero high-severity vulnerabilities.
+- [x] PR #82 head `da5f6c22d533dd4516aed51f86246667f7abdcc8`: backend 91/91; web 174 tests; OpenAPI route parity 10/10; PostgreSQL 16 and production SQLite guard passed; audits reported zero high-severity vulnerabilities.
+- [x] PR #83 head `0aa23e26dbe4491fce303e1f348f092d65fd5952`: backend 91/91; web 177 tests; PostgreSQL 16 and production SQLite guard passed; audits reported zero high-severity vulnerabilities.
+- [ ] Exact-main CI remains unverified: the workflow/status endpoints returned no run/status for `aa6e283...`.
+- [ ] This review did not run local shell commands, hosted database operations, browser automation, or physical-device QA.
+- [ ] A docs-only PR triggers Web foundation checks but not the path-filtered DEENVERSE CI or OpenAPI route-parity workflow. Do not claim those checks ran for this documentation update.
+
+### Remaining release blockers
+
+- [ ] Independently acquire and hash the exact Quran source artifact; preserve edition, retrieval, attribution, and license evidence; complete qualified independent review and per-Ayah human review.
+- [ ] Verify Bengali translation web/mobile/hosting/caching/offline/export rights before enabling routes.
+- [ ] Approve Hadith, tafsir, dua/adhkar, and recitation-audio sources and use-specific rights separately.
+- [ ] Verify deployed PostgreSQL role and least-privilege grants, network restrictions, branch protection, migration/readiness, backup/restore, rollback, and secret-store configuration.
+- [ ] Complete manual RTL, keyboard, screen-reader, responsive, zoom/reflow, and real-device/offline QA.
