@@ -130,7 +130,7 @@ describe("createRestContentSource", () => {
     expect(fetcher).toHaveBeenCalledTimes(3);
     expect(fetcher.mock.calls[0][0]).toBe("/api/v1/quran/surahs?limit=50");
     expect(fetcher.mock.calls[1][0]).toBe("/api/v1/quran/surahs?limit=50&cursor=cursor-page-2");
-    expect(fetcher.mock.calls[2][0]).toBe("/api/v1/quran/surahs?limit=14&cursor=cursor-page-3");
+    expect(fetcher.mock.calls[2][0]).toBe("/api/v1/quran/surahs?limit=50&cursor=cursor-page-3");
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.data.items).toHaveLength(114);
