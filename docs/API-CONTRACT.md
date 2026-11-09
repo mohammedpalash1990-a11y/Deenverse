@@ -171,7 +171,7 @@ No Quran, translation, tafsir, Hadith, dua, or audio corpus is approved for prod
 
 ## Current mainline and integration-candidate contract — 2026-11-09
 
-This section supersedes the older branch/PR snapshots above for current implementation status. Baseline main inspected: `f15e82748f1724d5995fe863e54d178a8a22b2b7`. The integration branch is being synchronized from that baseline; the cross-cutting candidate changes listed below remain on `integration/platform-foundation` until its PR is reviewed and merged.
+This section supersedes the older branch/PR snapshots above for current implementation status. Baseline main inspected: `f15e82748f1724d5995fe863e54d178a8a22b2b7`. The integration branch was synchronized from that baseline by merge commit `21f1ca649a81d4ff14ff048c7e97752656188de8`; that exact head was 13 commits ahead / 0 behind `main`. The cross-cutting candidate changes remain on `integration/platform-foundation` until draft PR #89 is reviewed and merged.
 
 ### Registered public API
 
@@ -209,6 +209,14 @@ The integration branch ports three reviewed, exact-head-tested changes from open
 - PR #87: await Cache Storage writes for the app shell and immutable assets before resolving intercepted responses; storage failures do not block online responses, and API responses remain uncached.
 
 Until this integration candidate is merged, main at the baseline above still has the pre-PR #85 reviewer comparison, NFC-normalized Hadith search cursor scope, and detached service-worker cache writes. Do not describe the candidate fixes as deployed main behavior.
+
+Exact combined-head verification for `21f1ca649a81d4ff14ff048c7e97752656188de8` completed on 2026-11-09:
+
+- DEENVERSE CI run `42618401036` passed backend locked install, typecheck, test suite, build, and high-severity dependency audit; its PostgreSQL 16 service initialized successfully. The web job passed locked install, typecheck, Vitest suite, production build, and high-severity dependency audit (`0 vulnerabilities`).
+- Web foundation run `42618401017` passed locked install, audit capture, typecheck, tests, and production build.
+- OpenAPI validation run `42618401470` passed YAML parsing, duplicate-key detection, local-reference resolution, and exact backend route parity: 10 paths / 10 operations.
+- CI logs contain non-failing dependency/runtime deprecation warnings (`punycode`, `url.parse`, a PostgreSQL client query warning, and GitHub Actions Node 20 deprecation notices). No job or step failed. These are CI results, not deployment or content-approval evidence.
+
 
 ### Content-integrity boundary
 
