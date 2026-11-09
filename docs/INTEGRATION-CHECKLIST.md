@@ -208,3 +208,27 @@ This review updates integration evidence only. It does not authorize merge, depl
 - PR #86 head `cdfa72411c9749e38c83fbb91fe88734a954db07`: DEENVERSE CI `42501042495`, Web foundation `42501042547`, and OpenAPI validation `42501042477` succeeded.
 - PR #87 head `672330fd7cc1ef737a4fb8386a8eb62bcdb5e814`: DEENVERSE CI `42501165640` and Web foundation `42501165616` succeeded.
 - These PRs remain draft/open and their checks do not replace exact-head CI on the combined integration candidate.
+
+## 2026-11-09 exact integration-head verification
+
+This section supersedes earlier checklist entries that said the combined integration candidate still needed fresh CI. Evidence is tied to the exact code head below; it does not authorize deployment or religious-content publication.
+
+- [x] `integration/platform-foundation` head `21f1ca649a81d4ff14ff048c7e97752656188de8` is synchronized from main `f15e82748f1724d5995fe863e54d178a8a22b2b7` and compares 13 commits ahead / 0 behind.
+- [x] PR #89 is open as a draft, targets `main`, and GitHub reports it mergeable. It remains unmerged; no changes were written to `main` or the Jules/Queen assignment branches.
+- [x] DEENVERSE CI run #42618401036 passed backend install, typecheck, tests, build, and dependency audit with a PostgreSQL 16 service; web install, typecheck, tests, production build, and dependency audit also passed. The audit reported 0 vulnerabilities.
+- [x] Web foundation run #42618401017 passed locked install, audit capture, typecheck, tests, and production build.
+- [x] OpenAPI validation run #42618401470 passed YAML parsing, duplicate-key detection, local-reference checks, and exact backend route parity (10 paths / 10 operations).
+- [x] The CI workflow now runs full checks on pushes to `integration/platform-foundation` as well as `main`, so subsequent integration commits do not depend on a pull-request event to receive backend/web checks.
+- [ ] Human review and merge decision for PR #89 remain pending.
+- [ ] Immutable Quran source acquisition, independent artifact re-hashing, source-specific redistribution approval, qualified human review, and all Hadith/translation/tafsir/dua/audio source rights remain release blockers.
+- [ ] Authentication/authorization, protected user-data APIs, production backup/restore/rollback drills, and manual RTL/accessibility/device QA remain release blockers.
+
+### Agent branch evidence at this checkpoint
+
+- `jules/backend-foundation`: 3 commits ahead / 72 behind `main`; the branch diff contains only `AGENT_TASK.md` and `JULES_NEXT_TASK.md`.
+- `queen/frontend-foundation`: 2 commits ahead / 72 behind `main`; the branch diff contains only `AGENT_TASK.md`.
+- No implementation commits or implementation PRs were present on either named assignment branch. Their assignment commits are not counted as backend/frontend delivery.
+
+### CI warnings
+
+The successful backend logs include non-failing `punycode`, `url.parse`, PostgreSQL client query, and GitHub Actions Node 20 deprecation warnings. These did not fail any step. Track dependency and workflow-action updates separately; do not misreport warnings as test failures.
