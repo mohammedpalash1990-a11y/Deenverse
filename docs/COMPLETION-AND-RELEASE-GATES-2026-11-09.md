@@ -16,6 +16,8 @@
 
 The Jules branch differs from its merge base only by `AGENT_TASK.md` and `JULES_NEXT_TASK.md`; the Queen branch differs only by `AGENT_TASK.md`. The branch comparisons against current main are 3 ahead / 72 behind for Jules and 2 ahead / 72 behind for Queen. No backend/frontend implementation commits or implementation PRs exist on these named assignment branches. No work is attributed to either agent.
 
+Historical delivery evidence is separate from those current assignment branches: Jules PR #7 (`jules/backend-foundation-5581069021441156639`) delivered a 44-commit/31-file backend foundation but was closed unmerged; its current PR head has no recorded PR-triggered CI run/status, and the last Jules comment's 34-test/build statement is not independently verified. Queen PR #6 (`assistant/queen-frontend-delivery`) delivered a 103-commit/39-file frontend foundation but was closed unmerged; Web foundation run #41576347233 passed its recorded PR head `a943eba5ddfe5c6b3a386e98713e994e0c2f562a`, while manual browser/screen-reader/device QA remained outstanding. Both historical branches are heavily diverged from current main and were left untouched. They are not evidence of current agent activity.
+
 ## Selected stack
 
 - Web: Next.js 15.5.28, React 19.1.2, TypeScript 5.8.3, Vitest 5.1.0.

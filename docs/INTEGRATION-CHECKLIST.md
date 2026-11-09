@@ -227,7 +227,15 @@ This section supersedes earlier checklist entries that said the combined integra
 
 - `jules/backend-foundation`: 3 commits ahead / 72 behind `main`; the branch diff contains only `AGENT_TASK.md` and `JULES_NEXT_TASK.md`.
 - `queen/frontend-foundation`: 2 commits ahead / 72 behind `main`; the branch diff contains only `AGENT_TASK.md`.
-- No implementation commits or implementation PRs were present on either named assignment branch. Their assignment commits are not counted as backend/frontend delivery.
+- No implementation commits or implementation PRs were present on either current named assignment branch. Their assignment commits are not counted as backend/frontend delivery.
+
+### Historical Jules / Queen delivery PRs
+
+These are real historical implementation deliveries, but both PRs are closed and unmerged; they do not show that either agent is currently working.
+
+- Jules PR #7, head branch `jules/backend-foundation-5581069021441156639`: 44 commits and 31 files in the PR; closed unmerged on 2026-11-03. The current branch compare is 46 ahead / 64 behind main. The final PR timeline comment reports 34 tests and a build passing on commit `98b5817f12aa722ae4c12c8891053ee8054ec632`, but the current PR head `2959c54efbec32bee842a257cf1dc38a965e8d96` has no PR-triggered workflow run or combined status. Treat the test statement as an author report, not verified CI.
+- Queen PR #6, head branch `assistant/queen-frontend-delivery`: 103 commits and 39 files in the PR; closed unmerged on 2026-11-03. Its current compare is 103 ahead / 68 behind main. Web foundation run #41576347233 passed for PR head `a943eba5ddfe5c6b3a386e98713e994e0c2f562a`; the PR timeline still records manual browser, screen-reader, and device QA as outstanding.
+- Neither stale delivery branch was merged or modified during this integration run. Do not cherry-pick their divergent histories wholesale; review individual changes against current main if any specific historical feature is needed.
 
 ### CI warnings
 
