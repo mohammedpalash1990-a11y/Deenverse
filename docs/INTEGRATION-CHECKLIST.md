@@ -164,3 +164,47 @@ Evidence below was captured at integration implementation head `dc251bcc38dff3b7
 - [ ] Implement and review authentication, authorization, user data isolation, bookmarks/progress, and abuse controls before adding private write APIs.
 
 This review updates integration evidence only. It does not authorize merge, deployment, or religious-content publication.
+
+
+## Current evidence snapshot — 2026-11-09
+
+### Stack, CI and production database
+
+- [x] Stack selected: Next.js 15.5.28 / React 19.1.2 / TypeScript 5.8.3 / Vitest 5.1.0; Node.js 22 / Fastify 5.2.1 / Knex 3.1.x / Zod 4.6.7; PostgreSQL production, SQLite local/test.
+- [x] Main commit `f15e82748f1724d5995fe863e54d178a8a22b2b7` exact-head DEENVERSE CI run `42532114793` completed successfully on 2026-11-08.
+- [x] PR #88 merged the separate read-only runtime and migration credentials. Its exact-head report records backend 94/94, frontend 174/174, typecheck/build, PostgreSQL 16 runtime/migration, production SQLite startup guard, and high-severity audit with zero vulnerabilities.
+- [x] Owner-reported deployment evidence: Render API `deenverse-api` is LIVE on the merged SHA; runtime uses Neon `deenverse_runtime_ro` through the pooled URL; migration uses `deenverse_migrator` through the direct URL. Runtime SELECT passed and DML was denied on Quran tables; migration DDL probe passed. No secret values are recorded here.
+- [ ] Neon protected-branch enforcement and network allowlisting: Neon refused branch protection at the current plan limit; public connections remain enabled pending verified Render outbound CIDRs. Do not add an IP allowlist until those CIDRs or dedicated egress are confirmed.
+
+### API and adapters
+
+- [x] Ten registered GET operations are enumerated in the current API contract and OpenAPI snapshot.
+- [x] Quran catalogue, Ayah, and Hadith adapters use the shared API-base resolver and validate response envelopes/provenance.
+- [x] QuranEnc translation routes are unregistered; translation client code is dormant.
+- [x] Hadith primary and independent record reviews are bound to the record's exact source ID (merged PR #80).
+- [x] Integration candidate ports PR #85 reviewer-identity normalization, PR #86 exact-trimmed-query Hadith cursor binding, and PR #87 awaited service-worker cache persistence.
+- [ ] Exact-head CI for the combined integration candidate: pending the new integration PR run. Earlier PR-head checks are evidence for those individual PR heads only, not for the combined commit.
+- [ ] Full response-schema contract coverage and pagination snapshot isolation remain incomplete.
+
+### Agent branch evidence
+
+- Jules branch head `f84e35c242ab37ccafca0528a1d06e0d4b244834`: 3 commits ahead / 72 behind current main; branch-specific diff is only `AGENT_TASK.md` and `JULES_NEXT_TASK.md`.
+- Queen branch head `9ef788c81de85e9ebfa139b35c42d606c38f2010`: 2 commits ahead / 72 behind current main; branch-specific diff is only `AGENT_TASK.md`.
+- No Jules/Queen backend or frontend implementation PR/commit exists on those named assignment branches. Neither branch was modified.
+
+### Religious content and release
+
+- [x] Mounted Quran reader is a no-fetch approval-pending placeholder; the current main app does not display Quran text, translation, or recitation audio.
+- [ ] Tanzil official artifact acquisition, preserved bytes, independently recomputed digest, source approval, and per-Ayah review remain incomplete.
+- [ ] QuranEnc Bengali translation redistribution/hosting/caching/offline/export rights remain unverified.
+- [ ] Hadith collection-specific source, edition, grading, attribution, redistribution terms, and production corpus approval remain incomplete.
+- [ ] Tafsir, dua/adhkar, and recitation audio each require independent source and use-specific rights approval.
+- [ ] Authentication/session lifecycle, server-side authorization, account recovery/deletion, and cross-user isolation are not implemented.
+- [ ] Manual browser, RTL, keyboard, screen-reader, responsive, offline-transition, Android, and iOS device QA is not evidenced.
+
+### Open reviewed PRs (not merged)
+
+- PR #85 head `4420bb20875b4851195a6b3f84806abc3302913b`: DEENVERSE CI `42500101373` and Web foundation `42500101320` succeeded.
+- PR #86 head `cdfa72411c9749e38c83fbb91fe88734a954db07`: DEENVERSE CI `42501042495`, Web foundation `42501042547`, and OpenAPI validation `42501042477` succeeded.
+- PR #87 head `672330fd7cc1ef737a4fb8386a8eb62bcdb5e814`: DEENVERSE CI `42501165640` and Web foundation `42501165616` succeeded.
+- These PRs remain draft/open and their checks do not replace exact-head CI on the combined integration candidate.

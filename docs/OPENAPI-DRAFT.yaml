@@ -1,16 +1,14 @@
 openapi: 3.1.0
 info:
   title: DEENVERSE Implemented API
-  version: 1.2.1-release-gated
+  version: 1.2.2-integration-candidate
   description: >
-    Release-gated snapshot of the 10 GET routes registered by
-    integration/platform-foundation at commit 45ec2723b6f0eaa259c8f9e81b536bdc0f41b63c
-    on 2026-11-06. The disabled QuranEnc Bengali translation routes are
-    intentionally absent. Route registration does not authorize or prove
-    that religious content is approved or populated. The Quran Ayah route
-    remains source-gated and must fail closed when no uniquely eligible
-    source exists. This contract describes the integration branch, not
-    deployed mainline behavior.
+    Current release-gated snapshot of the ten GET operations registered by
+    backend/src/app.ts. Baseline main commit f15e82748f1724d5995fe863e54d178a8a22b2b7
+    was inspected on 2026-11-09; the integration candidate adds reviewed cursor,
+    reviewer-identity, and service-worker fixes without changing route paths.
+    Quran translation routes are not registered. Route registration does not
+    authorize or prove that religious content is approved or populated.
 servers:
   - url: http://localhost:4000
     description: Local backend
@@ -368,9 +366,10 @@ components:
       required: false
       description: >
         Opaque HMAC-SHA-256 signed pagination token. Authenticated to the exact
-        endpoint query scope and page size; cross-query replay and tampering are
-        rejected with HTTP 400 VALIDATION_ERROR. Clients must return the token
-        unchanged and must not construct or modify it.
+        endpoint query scope and page size; Hadith search binds the exact trimmed
+        query after validation, so Unicode-normalization variants are distinct.
+        Cross-query replay and tampering return HTTP 400 VALIDATION_ERROR.
+        Clients must return the token unchanged and must not construct or modify it.
       schema:
         type: string
         minLength: 1
