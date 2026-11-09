@@ -223,3 +223,14 @@ Exact combined-head verification for `21f1ca649a81d4ff14ff048c7e97752656188de8` 
 The Quran selector fails closed unless exactly one active, redistribution-permitted source has an approved digest-metadata decision. The integration candidate additionally normalizes reviewer identity comparisons. Hadith record publication requires primary and independent review rows bound to the record's exact `source_id`, in addition to digest metadata and reviewer-independence checks.
 
 The current read path compares stored digest strings; it does not acquire an immutable upstream artifact and independently recompute its SHA-256 at read time. That metadata gate is not proof of publisher authenticity or scholarly correctness. Keep all religious content unavailable until exact artifact bytes, edition identity, redistribution rights, independent source approval, and content-specific review are evidenced.
+
+## Latest integration CI refresh — 2026-11-09
+
+The cross-cutting candidate and CI workflow were rechecked at code/workflow head `3e34a9ba6810f49da467e22001711f906356fb78`. The workflow now runs full backend/web checks on pushes to `integration/platform-foundation`, not only on main or pull requests.
+
+- DEENVERSE CI run `42620202517` passed backend typecheck, 96/96 backend tests, backend build, PostgreSQL 16 test service, web typecheck, 177/177 web tests across 19 files, production build, and both dependency audits (0 vulnerabilities).
+- Web foundation run `42620202398` passed locked install, audit capture, typecheck, 177/177 tests, and production build.
+- OpenAPI validation run `42620202468` passed YAML parsing, duplicate-key detection, local references, and backend route parity (10 paths / 10 operations).
+- All jobs and steps passed. Non-failing `punycode`, `url.parse`, PostgreSQL client query, and GitHub Actions Node 20 deprecation warnings remain in logs.
+
+The current branch remains separate from `main`; PR #89 is still a draft and unmerged. The CI result does not authorize deployment or religious-content publication.

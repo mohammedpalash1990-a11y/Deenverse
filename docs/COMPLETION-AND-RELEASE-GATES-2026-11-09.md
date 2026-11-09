@@ -8,7 +8,7 @@
 ## Exact refs inspected
 
 - Main: `f15e82748f1724d5995fe863e54d178a8a22b2b7` (merged PR #88).
-- Current integration branch head: `21f1ca649a81d4ff14ff048c7e97752656188de8` (merge commit from main `f15e82748f1724d5995fe863e54d178a8a22b2b7`; 13 ahead / 0 behind at this checkpoint).
+- Application-code integration head: `21f1ca649a81d4ff14ff048c7e97752656188de8` (merge commit from main `f15e82748f1724d5995fe863e54d178a8a22b2b7`; 13 ahead / 0 behind at that point). Follow-up CI/documentation head: `3e34a9ba6810f49da467e22001711f906356fb78` (17 ahead / 0 behind at that checkpoint).
 - Jules assignment branch: `f84e35c242ab37ccafca0528a1d06e0d4b244834`.
 - Queen assignment branch: `9ef788c81de85e9ebfa139b35c42d606c38f2010`.
 
@@ -30,7 +30,7 @@ The integration candidate incorporates the exact code files from:
 - PR #86: bind Hadith search cursor scope to the exact trimmed query; add Bengali Unicode cross-query replay coverage.
 - PR #87: await successful app-shell and immutable-asset cache writes; add service-worker race and API-bypass tests.
 
-The PR branches remain unchanged. Combined exact-head CI passed on `21f1ca649a81d4ff14ff048c7e97752656188de8`: DEENVERSE CI #42618401036, Web foundation #42618401017, and OpenAPI validation #42618401470. PR #89 remains open as a draft; no merge to main or deployment is authorized by this review.
+The PR branches remain unchanged. Combined exact-head CI passed on application-code head `21f1ca649a81d4ff14ff048c7e97752656188de8` (DEENVERSE CI #42618401036, Web foundation #42618401017, OpenAPI #42618401470) and again on CI/documentation head `3e34a9ba6810f49da467e22001711f906356fb78` (DEENVERSE CI #42620202517, Web foundation #42620202398, OpenAPI #42620202468). PR #89 remains open as a draft; no merge to main or deployment is authorized by this review.
 
 ## API boundary
 
@@ -40,7 +40,7 @@ Ten GET routes are registered: health, readiness, two Quran catalogue routes, on
 
 Main SHA `f15e82748f1724d5995fe863e54d178a8a22b2b7` passed DEENVERSE CI run `42532114793`. PR #88's exact-head evidence records 94 backend tests passed, 174 frontend tests passed, typecheck/build passed, PostgreSQL 16 migration/runtime passed, production SQLite startup guard passed, and zero high-severity dependency findings.
 
-The integration candidate's exact-head runs on `21f1ca649a81d4ff14ff048c7e97752656188de8` also passed: DEENVERSE CI #42618401036 (backend and web locked installs, typechecks, tests, builds, dependency audits; PostgreSQL 16 test service), Web foundation #42618401017, and OpenAPI route validation #42618401470 (10 paths / 10 operations). The web and backend dependency audits reported 0 vulnerabilities. CI logs show non-failing dependency/runtime and GitHub Actions Node 20 deprecation warnings; no step failed.
+The integration candidate also passed on follow-up head `3e34a9ba6810f49da467e22001711f906356fb78`: DEENVERSE CI #42620202517 reported 96/96 backend tests and 177/177 web tests across 19 files, both production builds and high-severity dependency audits passed with 0 vulnerabilities, and the PostgreSQL 16 test service initialized. Web foundation #42620202398 and OpenAPI validation #42620202468 also passed; OpenAPI parity remained 10 paths / 10 operations. CI logs show non-failing dependency/runtime and GitHub Actions Node 20 deprecation warnings; no step failed.
 
 The repository owner reported that Render API `deenverse-api` is LIVE on the merged SHA; runtime uses Neon role `deenverse_runtime_ro` over the pooled URL, and migrations use `deenverse_migrator` over the direct URL. Read-only DML denial and migration DDL probes were reported successful. Neon protected-branch enforcement was unavailable at the current plan limit; public connections remain enabled pending verified Render outbound CIDRs. Do not set an IP allowlist until egress is confirmed.
 

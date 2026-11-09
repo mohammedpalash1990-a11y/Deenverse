@@ -213,11 +213,11 @@ This review updates integration evidence only. It does not authorize merge, depl
 
 This section supersedes earlier checklist entries that said the combined integration candidate still needed fresh CI. Evidence is tied to the exact code head below; it does not authorize deployment or religious-content publication.
 
-- [x] `integration/platform-foundation` head `21f1ca649a81d4ff14ff048c7e97752656188de8` is synchronized from main `f15e82748f1724d5995fe863e54d178a8a22b2b7` and compares 13 commits ahead / 0 behind.
+- [x] Application-code head `21f1ca649a81d4ff14ff048c7e97752656188de8` is synchronized from main `f15e82748f1724d5995fe863e54d178a8a22b2b7`; follow-up CI/documentation head `3e34a9ba6810f49da467e22001711f906356fb78` compares 17 commits ahead / 0 behind.
 - [x] PR #89 is open as a draft, targets `main`, and GitHub reports it mergeable. It remains unmerged; no changes were written to `main` or the Jules/Queen assignment branches.
-- [x] DEENVERSE CI run #42618401036 passed backend install, typecheck, tests, build, and dependency audit with a PostgreSQL 16 service; web install, typecheck, tests, production build, and dependency audit also passed. The audit reported 0 vulnerabilities.
-- [x] Web foundation run #42618401017 passed locked install, audit capture, typecheck, tests, and production build.
-- [x] OpenAPI validation run #42618401470 passed YAML parsing, duplicate-key detection, local-reference checks, and exact backend route parity (10 paths / 10 operations).
+- [x] DEENVERSE CI run #42620202517 passed backend typecheck, 96/96 backend tests, build, PostgreSQL 16 test service, web typecheck, 177/177 tests across 19 files, production build, and both dependency audits (0 vulnerabilities).
+- [x] Web foundation run #42620202398 passed locked install, audit capture, typecheck, 177/177 tests, and production build.
+- [x] OpenAPI validation run #42620202468 passed YAML parsing, duplicate-key detection, local-reference checks, and exact backend route parity (10 paths / 10 operations).
 - [x] The CI workflow now runs full checks on pushes to `integration/platform-foundation` as well as `main`, so subsequent integration commits do not depend on a pull-request event to receive backend/web checks.
 - [ ] Human review and merge decision for PR #89 remain pending.
 - [ ] Immutable Quran source acquisition, independent artifact re-hashing, source-specific redistribution approval, qualified human review, and all Hadith/translation/tafsir/dua/audio source rights remain release blockers.
