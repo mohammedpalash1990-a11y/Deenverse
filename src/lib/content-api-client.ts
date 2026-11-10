@@ -56,7 +56,8 @@ export function createRestContentSource(options: RestContentSourceOptions = {}):
       const seenCursors = new Set<string>();
       if (cursor) seenCursors.add(cursor);
       do {
-        const pageSize = Math.min(50, targetCount - items.length);
+        // Keep the signed cursor's page-size scope stable across every request.
+        const pageSize = Math.min(50, targetCount);
         const params = new URLSearchParams({ limit: String(pageSize) });
         if (cursor) params.set("cursor", cursor);
         const url = `${baseUrl}/quran/surahs?${params.toString()}`;
