@@ -37,14 +37,19 @@ async function downloadBytes(
   return bytes;
 }
 
+function normalizedReviewerIdentity(value: unknown): string {
+  return String(value ?? '').trim().toLowerCase();
+}
+
 async function assertIndependentlyApprovedSource(
   db: Knex,
   artifactSha256: string,
   metadataSha256: string
 ): Promise<void> {
   const source = await db('content_sources').where({ id: SOURCE_ID }).first();
-  if (!source) throw new Error('Tanzil source must be registered and independently reviewed before import.');
+  const sourceReviewer = normalizedReviewerIdentity(source?.reviewer);
   if (
+    !source ||
     source.content_type !== 'quran' ||
     source.edition !== TANZIL_UTHMANI_EDITION ||
     source.source_url !== TANZIL_TEXT_URL ||
@@ -53,20 +58,21 @@ async function assertIndependentlyApprovedSource(
     !String(source.attribution ?? '').includes('Creative Commons Attribution 3.0') ||
     !String(source.attribution ?? '').includes('https://tanzil.net/') ||
     !(source.redistribution_allowed === true || source.redistribution_allowed === 1 || source.redistribution_allowed === '1') ||
-    !source.reviewer ||
-    source.reviewer === 'project-owner-chat-authorization' ||
+    !sourceReviewer ||
+    sourceReviewer === 'project-owner-chat-authorization' ||
     !source.reviewed_at ||
     String(source.checksum).toLowerCase() !== artifactSha256 ||
     source.is_active === true
   ) throw new Error('Tanzil source registration is incomplete, unverified, active, or does not match the exact artifact.');
 
   const approval = await db('content_source_approvals').where({ source_id: SOURCE_ID }).first();
+  const approvalReviewer = normalizedReviewerIdentity(approval?.reviewer_id);
   if (
     !approval ||
     approval.decision !== 'approved' ||
-    !approval.reviewer_id ||
-    approval.reviewer_id === 'project-owner-chat-authorization' ||
-    approval.reviewer_id === source.reviewer ||
+    !approvalReviewer ||
+    approvalReviewer === 'project-owner-chat-authorization' ||
+    approvalReviewer === sourceReviewer ||
     !approval.approved_at ||
     !approval.review_notes ||
     String(approval.artifact_sha256).toLowerCase() !== artifactSha256 ||
