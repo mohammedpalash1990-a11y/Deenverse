@@ -52,7 +52,7 @@ All responses adhere to the standard REST envelope specified in `docs/CONTENT-AP
 }
 ```
 
-Pagination cursors are opaque HMAC-SHA-256 signed tokens. Their authenticated payload includes a version, non-negative offset, and canonical query scope. Quran Surah cursors are bound to the route and page size; Hadith book cursors are bound to the route and page size; Hadith record cursors are additionally bound to book, chapter, locale, and page size; Hadith search cursors are bound to normalized search text, locale, and page size. Invalid signatures, tampering, malformed tokens, and cross-query/page-size replay return HTTP 400 `VALIDATION_ERROR`. Clients must treat cursors as opaque and must not construct or modify them. The signing key is derived from `API_CURSOR_SECRET` when configured, otherwise from `DATABASE_URL`; development without either uses a process-local random key, so cursors created in that local mode are not portable across process restarts.
+Pagination cursors are opaque HMAC-SHA-256 signed tokens. Their authenticated payload includes a version, non-negative offset, and canonical query scope. Quran Surah cursors are bound to the route and page size; Hadith book cursors are bound to the route and page size; Hadith record cursors are additionally bound to book, chapter, locale, and page size; Hadith search cursors on main are bound to the NFC-normalized search text, locale, and page size; the integration candidate changes this to the exact trimmed query after validation. Invalid signatures, tampering, malformed tokens, and cross-query/page-size replay return HTTP 400 `VALIDATION_ERROR`. Clients must treat cursors as opaque and must not construct or modify them. The signing key is derived from `API_CURSOR_SECRET` when configured, otherwise from `DATABASE_URL`; development without either uses a process-local random key, so cursors created in that local mode are not portable across process restarts.
 
 **Integrity limitation:** The current backend compares the approval record's `artifact_sha256` string with the source record's `checksum` string and validates provenance metadata. It does not download or hash an immutable source artifact. This equality check is not cryptographic artifact verification and must not be described as proof that published content matches an authentic source. Do not approve or publish production religious content until immutable artifact retrieval, SHA-256 recomputation, source identity, edition, licensing, and independent human review are implemented and evidenced.
 
@@ -83,7 +83,7 @@ Standard Error Codes:
 
 The current backend uses HTTP 400 for validation errors, 401/403 for authentication/authorization errors when applicable, 404 for missing resources, 429 for rate limiting, 502 for integrity rejection, and 503 for `CONTENT_UNAVAILABLE` or `UNAVAILABLE`. Read-only route registration does not imply that any religious corpus is approved or populated.
 
-## Release-safety and integration contract — 2026-11-06
+## Historical release-safety and integration contract — 2026-11-06 (superseded by the 2026-11-09 snapshot)
 
 ### Public mainline and candidate PRs
 
@@ -145,7 +145,7 @@ No Quran Arabic, Hadith, translation, tafsir, dua, or audio corpus was fabricate
 
 ## Pagination cursor hardening — 2026-11-07
 
-The integration implementation replaces unsigned Base64 offsets with HMAC-SHA-256 authenticated cursor tokens. Query scope is checked after signature verification. Search text is normalized to Unicode NFC before scope construction; Hadith record scope includes the selected book, chapter, locale, and page size. The implementation does not claim snapshot isolation: inserts/deletes between page requests can still change offset-based page boundaries, so consumers should deduplicate by stable record ID when traversing a changing catalogue.
+The integration implementation replaces unsigned Base64 offsets with HMAC-SHA-256 authenticated cursor tokens. Query scope is checked after signature verification. Main's Hadith search scope is NFC-normalized; the integration candidate binds the exact trimmed query after validation and treats Unicode-normalization variants as distinct scopes; Hadith record scope includes the selected book, chapter, locale, and page size. The implementation does not claim snapshot isolation: inserts/deletes between page requests can still change offset-based page boundaries, so consumers should deduplicate by stable record ID when traversing a changing catalogue.
 
 
 ## Integration reconciliation — 2026-11-07 (exact branch review)
@@ -167,3 +167,70 @@ GitHub Actions reports successful completed runs for this exact commit: DEENVERS
 ### Current release boundary
 
 No Quran, translation, tafsir, Hadith, dua, or audio corpus is approved for production publication by this integration review. The code-level approval gates do not replace independent artifact acquisition, recomputed digest, rights review, and qualified human review. Authentication, user-specific writes, audio, dua/tafsir endpoints, production database operations, and manual device/accessibility QA remain outside the verified read-only API boundary.
+
+
+## Current mainline and integration-candidate contract — 2026-11-09
+
+This section supersedes the older branch/PR snapshots above for current implementation status. Baseline main inspected: `f15e82748f1724d5995fe863e54d178a8a22b2b7`. The integration branch was synchronized from that baseline by merge commit `21f1ca649a81d4ff14ff048c7e97752656188de8`; that exact head was 13 commits ahead / 0 behind `main`. The cross-cutting candidate changes remain on `integration/platform-foundation` until draft PR #89 is reviewed and merged.
+
+### Registered public API
+
+The Fastify application registers exactly these ten GET operations:
+
+1. `/api/v1/health`
+2. `/api/v1/ready`
+3. `/api/v1/quran/surahs`
+4. `/api/v1/quran/surahs/{surahNumber}`
+5. `/api/v1/ayah/{surah}/{ayah}`
+6. `/api/v1/hadith/books`
+7. `/api/v1/hadith/books/{bookId}/chapters`
+8. `/api/v1/hadith/books/{bookId}/records`
+9. `/api/v1/hadith/records/{recordId}`
+10. `/api/v1/hadith/search`
+
+Only `quranRoutes`, `quranAyahRoutes`, and `hadithRoutes` are registered by `backend/src/app.ts`. The translation route module exists as source code but is not registered; neither QuranEnc translation URL is a public route. There are no registered audio, reciter, authentication/session, bookmark/progress, dua, tafsir, admin-publishing, or report-submission endpoints in this inventory.
+
+### Frontend adapter mapping
+
+- Quran Surah catalogue: `src/lib/content-api-client.ts` (`createRestContentSource`).
+- Quran Ayah: `src/lib/quran-ayah-client.ts`.
+- Hadith catalogue, chapter, record, and search: `src/lib/hadith-api-client.ts`.
+- All active adapters resolve the API root through `src/lib/api-config.ts`; `NEXT_PUBLIC_API_BASE_URL` is public configuration only and must never contain credentials. The default is same-origin `/api/v1`.
+- Quran translation client code remains dormant and must not be treated as a public or approved integration. No active audio adapter is present.
+
+The common success envelope is `{ meta: { requestId, nextCursor? }, data }`; errors use `{ error: { code, message, requestId, details, retryable } }`. Request validation uses HTTP 400. Content-unavailable and readiness failures use HTTP 503; stored-record integrity rejection uses HTTP 502. A registered read route does not mean that a religious collection is populated or approved.
+
+### Integration-candidate hardening
+
+The integration branch ports three reviewed, exact-head-tested changes from open draft PRs without modifying those PR branches:
+
+- PR #85: normalize Quran source and artifact-reviewer identities with trim + lowercase in both the source selector and Tanzil import gate; reject case/whitespace aliases and reserved-identity aliases.
+- PR #86: bind Hadith search cursor scope to the exact trimmed query received after validation; canonically equivalent but code-point-distinct Bengali queries are distinct cursor scopes.
+- PR #87: await Cache Storage writes for the app shell and immutable assets before resolving intercepted responses; storage failures do not block online responses, and API responses remain uncached.
+
+Until this integration candidate is merged, main at the baseline above still has the pre-PR #85 reviewer comparison, NFC-normalized Hadith search cursor scope, and detached service-worker cache writes. Do not describe the candidate fixes as deployed main behavior.
+
+Exact combined-head verification for `21f1ca649a81d4ff14ff048c7e97752656188de8` completed on 2026-11-09:
+
+- DEENVERSE CI run `42618401036` passed backend locked install, typecheck, test suite, build, and high-severity dependency audit; its PostgreSQL 16 service initialized successfully. The web job passed locked install, typecheck, Vitest suite, production build, and high-severity dependency audit (`0 vulnerabilities`).
+- Web foundation run `42618401017` passed locked install, audit capture, typecheck, tests, and production build.
+- OpenAPI validation run `42618401470` passed YAML parsing, duplicate-key detection, local-reference resolution, and exact backend route parity: 10 paths / 10 operations.
+- CI logs contain non-failing dependency/runtime deprecation warnings (`punycode`, `url.parse`, a PostgreSQL client query warning, and GitHub Actions Node 20 deprecation notices). No job or step failed. These are CI results, not deployment or content-approval evidence.
+
+
+### Content-integrity boundary
+
+The Quran selector fails closed unless exactly one active, redistribution-permitted source has an approved digest-metadata decision. The integration candidate additionally normalizes reviewer identity comparisons. Hadith record publication requires primary and independent review rows bound to the record's exact `source_id`, in addition to digest metadata and reviewer-independence checks.
+
+The current read path compares stored digest strings; it does not acquire an immutable upstream artifact and independently recompute its SHA-256 at read time. That metadata gate is not proof of publisher authenticity or scholarly correctness. Keep all religious content unavailable until exact artifact bytes, edition identity, redistribution rights, independent source approval, and content-specific review are evidenced.
+
+## Latest integration CI refresh — 2026-11-09
+
+The cross-cutting candidate and CI workflow were rechecked at code/workflow head `3e34a9ba6810f49da467e22001711f906356fb78`. The workflow now runs full backend/web checks on pushes to `integration/platform-foundation`, not only on main or pull requests.
+
+- DEENVERSE CI run `42620202517` passed backend typecheck, 96/96 backend tests, backend build, PostgreSQL 16 test service, web typecheck, 177/177 web tests across 19 files, production build, and both dependency audits (0 vulnerabilities).
+- Web foundation run `42620202398` passed locked install, audit capture, typecheck, 177/177 tests, and production build.
+- OpenAPI validation run `42620202468` passed YAML parsing, duplicate-key detection, local references, and backend route parity (10 paths / 10 operations).
+- All jobs and steps passed. Non-failing `punycode`, `url.parse`, PostgreSQL client query, and GitHub Actions Node 20 deprecation warnings remain in logs.
+
+The current branch remains separate from `main`; PR #89 is still a draft and unmerged. The CI result does not authorize deployment or religious-content publication.

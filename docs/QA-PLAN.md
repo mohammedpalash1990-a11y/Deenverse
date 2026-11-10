@@ -504,3 +504,41 @@ All checks below are for exact implementation code head `e0b74cec14bc611fde48386
 - Tested implementation code commit: `4085196dc78580913c0f8b16700af38cac63f461`.
 - At that commit, integration compared 81 ahead / 0 behind current `main`; PR #1 had 26 changed files and was open/mergeable. Any later branch commits in this section are documentation-only.
 - Jules and Queen assignment branches remain documentation-only: Jules 3 ahead / 69 behind (two task files); Queen 2 ahead / 69 behind (one task file). No implementation PR is attributed to either branch.
+
+
+## Current QA evidence — 2026-11-09
+
+### Exact repository and CI snapshot
+
+- Current main: `f15e82748f1724d5995fe863e54d178a8a22b2b7`.
+- Main DEENVERSE CI push run `42532114793`: completed successfully on that exact SHA (2026-11-08).
+- PR #88 exact-head evidence: backend 94 passed / 0 failed / 0 skipped; frontend 174 passed; typecheck/build passed; PostgreSQL 16 runtime and migrations passed; production SQLite startup guard passed; high-severity dependency audit reported 0 vulnerabilities.
+- PR #88 is merged. The repository owner reported the Render API live on the merged SHA, with a read-only Neon runtime role and a separate migration role. These are owner-reported deployment/privilege checks, not independently reproduced in this QA pass.
+
+### Reviewed cross-cutting candidate changes
+
+The integration branch is being updated with the code from these exact open draft PR heads:
+
+| PR | Change | Exact-head workflow evidence |
+|---|---|---|
+| #85 | Trim/lowercase Quran source and artifact-reviewer identities; reject case/whitespace aliases and reserved identity aliases | DEENVERSE CI `42500101373`; Web foundation `42500101320` — success |
+| #86 | Bind Hadith search cursor to the exact trimmed query; reject cross-normalization replay | DEENVERSE CI `42501042495`; Web foundation `42501042547`; OpenAPI `42501042477` — success |
+| #87 | Await app-shell/build-asset Cache Storage writes; keep API responses outside cache | DEENVERSE CI `42501165640`; Web foundation `42501165616` — success |
+
+These are separate PR-head results. The combined integration candidate still requires fresh exact-head CI after the branch update. Do not infer that these individual results validate the combined commit.
+
+### API/adapter inspection
+
+- `backend/src/app.ts` registers ten GET operations: health, readiness, Quran Surah list/detail, one Ayah read, and five Hadith operations.
+- Quran catalogue adapter: `src/lib/content-api-client.ts`; Ayah adapter: `src/lib/quran-ayah-client.ts`; Hadith adapter: `src/lib/hadith-api-client.ts`.
+- Active adapters use `resolveApiBaseUrl()`; `NEXT_PUBLIC_API_BASE_URL` is non-secret public configuration.
+- The translation route module is not registered; the QuranEnc public paths are absent. Translation client code is dormant. No active audio API/adapter is present.
+- OpenAPI parity is checked by `scripts/verify-openapi-routes.rb`; the workflow is configured to run when the OpenAPI snapshot or route registrations change.
+
+### Not executed in this review
+
+No local checkout, `npm ci`, typecheck, test, build, migration, database query, browser, emulator, or physical-device command was executed by this documentation review. The integration candidate's combined exact-head CI is pending. Manual Arabic RTL, Bengali/English localization, keyboard, screen-reader, contrast, zoom/reflow, responsive, offline/recovery, Android, and iOS QA remain unverified.
+
+### Content and release gates
+
+No religious content was imported or generated. The Quran reader is currently a no-fetch approval-pending placeholder. The Tanzil artifact path is absent from current main and the source dossier records no official artifact acquisition or digest. Translation redistribution rights, Hadith collection/edition approvals, tafsir, dua, and audio rights remain unverified. Authentication, private user data isolation, backup/restore, Neon network hardening, and manual device QA remain release blockers.

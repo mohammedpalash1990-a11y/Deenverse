@@ -154,3 +154,27 @@ The earlier failure #41835304798 was a validator implementation bug, not an Open
 - Authentication, sessions, private bookmarks/progress, protected writes, manual RTL/keyboard/screen-reader/device QA, and hosted PostgreSQL operations remain release blockers.
 
 No Quran Arabic, Hadith, translation, tafsir, dua, or audio corpus was imported or fabricated by this integration update. CI success is software verification only; it is not religious-content approval.
+
+
+## Current route and adapter reconciliation — 2026-11-09
+
+**Main baseline:** `f15e82748f1724d5995fe863e54d178a8a22b2b7`.
+
+The active registration in `backend/src/app.ts` and the OpenAPI snapshot contain ten GET operations:
+
+| Method | Route | Frontend adapter / consumer |
+|---|---|---|
+| GET | `/api/v1/health` | deployment liveness |
+| GET | `/api/v1/ready` | deployment readiness |
+| GET | `/api/v1/quran/surahs` | `src/lib/content-api-client.ts` |
+| GET | `/api/v1/quran/surahs/{surahNumber}` | `src/lib/content-api-client.ts` |
+| GET | `/api/v1/ayah/{surah}/{ayah}` | `src/lib/quran-ayah-client.ts` |
+| GET | `/api/v1/hadith/books` | `src/lib/hadith-api-client.ts` |
+| GET | `/api/v1/hadith/books/{bookId}/chapters` | `src/lib/hadith-api-client.ts` |
+| GET | `/api/v1/hadith/books/{bookId}/records` | `src/lib/hadith-api-client.ts` |
+| GET | `/api/v1/hadith/records/{recordId}` | `src/lib/hadith-api-client.ts` |
+| GET | `/api/v1/hadith/search` | `src/lib/hadith-api-client.ts` |
+
+Quran catalogue, Ayah, and Hadith adapters resolve the API origin through `src/lib/api-config.ts`. The default is same-origin `/api/v1`; `NEXT_PUBLIC_API_BASE_URL` must not contain secrets. The translation route module is not registered, both public QuranEnc paths are absent, and the translation client remains dormant. No active audio/reciter, auth/session, bookmark/progress, dua, tafsir, admin-publishing, or problem-report route is registered.
+
+Hadith record review rows are source-bound in main after merged PR #80. The integration candidate additionally ports the exact-query cursor change from PR #86, Quran reviewer-identity normalization from PR #85, and awaited service-worker cache persistence from PR #87. Those candidate changes require a combined exact-head CI run before acceptance.
