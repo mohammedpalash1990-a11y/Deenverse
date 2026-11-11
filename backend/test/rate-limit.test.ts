@@ -114,14 +114,18 @@ test('rate-limits public reports by validated Cloudflare client IP', async () =>
     const firstClientRequest = await submit('198.51.100.10');
     const repeatedClientRequest = await submit('198.51.100.10');
     const secondClientRequest = await submit('203.0.113.20');
+    const invalidForwardedIpRequest = await submit('not-an-ip');
+    const repeatedInvalidForwardedIpRequest = await submit('not-an-ip');
 
     assert.equal(firstClientRequest.statusCode, 201);
     assert.equal(repeatedClientRequest.statusCode, 429);
     assert.equal(repeatedClientRequest.json().error.code, 'RATE_LIMITED');
     assert.equal(secondClientRequest.statusCode, 201);
+    assert.equal(invalidForwardedIpRequest.statusCode, 201);
+    assert.equal(repeatedInvalidForwardedIpRequest.statusCode, 429);
     assert.equal(
       Number(await db('problem_reports').count('* as count').first().then((row) => row?.count)),
-      2
+      3
     );
   } finally {
     await app.close();
