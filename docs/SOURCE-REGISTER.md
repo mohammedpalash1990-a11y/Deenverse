@@ -1,16 +1,16 @@
 # DEENVERSE Verified Content Source Register
 
-**Snapshot:** 2026-11-11  
+**Snapshot:** 2026-11-11 — current main `f56731a39606027da2e8240e729503713521857d`  
 A provider being listed or reachable through an API does not approve its content for import, redistribution, caching, offline use, or publication. Each content type and edition requires its own evidence.
 
 | Content type | Candidate/provider | Edition/version | Current implementation | Rights/authenticity status | Import/publication status |
 |---|---|---|---|---|---|
-| Quran Arabic | Tanzil Project | Uthmani, Version 1.1 | Importer/opt-in seed path exists. `main` still mounts the raw-GitHub beta reader; `integration/platform-foundation` now mounts only a fail-closed approval-pending placeholder. The Ayah API route remains source-gated but is not called by the public UI. | Official CC BY 3.0 terms permit verbatim copying/distribution with attribution, a Tanzil link, and the required copyright notice; changing the text is prohibited. The exact official artifact acquisition, selected options, independently recomputed SHA-256, and independent review are not evidenced. | The unverified `quran-uthmani.txt` copy is deleted from the current integration tree. The source remains candidate/not approved; no production import or activation is authorized. Main still exposes its older reader until a reviewed safety change is merged. |
-| Quran Bengali translation | QuranEnc.com; translator Abu Bakr Muhammad Zakaria | `bengali_zakaria`, V1.1.1 | Parser/client unit code remains, but both public translation routes are unregistered on `integration/platform-foundation`; the active Quran UI does not request translation. | Explicit web/mobile redistribution, hosting, caching, offline, and export permissions remain unverified. | Not imported and not publicly served on the integration branch. Do not infer rights from provider API availability. |
+| Quran Arabic | Tanzil Project | Uthmani, Version 1.1 | Current `main` mounts the fail-closed approval-pending `QuranBetaReader`; it makes no fetch and renders no Quran text, translation, or audio. The source-gated Ayah API and official-source importer remain dormant until approval evidence is valid. | Tanzil's official CC BY 3.0 terms permit verbatim distribution with clear Tanzil attribution, a link to `tanzil.net`, and the required copyright notice; modification is prohibited. The exact official project artifact, acquisition options/time, independently recomputed SHA-256, and qualified independent review are still absent. | Not imported or activated. Production Quran tables contain zero rows. Keep the reader fail-closed until artifact provenance, exact digest, rights evidence, and independent review are complete. |
+| Quran Bengali translation | QuranEnc.com; translator Abu Bakr Muhammad Zakaria | `bengali_zakaria`, V1.1.1 (official dashboard lists release date 2021-05-22) | Parser/client code is dormant; no public translation route is registered and the fail-closed Quran UI makes no translation request. | QuranEnc's published republishing conditions require unchanged text, publisher/source attribution, version identification, preserved transcript information, notifying QuranEnc of translation notes, updating to the latest source version, and no inappropriate advertisements. The exact V1.1.1 artifact/transcript metadata is not retained or hashed in this repository; separate caching/offline/export permissions are not established. | Not imported or served. Keep disabled until the exact official artifact and its metadata are acquired, hashed, and reviewed against the applicable use conditions. |
 | Hadith Arabic/translation | HadeethEnc, Sunnah.com API, Dorar are research candidates | Exact edition TBD per provider | Source-gated API/reader and dual narration-review checks exist | Provider-specific access, edition, grading, attribution, and reuse terms remain to be approved. | No approved collection or production corpus recorded. |
 | Tafsir | TBD | TBD | No production source/API verified | Authenticity, publisher, edition, attribution, license, and caching rights unreviewed | Blocked |
 | Dua/Adhkar | TBD | TBD | No approved library/source verified | References, grading, edition, attribution, and redistribution rights unreviewed | Blocked |
-| Recitation audio | EveryAyah and Audiomack were referenced by the previous beta reader | Reciter-specific files/album; exact recording editions TBD | The integration branch replaces the legacy component with a fail-closed placeholder; no audio element or external audio link is rendered. | Recording identity, ownership, attribution, streaming, caching, download, and offline rights are not evidenced. | Not approved; playback remains disabled until each recording has a source-specific rights dossier. |
+| Recitation audio | EveryAyah and Audiomack were referenced by the legacy beta reader | Reciter-specific recordings; exact editions TBD | Current `main` fail-closed reader renders no audio element or external audio link. | Recording identity, ownership, attribution, streaming, caching, download, and offline rights are not evidenced. | Not approved; playback remains disabled until each recording has a source-specific rights dossier. |
 
 ## 2026-11-05 repository evidence refresh
 
@@ -161,3 +161,40 @@ No production content, database rows, network permissions, Render environment va
 
 - PR #93 implements the public Settings form and POST storage route, but it does not add an authenticated staff inbox, report-list API, assignment workflow, or notification delivery. Reports are stored in `problem_reports` with status `new`; operational triage currently requires authorized database access. Do not expose report retrieval publicly until authentication/authorization is implemented.
 - The new form and API are not live in Render: the current web/API deployment commits predate the Settings component, report route, and migration. The Neon production database also does not yet contain the `problem_reports` table.
+
+
+## Current verification after PR #96 — 2026-11-11
+
+This section supersedes earlier dated statements above about the current main SHA, open pull requests, and production database state. Older audit entries are retained as historical records.
+
+### GitHub mainline and checks
+
+- Current `main`: `f56731a39606027da2e8240e729503713521857d`. PR #96, “test(security): guard the fail-closed Quran reader”, merged at 2026-11-11 09:53:47 UTC as this commit.
+- PR #96 adds one frontend regression test only. It asserts that the approval-pending reader makes no network fetch, renders no audio element or external link, and continues to show the approval-pending status. No Quran/Hadith data, runtime code, production configuration, or deployment was changed by PR #96.
+- PR #96 exact-head checks passed: DEENVERSE CI run #42998488240 (backend and web jobs) and Web foundation run #42998488339 (verify). Post-merge main CI run #42999013078 passed both backend typecheck/tests/build and web typecheck/tests/production build.
+- GitHub still reports `main` as unprotected; required status-check enforcement is off.
+- Open PRs after #96: #79, #43, and #11. PR #79 is based on old `integration/platform-foundation` SHA `a7ad2eb4dae5d2fdcfb682e1747d4b17d56dab29`, changes 48 files, and GitHub reports it as dirty/non-mergeable; its recorded exact-head CI passed, but it requires a current-main rebase and fresh review. PR #43 is based on old main SHA `ef559abe96417acd376df60b0f6ef7973bfd28c6`; its backend check was cancelled, so it is not merge-ready. PR #11 is based on the same old integration SHA as #79, GitHub reports it dirty/non-mergeable, and it has no exact-head checks. None was merged.
+- PR #91 (platform integration), #92 (source-register evidence), #93 (problem reporting), #94 (production safety evidence), #95 (problem-report error announcements), and #96 (fail-closed reader regression test) are merged.
+
+### Neon production database
+
+- Project `deenverse-db` (`cool-mud-31679014`) and default branch `main` (`br-spring-night-a14ey96s`) are Ready. The branch is unprotected. Project IP allowlist is empty, `protected_branches_only=false`, and `block_public_connections=false`.
+- Read-only row counts: `content_sources=1`, `content_source_approvals=1`, `quran_surahs=0`, `quran_ayahs=0`, `hadith_books=0`, `hadith_chapters=0`, `hadith_records=0`, `hadith_translations=0`, `hadith_grade_assessments=0`, and `hadith_record_reviews=0`.
+- The additive `problem_reports` table does not exist in Neon yet. PR #93 is merged in GitHub, but its migration has not been applied to production; no production SQL or data was changed in this run.
+- The one source row is `tanzil-uthmani-v1`, inactive, with stored metadata `license_id=CC-BY-3.0`, `redistribution_allowed=true`, reviewer `project-owner-chat-authorization`, and checksum `ac0724796cbbda0f4801470fbbd11d0f3c5802067bae0493466d0128b0c667af`. Its one approval row has the same owner-chat reviewer identity and the same stored artifact checksum. These are database metadata only: the immutable official artifact is absent from the repository, the digest was not independently recomputed from acquired bytes, and the approval is not independent human review.
+- No Quran or Hadith content was imported, activated, or modified.
+
+### Render and runtime access
+
+- Render was not rechecked in this run. `list_workspaces` returned only “My Workspace”, but no workspace is selected; the Render connector requires the user-confirmed workspace ID before service reads. No Render service, environment variable, deployment, event, log, or setting was accessed or changed.
+- The last recorded Render audit in this file (2026-11-11 09:36 UTC) found auto-deploy disabled for both services; API live on `f15e82748f1724d5995fe863e54d178a8a22b2b7`, web live on `f098d650a9cbc5aaaaadee6a925e68dfa9dbdb9a`; the public web bundle still exposed the legacy Quran/audio UI. The API health/readiness probes returned 200 at 09:35 UTC, but those checks do not establish that current main is deployed. Treat these as the last recorded evidence, not a fresh check.
+- Backend source code enforces explicit CORS origin allowlisting, but deployed `CORS_ALLOWED_ORIGINS`/`CORS_ORIGIN` and browser CORS behavior remain unverified because Render environment configuration was not accessible in this run.
+- No auth/session route or module was found in the current backend source tree. Authentication and server-side authorization remain release blockers.
+
+### Remaining release gates
+
+- Keep Quran Arabic, Bengali translation, Hadith, tafsir, dua, and audio unavailable until exact immutable publisher artifacts, independently recomputed SHA-256 digests, source-specific redistribution/attribution evidence, and qualified independent human approval are documented.
+- Do not treat the stored Tanzil checksum or owner-chat approval row as independent verification.
+- Do not deploy the current mainline or apply the additive problem-report migration without a separately authorized, reversible production rollout plan. GitHub merge does not update Render while auto-deploy is disabled.
+- Complete authentication/authorization, backup/restore and rollback drills, Neon network restrictions after verified Render egress, live CORS checks, RTL/screen-reader/keyboard/contrast/zoom QA, offline recovery, and physical Android/iOS device QA.
+- No production data, network permissions, Render environment variables, or deployment was changed by this verification.
