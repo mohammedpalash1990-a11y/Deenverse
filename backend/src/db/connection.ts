@@ -36,6 +36,44 @@ export function resolveDatabaseConfig(databaseUrlOverride?: string): DatabaseCon
   };
 }
 
+/**
+ * Resolve the optional support-report writer connection.
+ *
+ * The HTTP content connection remains read-only. In production, report writes
+ * must use a distinct PostgreSQL role with INSERT on problem_reports only.
+ */
+export function resolveReportsDatabaseConfig(): DatabaseConfig | undefined {
+  const reportDatabaseUrl = process.env.REPORTS_DATABASE_URL?.trim();
+  if (!reportDatabaseUrl) return undefined;
+
+  const config = resolveDatabaseConfig(reportDatabaseUrl);
+  if (process.env.NODE_ENV === 'production') {
+    if (config.client !== 'pg') {
+      throw new Error('Production report storage requires a PostgreSQL REPORTS_DATABASE_URL.');
+    }
+
+    const runtimeDatabaseUrl = process.env.DATABASE_URL?.trim();
+    if (!runtimeDatabaseUrl) {
+      throw new Error('DATABASE_URL is required when REPORTS_DATABASE_URL is configured in production.');
+    }
+
+    let runtimeUsername: string;
+    let reportUsername: string;
+    try {
+      runtimeUsername = decodeURIComponent(new URL(runtimeDatabaseUrl).username);
+      reportUsername = decodeURIComponent(new URL(reportDatabaseUrl).username);
+    } catch {
+      throw new Error('DATABASE_URL and REPORTS_DATABASE_URL must be valid PostgreSQL URLs in production.');
+    }
+
+    if (!runtimeUsername || !reportUsername || runtimeUsername === reportUsername) {
+      throw new Error('REPORTS_DATABASE_URL must use a dedicated PostgreSQL role distinct from DATABASE_URL.');
+    }
+  }
+
+  return config;
+}
+
 export function createDatabaseConnection(config?: Partial<DatabaseConfig>): Knex {
   const resolved = config || resolveDatabaseConfig();
   const isSqlite = !resolved.client || resolved.client === 'sqlite3';
