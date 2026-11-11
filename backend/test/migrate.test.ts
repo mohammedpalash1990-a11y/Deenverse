@@ -11,6 +11,8 @@ test('database migration creates the complete schema and is safe to rerun', asyn
     assert.equal(await db.schema.hasTable('content_sources'), true);
     assert.equal(await db.schema.hasTable('quran_surahs'), true);
     assert.equal(await db.schema.hasTable('content_source_approvals'), true);
+    assert.equal(await db.schema.hasTable('problem_reports'), true);
+    assert.equal(await db('problem_reports').count('* as count').first().then((row) => Number(row?.count)), 0);
     for (const table of [
       'hadith_books', 'hadith_chapters', 'hadith_records',
       'hadith_translations', 'hadith_grade_assessments', 'hadith_record_reviews'
@@ -39,6 +41,7 @@ test('database migration upgrades an existing base schema with the approval tabl
     assert.equal(await db.schema.hasTable('content_source_approvals'), true);
     assert.equal(await db.schema.hasTable('hadith_books'), true);
     assert.equal(await db.schema.hasTable('hadith_record_reviews'), true);
+    assert.equal(await db.schema.hasTable('problem_reports'), true);
     await assert.doesNotReject(() => runMigrations(db));
   } finally {
     await db.destroy();
@@ -59,6 +62,7 @@ test('database migration rejects a partial base schema without changing it', asy
     assert.equal(await db.schema.hasTable('content_sources'), true);
     assert.equal(await db.schema.hasTable('quran_surahs'), false);
     assert.equal(await db.schema.hasTable('content_source_approvals'), false);
+    assert.equal(await db.schema.hasTable('problem_reports'), false);
   } finally {
     await db.destroy();
   }
@@ -74,7 +78,7 @@ for (const orphanTable of ['hadith_books', 'hadith_chapters']) {
 
       await assert.rejects(() => runMigrations(db), /Partial Hadith schema detected/);
       assert.deepEqual(await db(orphanTable).select('id'), [{ id: 'synthetic-preserved-row' }]);
-      for (const table of ['content_sources', 'quran_surahs', 'content_source_approvals', 'quran_ayahs']) {
+      for (const table of ['content_sources', 'quran_surahs', 'content_source_approvals', 'quran_ayahs', 'problem_reports']) {
         assert.equal(await db.schema.hasTable(table), false, `${table} must roll back`);
       }
     } finally {
@@ -93,6 +97,7 @@ test('failed upgrade preserves the original base schema and rolls back additive 
     assert.equal(await db.schema.hasTable('quran_surahs'), true);
     assert.equal(await db.schema.hasTable('content_source_approvals'), false);
     assert.equal(await db.schema.hasTable('quran_ayahs'), false);
+    assert.equal(await db.schema.hasTable('problem_reports'), false);
   } finally {
     await db.destroy();
   }
