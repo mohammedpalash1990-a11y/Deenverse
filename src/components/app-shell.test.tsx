@@ -74,6 +74,15 @@ describe("DEENVERSE app shell", () => {
     expect(screen.getByRole("button", { name: "Toggle navigation" })).toHaveAttribute("aria-expanded", "false");
   });
 
+  it("opens the in-app problem report form from Settings", () => {
+    render(<AppShell />);
+    const navigation = screen.getByRole("navigation", { name: "Main navigation" });
+    fireEvent.click(within(navigation).getByRole("button", { name: "Settings" }));
+    expect(screen.getByRole("heading", { name: "Settings & support" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Report a problem" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Submit report/ })).toBeInTheDocument();
+  });
+
   it("filters the section shortcuts", () => {
     render(<AppShell />);
     fireEvent.change(screen.getByRole("textbox", { name: "Find a section" }), { target: { value: "duas" } });
