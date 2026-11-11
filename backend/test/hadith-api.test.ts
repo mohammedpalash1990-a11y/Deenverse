@@ -47,7 +47,7 @@ test('Hadith API publishes only source-approved, independently reviewed, intact 
     license_id: 'TEST-FIXTURE-NOT-A-LICENSE',
     redistribution_allowed: true,
     reviewer: 'test-reviewer',
-    reviewed_at: '2026-11-04T00:00:00.000Z',
+    reviewed_at: '2026-11-03T12:34:56.000Z',
     checksum: sourceChecksum,
     is_active: true
   });
@@ -73,7 +73,7 @@ test('Hadith API publishes only source-approved, independently reviewed, intact 
     license_id: 'TEST-TRANSLATION-NOT-A-LICENSE',
     redistribution_allowed: true,
     reviewer: 'test-reviewer',
-    reviewed_at: '2026-11-04T00:00:00.000Z',
+    reviewed_at: '2026-11-03T13:45:00.000Z',
     checksum: translationChecksum,
     is_active: true
   });
@@ -82,7 +82,7 @@ test('Hadith API publishes only source-approved, independently reviewed, intact 
     source_id: 'hadith-translation-fixture',
     decision: 'approved',
     reviewer_id: 'test-translation-authority',
-    approved_at: '2026-11-04T00:00:00.000Z',
+    approved_at: '2026-11-04T01:00:00.000Z',
     artifact_sha256: translationChecksum,
     review_notes: 'Automated test fixture only; not a real source approval.'
   });
@@ -195,6 +195,10 @@ test('Hadith API publishes only source-approved, independently reviewed, intact 
   assert.equal(books.statusCode, 200);
   assert.equal(JSON.parse(books.body).data[0].id, 'fixture-book');
   assert.equal(JSON.parse(books.body).data[0].provenance.approvalStatus, 'approved');
+  assert.equal(JSON.parse(books.body).data[0].provenance.reviewer, 'test-reviewer');
+  assert.equal(JSON.parse(books.body).data[0].provenance.reviewedAt, '2026-11-03T12:34:56.000Z');
+  assert.equal(JSON.parse(books.body).data[0].provenance.approvedByAuthority, 'test-source-authority');
+  assert.equal(JSON.parse(books.body).data[0].provenance.approvedAt, '2026-11-04T00:00:00.000Z');
 
   const chapters = await app.inject({ method: 'GET', url: '/api/v1/hadith/books/fixture-book/chapters' });
   assert.equal(chapters.statusCode, 200);
@@ -205,8 +209,16 @@ test('Hadith API publishes only source-approved, independently reviewed, intact 
   const recordBody = JSON.parse(records.body);
   assert.equal(recordBody.data.length, 1, 'a primary review alone must not publish a record');
   assert.equal(recordBody.data[0].arabicText, verifiedText);
+  assert.equal(recordBody.data[0].provenance.reviewer, 'test-reviewer');
+  assert.equal(recordBody.data[0].provenance.reviewedAt, '2026-11-03T12:34:56.000Z');
+  assert.equal(recordBody.data[0].provenance.approvedByAuthority, 'test-source-authority');
+  assert.equal(recordBody.data[0].provenance.approvedAt, '2026-11-04T00:00:00.000Z');
   assert.equal(recordBody.data[0].translations[0].text, translationText);
   assert.equal(recordBody.data[0].translations[0].provenance.contentType, 'translation');
+  assert.equal(recordBody.data[0].translations[0].provenance.reviewer, 'test-reviewer');
+  assert.equal(recordBody.data[0].translations[0].provenance.reviewedAt, '2026-11-03T13:45:00.000Z');
+  assert.equal(recordBody.data[0].translations[0].provenance.approvedByAuthority, 'test-translation-authority');
+  assert.equal(recordBody.data[0].translations[0].provenance.approvedAt, '2026-11-04T01:00:00.000Z');
 
   const byId = await app.inject({ method: 'GET', url: '/api/v1/hadith/records/fixture-hadith-1?locale=bn' });
   assert.equal(byId.statusCode, 200);
