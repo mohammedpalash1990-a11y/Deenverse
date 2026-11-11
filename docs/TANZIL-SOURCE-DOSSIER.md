@@ -69,6 +69,7 @@ A file named `quran-uthmani.txt` was found in the user's Library. Its Library me
 Independent byte-level and structural checks on that exact Library file found:
 
 - SHA-256 of the complete file bytes, including its 30-line copyright footer: `6933e133dd56db778c801bf738848454e43648105a151e8d84d86a7cae39ec5f`.
+- Git object identity: the local Git blob hash of this Library file is `9813920ae5afce9e50d2ac44562457e29bb4bfca`, exactly matching the historical GitHub blob for `data/quran/tanzil/quran-uthmani.txt` at commit `abb4dd06531d7585b13b8f29af45e7d05a995574` (2026-11-05 01:07:50 UTC). This proves byte identity with the historical repository copy, not official Tanzil acquisition provenance.
 - 6,266 total lines: 6,236 numbered Ayah rows followed by 30 footer lines.
 - 114 Surahs, 6,236 unique Ayah coordinates, complete ordered sequence from 1:1 through 114:6.
 - Every Surah's Ayah count matches the repository's canonical `EXPECTED_AYAH_COUNTS` array.
