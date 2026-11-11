@@ -1,5 +1,5 @@
 import { buildApp } from './app.js';
-import { createDatabaseConnection, resolveDatabaseConfig } from './db/connection.js';
+import { createDatabaseConnection, resolveDatabaseConfig, resolveReportsDatabaseConfig } from './db/connection.js';
 import { seedTanzilUthmaniFromOfficialSource } from './db/seed-tanzil.js';
 
 function readPositiveInteger(name: string, fallback: number): number {
@@ -37,15 +37,28 @@ async function main(): Promise<void> {
       throw error;
     }
   }
+  let reportDb: ReturnType<typeof createDatabaseConnection> | undefined;
+  try {
+    const reportDatabaseConfig = resolveReportsDatabaseConfig();
+    if (reportDatabaseConfig) reportDb = createDatabaseConnection(reportDatabaseConfig);
+  } catch (error) {
+    await db.destroy();
+    throw error;
+  }
+
   const app = buildApp({
     db,
+    reportDb,
     allowedOrigins: CORS_ORIGIN,
     rateLimitMax: RATE_LIMIT_MAX,
     rateLimitWindowMs: RATE_LIMIT_WINDOW_MS
   });
 
   // Drain HTTP requests before releasing the database pool.
-  app.addHook('onClose', async () => { await db.destroy(); });
+  app.addHook('onClose', async () => {
+    if (reportDb && reportDb !== db) await reportDb.destroy();
+    await db.destroy();
+  });
   let shuttingDown = false;
   const shutdown = async (): Promise<void> => {
     if (shuttingDown) return;
