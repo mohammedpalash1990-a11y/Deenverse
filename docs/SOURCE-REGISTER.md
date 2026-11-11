@@ -152,3 +152,6 @@ No production content, database rows, network permissions, Render environment va
 
 - The exact raw-GitHub URL embedded in the deployed legacy reader currently returns HTTP 404: `https://raw.githubusercontent.com/mohammedpalash1990-a11y/Deenverse/main/data/quran/tanzil/quran-uthmani.txt`. Therefore this audit does not claim that the legacy web deployment successfully delivered Quran text. It does prove the deployed bundle still attempts that unapproved fetch and still contains EveryAyah/Audiomack audio integrations whose source-specific rights have not been established.
 - The live page's server-rendered HTML shows the legacy Quran/audio UI and a loading state. Browser-side post-hydration behavior and actual audio playback were not observed because the browser automation wallet was unavailable. Keep the public deployment classified as unsafe/stale until the fail-closed mainline is deployed and the live UI/network behavior is rechecked.
+
+
+- Remaining PR evidence: PR #79's exact old head passed its recorded backend and web CI runs, but its branch is 136 commits ahead and 6 behind current main; it must be rebased and retested before merge. PR #43's backend CI was cancelled (its web check passed) and it is 48 commits behind current main. PR #11 has no exact-head CI and is 37 commits ahead / 76 behind current main. None was merged.
