@@ -248,3 +248,47 @@ This section supersedes the older main-SHA and open-PR snapshots above. The deta
 - Browser automation was unavailable because the TinyFish wallet balance was $0.00. RTL, keyboard, screen-reader, contrast/zoom, offline recovery, and physical Android/iOS QA remain unverified.
 - Do not deploy current main or apply the production migration without a separately authorized, reversible rollout plan, verified backup/rollback, and exact deployed CORS/API-base configuration.
 - No production data, network permissions, Render configuration, or deployment was changed in this run.
+
+
+## Production runtime and release-gate recheck — 2026-11-11 10:30 UTC
+
+This section supersedes the 10:08 UTC runtime-access and deployment statements above. It records read-only evidence gathered from GitHub, Neon, and the connected Render workspace. No production configuration, database rows, permissions, or deployments were changed.
+
+### GitHub mainline and pull requests
+
+- Current `main`: `65029fd41ab9da204ccefb8df014dd4bee0ac1a5`. It differs from the last passing application-code main commit `73d2208b067fe2d11bf2a24c0741aa661e67c48f` by one documentation-only change to this file.
+- Main application-code CI at `73d2208b067fe2d11bf2a24c0741aa661e67c48f` passed backend and web jobs in run #43000942774. PR #101's exact-head documentation verification passed in run #43001201070. No application code changed in the subsequent main commit.
+- Main reports `protected=false`; the repository rulesets endpoint returned an empty list. The branch-protection detail endpoint itself returned 403 to this integration, so no stronger protection claim is made.
+- PR #91 and PR #92 are merged. PR #93–#101 are also merged, including problem reporting, report-form accessibility, fail-closed Quran-reader regression coverage, CORS/rate-limit tests, and the latest evidence refresh.
+- PRs #85–#87 and #89 are closed unmerged; their old branch heads must not be treated as current open work. The only open PRs are #43, #79, and #11. PR #43 is 7 commits ahead / 56 behind current main and its backend check was cancelled; PR #79 and #11 target the old `integration/platform-foundation` base and are dirty/non-mergeable. None is merge-ready.
+
+### User-library Quran candidate and source terms
+
+- The Library file `quran-uthmani.txt` was independently re-hashed from its raw bytes: 1,396,087 bytes; SHA-256 `6933e133dd56db778c801bf738848454e43648105a151e8d84d86a7cae39ec5f`.
+- Structural checks found 6,236 Ayah records across all 114 Surahs; every per-Surah count matched the repository's canonical count array; coordinates were unique and sequential from 1:1 through 114:6; the Tanzil copyright/footer block was present. These checks establish structure and byte identity only, not official acquisition provenance or scholarly approval.
+- The candidate hash does not match the production source/approval digest `ac0724796cbbda0f4801470fbbd11d0f3c5802067bae0493466d0128b0c667af`. The Library upload timestamp is not an upstream retrieval timestamp. No official Tanzil artifact, exact download-option record, or independently qualified reviewer evidence was acquired in this run.
+- Tanzil's official pages state that Version 1.1 is the latest text release and permit verbatim copying/distribution for websites and applications with clear Tanzil attribution, a link to `tanzil.net`, and preservation of the copyright notice; changing the text is prohibited. These published terms do not authenticate this candidate file.
+- QuranEnc's published terms allow downloaded translations to be republished only without modification/addition/deletion, with publisher/source attribution, version number, transcript information retained, source notification for translation notes, updates to the latest version, and no inappropriate advertisements. The exact Abu Bakr Muhammad Zakaria V1.1.1 artifact and its transcript metadata are not retained and hashed here; caching/offline/export use remains unverified.
+- Hadith editions, translations, grading data, and audio still lack source-specific artifact, reuse-rights, attribution, and independent review dossiers. Do not import or publish any religious corpus on this evidence.
+
+### Neon production database and network posture
+
+- Project `deenverse-db` and default branch `main` are Ready, but the branch is unprotected. The IP allowlist is empty, `protected_branches_only=false`, and `block_public_connections=false`.
+- Exact table inventory contains only: `content_sources`, `content_source_approvals`, `quran_surahs`, `quran_ayahs`, `hadith_books`, `hadith_chapters`, `hadith_records`, `hadith_translations`, `hadith_grade_assessments`, and `hadith_record_reviews`. `problem_reports` and `quran_ayah_reviews` are absent.
+- Counts: one content source and one source approval; zero Quran Surahs/Ayahs; zero Hadith books, chapters, records, translations, grade assessments, and record reviews. The source is inactive. The stored approval decision says approved, but source reviewer and approval reviewer are both `project-owner-chat-authorization`; this is not independent human approval. The stored digest mismatch above remains unresolved.
+- Main contains the additive `problem_reports` migration and `hasRequiredSchema` requires that table. Production has not applied it. The per-Ayah review table is not part of current main; open PR #43 is stale and unmerged. No production SQL writes were run.
+
+### Render production runtime
+
+- The connected Render workspace is accessible. The API service `deenverse-api` is configured on branch `main` with auto-deploy disabled; its latest live deployment is commit `f15e82748f1724d5995fe863e54d178a8a22b2b7` from 2026-11-08 22:54 UTC. The web service `deenverse-web` also has auto-deploy disabled; its latest live deployment is commit `f098d650a9cbc5aaaaadee6a925e68dfa9dbdb9a` from 2026-11-05 02:50 UTC. Both are behind current main.
+- At 2026-11-11 10:30 UTC, external requests to API `/api/v1/health`, API `/api/v1/ready`, and the public web root each returned HTTP 503. Render reports both services as not suspended, but public availability is not healthy.
+- The latest API application logs show the database migration command completing with “DEENVERSE database schema is ready” and the process listening at `127.0.0.1:10000` on 2026-11-11 09:29 UTC. This loopback bind is inconsistent with Render's externally reachable web-service port requirement and is a strong runtime lead; the effective `HOST` environment value is not exposed by the connected read tools, so its source is not independently confirmed.
+- The deployed API commit predates PR #93 and the `problem_reports` migration; the deployed web commit predates the current fail-closed reader. The live site must not be treated as the safe current-main experience.
+- The current code uses an explicit CORS origin allowlist and merged PR #98 tests trusted/untrusted origins. Live CORS behavior and deployed `CORS_ALLOWED_ORIGINS`/`CORS_ORIGIN` values could not be verified while the API returns 503. No environment variables, service settings, deploys, or logs were modified.
+
+### Authentication, PWA, accessibility, and release state
+
+- No authentication, login, OTP, session, or user-identity routes/middleware were found in the current backend tree. `backend/.env.example` contains a blank `JWT_SECRET` placeholder, not a working authentication implementation. Staff access to problem-report triage is not implemented.
+- The current main branch contains a standalone manifest and production-only service-worker registration. Automated tests verify that the app shell and immutable assets wait for cache persistence and that API responses are never cached. Offline support is limited to the app shell; religious and user data are intentionally excluded.
+- The app shell includes a skip link, labelled navigation, and explicit Bengali language attributes for Bengali notices. The Quran reader remains an approval-pending placeholder and renders no Arabic text, Bengali translation, or audio. Manual RTL, keyboard, screen-reader, contrast/zoom, install, offline-recovery, and physical Android/iOS QA remain unverified.
+- Highest-priority release work is to restore Render API/web availability with a reversible, reviewed rollout; apply the additive report migration only after backup/rollback checks; secure Neon branch/network controls; implement authenticated staff/report access; and complete source acquisition, independent digest verification, rights review, and qualified independent content approval. No content publication, production migration, permission change, or deployment is authorized by this evidence snapshot.
