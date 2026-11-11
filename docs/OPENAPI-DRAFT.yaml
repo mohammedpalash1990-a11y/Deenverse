@@ -3,12 +3,11 @@ info:
   title: DEENVERSE Implemented API
   version: 1.2.2-integration-candidate
   description: >
-    Current release-gated snapshot of the ten GET operations registered by
-    backend/src/app.ts. Baseline main commit f15e82748f1724d5995fe863e54d178a8a22b2b7
-    was inspected on 2026-11-09; the integration candidate adds reviewed cursor,
-    reviewer-identity, and service-worker fixes without changing route paths.
-    Quran translation routes are not registered. Route registration does not
-    authorize or prove that religious content is approved or populated.
+    Current release-gated snapshot of ten GET operations and one POST operation
+    registered by backend/src/app.ts. The POST endpoint accepts support reports
+    only; it does not edit or publish Quran or Hadith content. Quran translation
+    routes are not registered. Route registration does not authorize or prove
+    that religious content is approved or populated.
 servers:
   - url: http://localhost:4000
     description: Local backend
@@ -17,6 +16,7 @@ tags:
   - name: Quran catalogue
   - name: Quran Ayah
   - name: Hadith
+  - name: Support
 paths:
   /api/v1/health:
     get:
@@ -345,6 +345,34 @@ paths:
         '500':
           $ref: '#/components/responses/ErrorResponse'
         '502':
+          $ref: '#/components/responses/ErrorResponse'
+        '503':
+          $ref: '#/components/responses/ErrorResponse'
+  /api/v1/problem-reports:
+    post:
+      tags: [Support]
+      operationId: createProblemReport
+      summary: Submit a support report without changing religious content
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProblemReportRequest'
+      responses:
+        '201':
+          description: The support report was accepted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemReportResponse'
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '403':
+          $ref: '#/components/responses/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/ErrorResponse'
+        '500':
           $ref: '#/components/responses/ErrorResponse'
         '503':
           $ref: '#/components/responses/ErrorResponse'
@@ -765,6 +793,58 @@ components:
           $ref: '#/components/schemas/ApiMeta'
         data:
           $ref: '#/components/schemas/HadithRecord'
+    ProblemReportRequest:
+      type: object
+      additionalProperties: false
+      required: [category, description, currentSection, appVersion]
+      properties:
+        category:
+          type: string
+          enum: [bug, audio, quran, hadith_dua, feature, suggestion]
+        description:
+          type: string
+          minLength: 10
+          maxLength: 4000
+        stepsToReproduce:
+          type: string
+          maxLength: 2000
+        currentSection:
+          type: string
+          minLength: 1
+          maxLength: 100
+        appVersion:
+          type: string
+          minLength: 1
+          maxLength: 30
+        surahNumber:
+          type: integer
+          minimum: 1
+          maximum: 114
+        ayahNumber:
+          type: integer
+          minimum: 1
+          maximum: 286
+        diagnostics:
+          type: string
+          maxLength: 1500
+          description: Optional browser diagnostics; send only after explicit user consent.
+    ProblemReportResponse:
+      type: object
+      required: [meta, data]
+      properties:
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+        data:
+          type: object
+          required: [id, status, message]
+          properties:
+            id:
+              type: string
+              format: uuid
+            status:
+              const: received
+            message:
+              type: string
     Error:
       type: object
       required: [code, message, requestId, details, retryable]
