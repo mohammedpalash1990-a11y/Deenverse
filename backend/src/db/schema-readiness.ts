@@ -16,10 +16,11 @@ export const REQUIRED_SCHEMA_COLUMNS = {
   problem_reports: ['id', 'category', 'description', 'steps_to_reproduce', 'current_section', 'app_version', 'surah_number', 'ayah_number', 'diagnostics', 'status', 'created_at'],
 } as const;
 
-export async function hasRequiredSchema(db: Knex): Promise<boolean> {
+export async function hasRequiredSchema(db: Knex, reportDb: Knex = db): Promise<boolean> {
   for (const [table, requiredColumns] of Object.entries(REQUIRED_SCHEMA_COLUMNS)) {
-    if (!(await db.schema.hasTable(table))) return false;
-    const columns = await db(table).columnInfo();
+    const schemaDb = table === 'problem_reports' ? reportDb : db;
+    if (!(await schemaDb.schema.hasTable(table))) return false;
+    const columns = await schemaDb(table).columnInfo();
     if (!requiredColumns.every((column) => Object.hasOwn(columns, column))) return false;
   }
   return true;
