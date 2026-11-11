@@ -2,7 +2,7 @@
 
 **Status: CANDIDATE — NOT APPROVED FOR PUBLICATION OR IMPORT**
 
-This dossier records the proposed Arabic Quran source and its published terms. It does not claim that a source artifact has been downloaded, hashed, independently reviewed, or imported.
+This dossier records the proposed Arabic Quran source and its published terms. A candidate copy in the user's Library has now been structurally inspected and hashed, but its exact official acquisition provenance is not established, it does not match the checksum stored in production, and it has not been independently approved or imported.
 
 ## Source identity
 
@@ -61,6 +61,30 @@ Based on the source-specific terms above, the proposed use is limited to verbati
 
 This is an engineering source assessment, not legal advice. Do not apply these permissions to translations, tafsir, audio, fonts, or other assets.
 
+
+## Candidate user-library copy audit — 2026-11-11
+
+A file named `quran-uthmani.txt` was found in the user's Library. Its Library metadata records creation at **2026-11-05 01:00:59 UTC**, MIME type `text/plain`, and size **1,396,087 bytes**. This is a Library timestamp, not a verified Tanzil download timestamp.
+
+Independent byte-level and structural checks on that exact Library file found:
+
+- SHA-256 of the complete file bytes, including its 30-line copyright footer: `6933e133dd56db778c801bf738848454e43648105a151e8d84d86a7cae39ec5f`.
+- Git object identity: the local Git blob hash of this Library file is `9813920ae5afce9e50d2ac44562457e29bb4bfca`, exactly matching the historical GitHub blob for `data/quran/tanzil/quran-uthmani.txt` at commit `abb4dd06531d7585b13b8f29af45e7d05a995574` (2026-11-05 01:07:50 UTC). This proves byte identity with the historical repository copy, not official Tanzil acquisition provenance.
+- 6,266 total lines: 6,236 numbered Ayah rows followed by 30 footer lines.
+- 114 Surahs, 6,236 unique Ayah coordinates, complete ordered sequence from 1:1 through 114:6.
+- Every Surah's Ayah count matches the repository's canonical `EXPECTED_AYAH_COUNTS` array.
+- The file identifies itself as Tanzil Uthmani Version 1.1 and includes a CC BY 3.0 notice. Its footer says `Copyright (C) 2007-2026 Tanzil Project`; the historical notice quoted earlier in this dossier says 2007-2021. Reconcile the exact current publisher notice against the official download before release.
+
+This proves that the available copy is structurally complete and contains a Tanzil-style notice. It does **not** prove that the bytes were obtained from the official Tanzil download endpoint, which options were selected, or when they were retrieved. No original download receipt or independently acquired Tanzil metadata XML was found in the Library search used for this audit.
+
+### Production checksum comparison
+
+The read-only Neon source row and approval row both store artifact checksum `ac0724796cbbda0f4801470fbbd11d0f3c5802067bae0493466d0128b0c667af`. The Library copy's independently computed SHA-256 is different: `6933e133dd56db778c801bf738848454e43648105a151e8d84d86a7cae39ec5f`.
+
+The importer hashes the exact downloaded `textBytes`; it does not treat a matching Surah/Ayah count as a substitute for the exact artifact digest. Therefore this Library copy is **not** the exact byte sequence represented by the current production source/approval checksum metadata. The approval notes also contain metadata digest `8867c1d88191472adec9db694b3cd9f135b1a2ef580574d32cf888dcb22c5c7a`, but the corresponding original metadata bytes were not available to recompute it.
+
+The source row is inactive, and both the source reviewer and approval reviewer are `project-owner-chat-authorization`; this is not independent human approval. Do not overwrite the stored checksum, create a new approval row, import this Library copy, or activate the source to make the values match. Acquire and preserve the exact official text and metadata artifacts first, then obtain qualified independent review bound to those exact bytes.
+
 ## Artifact acquisition — still required
 
 The following fields must be completed from the exact official download obtained by an operator:
@@ -75,7 +99,7 @@ The following fields must be completed from the exact official download obtained
 - Per-Ayah digests and exact source-to-database string comparison with zero mismatches.
 - Independent human review of source identity, edition, sample records, and validation report.
 
-**No artifact checksum is recorded here because the official download bytes have not been acquired in this repository workflow. Do not invent or substitute a checksum from a third-party mirror.**
+**The checksum above is only for the user-library candidate copy. It is not an authenticated official-download checksum and does not match production metadata. Do not substitute it for the exact official artifact digest or use it to approve/import content.**
 
 ## Release decision
 
