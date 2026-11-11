@@ -16,7 +16,7 @@ const reportSchema = z.object({
   surahNumber: z.number().int().min(1).max(114).optional(),
   ayahNumber: z.number().int().min(1).max(286).optional(),
   diagnostics: z.string().max(1500).optional()
-}).refine((value) => (value.surahNumber === undefined) === (value.ayahNumber === undefined), {
+}).strict().refine((value) => (value.surahNumber === undefined) === (value.ayahNumber === undefined), {
   message: 'Surah and Ayah numbers must be provided together.'
 }).refine((value) => value.category === 'quran' ||
   (value.surahNumber === undefined && value.ayahNumber === undefined), {
