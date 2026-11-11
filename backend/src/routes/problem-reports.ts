@@ -4,7 +4,7 @@ import type { Knex } from 'knex';
 import { z } from 'zod';
 
 export interface ProblemReportRoutesOptions {
-  db: Knex;
+  reportDb?: Knex;
 }
 
 const reportSchema = z.object({
@@ -44,9 +44,21 @@ export const problemReportRoutes: FastifyPluginAsync<ProblemReportRoutesOptions>
       });
     }
 
+    if (!opts.reportDb) {
+      return reply.status(503).send({
+        error: {
+          code: 'UNAVAILABLE',
+          message: 'Problem-report storage is not configured.',
+          requestId: request.id,
+          details: [],
+          retryable: true
+        }
+      });
+    }
+
     const report = parsed.data;
     const id = randomUUID();
-    await opts.db('problem_reports').insert({
+    await opts.reportDb('problem_reports').insert({
       id,
       category: report.category,
       description: report.description,
