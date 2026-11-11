@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { resolveDatabaseConfig } from '../src/db/connection.js';
+import { resolveDatabaseConfig, resolveReportsDatabaseConfig } from '../src/db/connection.js';
 import { createDatabaseConfigForMigration } from '../src/db/migrate.js';
 
 test('Database Configuration Resolver', async (t) => {
@@ -78,6 +78,43 @@ test('Database Configuration Resolver', async (t) => {
     delete process.env.DB_CLIENT;
 
     assert.throws(() => resolveDatabaseConfig(), /DATABASE_URL must use/);
+  });
+
+  await t.test('omits the report writer when REPORTS_DATABASE_URL is not configured', () => {
+    delete process.env.REPORTS_DATABASE_URL;
+    assert.equal(resolveReportsDatabaseConfig(), undefined);
+  });
+
+  await t.test('resolves a separate PostgreSQL report writer role in production', () => {
+    process.env.NODE_ENV = 'production';
+    process.env.DATABASE_URL = 'postgresql://runtime:secret@localhost:5432/deenverse';
+    process.env.REPORTS_DATABASE_URL = 'postgresql://reports:secret@localhost:5432/deenverse';
+
+    const config = resolveReportsDatabaseConfig();
+    assert.equal(config?.client, 'pg');
+    assert.equal(config?.connection, process.env.REPORTS_DATABASE_URL);
+  });
+
+  await t.test('rejects a report writer URL that reuses the runtime database role', () => {
+    process.env.NODE_ENV = 'production';
+    process.env.DATABASE_URL = 'postgresql://runtime:secret@localhost:5432/deenverse';
+    process.env.REPORTS_DATABASE_URL = 'postgresql://runtime:another-secret@localhost:5432/deenverse';
+
+    assert.throws(
+      () => resolveReportsDatabaseConfig(),
+      /dedicated PostgreSQL role distinct from DATABASE_URL/
+    );
+  });
+
+  await t.test('rejects SQLite report storage in production', () => {
+    process.env.NODE_ENV = 'production';
+    process.env.DATABASE_URL = 'postgresql://runtime:secret@localhost:5432/deenverse';
+    process.env.REPORTS_DATABASE_URL = 'sqlite3://reports.sqlite';
+
+    assert.throws(
+      () => resolveReportsDatabaseConfig(),
+      /DATABASE_URL must use the postgresql/
+    );
   });
 
   await t.test('resolves custom DB_FILENAME for SQLite', () => {
