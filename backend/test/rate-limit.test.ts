@@ -91,3 +91,44 @@ test('problem-report submissions are covered by the public API rate limit', asyn
     await db.destroy();
   }
 });
+
+test('rate-limits public reports by validated Cloudflare client IP', async () => {
+  const db = createDatabaseConnection({ client: 'sqlite3', connection: ':memory:' });
+  await runMigrations(db);
+  const app = buildApp({ db, rateLimitMax: 1, rateLimitWindowMs: 60_000 });
+
+  try {
+    const payload = {
+      category: 'bug',
+      description: 'Different public clients must receive independent request quotas.',
+      currentSection: 'Support',
+      appVersion: '0.1.0'
+    };
+    const submit = (clientIp: string) => app.inject({
+      method: 'POST',
+      url: '/api/v1/problem-reports',
+      headers: { 'cf-connecting-ip': clientIp },
+      payload
+    });
+
+    const firstClientRequest = await submit('198.51.100.10');
+    const repeatedClientRequest = await submit('198.51.100.10');
+    const secondClientRequest = await submit('203.0.113.20');
+    const invalidForwardedIpRequest = await submit('not-an-ip');
+    const repeatedInvalidForwardedIpRequest = await submit('not-an-ip');
+
+    assert.equal(firstClientRequest.statusCode, 201);
+    assert.equal(repeatedClientRequest.statusCode, 429);
+    assert.equal(repeatedClientRequest.json().error.code, 'RATE_LIMITED');
+    assert.equal(secondClientRequest.statusCode, 201);
+    assert.equal(invalidForwardedIpRequest.statusCode, 201);
+    assert.equal(repeatedInvalidForwardedIpRequest.statusCode, 429);
+    assert.equal(
+      Number(await db('problem_reports').count('* as count').first().then((row) => row?.count)),
+      3
+    );
+  } finally {
+    await app.close();
+    await db.destroy();
+  }
+});
