@@ -83,6 +83,14 @@ Standard Error Codes:
 
 The current backend uses HTTP 400 for validation errors, 401/403 for authentication/authorization errors when applicable, 404 for missing resources, 429 for rate limiting, 502 for integrity rejection, and 503 for `CONTENT_UNAVAILABLE` or `UNAVAILABLE`. Read-only route registration does not imply that any religious corpus is approved or populated.
 
+## In-app issue reporting — 2026-11-11
+
+`POST /api/v1/problem-reports` accepts app/support reports in the categories `bug`, `audio`, `quran`, `hadith_dua`, `feature`, and `suggestion`. A successful submission returns HTTP 201 with a report ID and `received` status. Descriptions are limited to 10–4,000 characters; reproduction steps to 2,000; optional diagnostics to 1,500. Surah and Ayah coordinates must be supplied together, must be within their numeric bounds, and are accepted only for Quran reports.
+
+The additive `problem_reports` migration creates a separate support table. The endpoint does not write to Quran, Hadith, translation, grading, review, or publication tables; a report cannot approve or publish religious content. Browser/device diagnostics are omitted unless the user explicitly opts in. The route remains inside the backend's global rate-limit scope.
+
+Before deployment, apply the additive migration through the existing PostgreSQL migration runner and verify `GET /api/v1/ready` returns 200. The exact deployed web origin must be present in the API's CORS allowlist, and `NEXT_PUBLIC_API_BASE_URL` must resolve to the deployed API root. Production deployment and CORS configuration were not changed by this code PR.
+
 ## Historical release-safety and integration contract — 2026-11-06 (superseded by the 2026-11-09 snapshot)
 
 ### Public mainline and candidate PRs

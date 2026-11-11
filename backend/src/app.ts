@@ -10,6 +10,7 @@ import { HadithLibraryService } from './services/hadith-library.js';
 import { quranRoutes } from './routes/quran.js';
 import { quranAyahRoutes } from './routes/quran-ayah.js';
 import { hadithRoutes } from './routes/hadith.js';
+import { problemReportRoutes } from './routes/problem-reports.js';
 import { hasRequiredSchema } from './db/schema-readiness.js';
 import { ApiErrorResponse } from './types/content.js';
 
@@ -171,6 +172,10 @@ export function buildApp(opts: BuildAppOptions): FastifyInstance {
     api.register(hadithRoutes, {
       prefix: '/api/v1/hadith',
       hadithService: hadithLibraryService
+    });
+    api.register(problemReportRoutes, {
+      prefix: '/api/v1',
+      db
     });
   });
 

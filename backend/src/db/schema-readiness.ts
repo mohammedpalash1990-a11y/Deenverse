@@ -13,6 +13,7 @@ export const REQUIRED_SCHEMA_COLUMNS = {
   hadith_translations: ['id', 'hadith_id', 'source_id', 'locale', 'translator_name', 'translation_text', 'license_id', 'text_sha256'],
   hadith_grade_assessments: ['id', 'hadith_id', 'source_id', 'grade', 'grading_authority', 'grading_work', 'grading_reference', 'assessment_note', 'assessment_sha256', 'assessed_at'],
   hadith_record_reviews: ['id', 'hadith_id', 'source_id', 'review_role', 'review_status', 'artifact_sha256', 'reviewer_id', 'reviewed_at', 'text_match', 'reference_match', 'issue_note'],
+  problem_reports: ['id', 'category', 'description', 'steps_to_reproduce', 'current_section', 'app_version', 'surah_number', 'ayah_number', 'diagnostics', 'status', 'created_at'],
 } as const;
 
 export async function hasRequiredSchema(db: Knex): Promise<boolean> {

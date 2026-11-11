@@ -119,7 +119,8 @@ paths.each do |path, operations|
     abort_with("#{method.upcase} #{path} must have an operationId") unless operation.is_a?(Hash) && operation["operationId"].is_a?(String)
     operation_ids << operation["operationId"]
     responses = operation["responses"]
-    abort_with("#{method.upcase} #{path} must document a 200 response") unless responses.is_a?(Hash) && responses.key?("200")
+    success_status = method == "post" ? "201" : "200"
+    abort_with("#{method.upcase} #{path} must document a #{success_status} response") unless responses.is_a?(Hash) && responses.key?(success_status)
 
     declared_path_parameters = Array(operation["parameters"])
       .select { |parameter| parameter.is_a?(Hash) && parameter["in"] == "path" }
