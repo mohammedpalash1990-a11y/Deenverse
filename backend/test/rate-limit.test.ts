@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { buildApp } from '../src/app.js';
 import { createDatabaseConnection } from '../src/db/connection.js';
+import { runMigrations } from '../src/db/migrate.js';
 
 test('Rate limit configuration', async (t) => {
   const db = createDatabaseConnection({ connection: ':memory:' });
@@ -52,4 +53,41 @@ test('Rate limit configuration', async (t) => {
       /rateLimitWindowMs must be a positive safe integer/
     );
   });
+});
+
+test('problem-report submissions are covered by the public API rate limit', async () => {
+  const db = createDatabaseConnection({ client: 'sqlite3', connection: ':memory:' });
+  await runMigrations(db);
+  const app = buildApp({ db, rateLimitMax: 1, rateLimitWindowMs: 60_000 });
+
+  try {
+    const payload = {
+      category: 'bug',
+      description: 'Repeated public reports must be subject to the API request limit.',
+      currentSection: 'Support',
+      appVersion: '0.1.0'
+    };
+
+    const first = await app.inject({
+      method: 'POST',
+      url: '/api/v1/problem-reports',
+      payload
+    });
+    const second = await app.inject({
+      method: 'POST',
+      url: '/api/v1/problem-reports',
+      payload
+    });
+
+    assert.equal(first.statusCode, 201);
+    assert.equal(second.statusCode, 429);
+    assert.equal(second.json().error.code, 'RATE_LIMITED');
+    assert.equal(
+      Number(await db('problem_reports').count('* as count').first().then((row) => row?.count)),
+      1
+    );
+  } finally {
+    await app.close();
+    await db.destroy();
+  }
 });
