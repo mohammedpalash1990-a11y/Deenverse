@@ -6,6 +6,7 @@ import * as initialSchema from '../src/db/migrations/20261102_000001_initial_sch
 import * as sourceApprovalGate from '../src/db/migrations/20261103_000002_source_approval_gate.js';
 import * as quranAyahs from '../src/db/migrations/20261104_000003_quran_ayahs.js';
 import * as hadithLibrary from '../src/db/migrations/20261104_000005_hadith_library.js';
+import * as problemReports from '../src/db/migrations/20261111_000006_problem_reports.js';
 
 test('Liveness and Readiness Probes', async (t) => {
   const db = createDatabaseConnection({ connection: ':memory:' });
@@ -46,6 +47,7 @@ test('Liveness and Readiness Probes', async (t) => {
     await sourceApprovalGate.up(db);
     await quranAyahs.up(db);
     await hadithLibrary.up(db);
+    await problemReports.up(db);
 
     const res = await app.inject({
       method: 'GET',
