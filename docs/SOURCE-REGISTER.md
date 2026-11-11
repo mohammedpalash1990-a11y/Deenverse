@@ -131,3 +131,10 @@ No production content, database rows, network permissions, Render environment va
 - Closed for release safety: PR #69, which reintroduces a direct browser-side raw-GitHub Quran fallback and unapproved translation/audio publication. The current main reader remains fail-closed.
 - Closed as out of scope: PR #45's 3–5-person shareable review workspace. The requested public feedback path is implemented in PR #93; reports do not approve or publish religious content.
 - Still open and not safe to merge automatically: PR #43 (per-Ayah review workflow, based on an old branch and 48 commits behind current main), PR #79 (share-card/integration branch, 136 commits ahead and 6 behind current main at the last comparison), and PR #11 (older API documentation branch). Their current heads need separate review and exact-head CI before any merge. No religious-content or deployment change is authorized by these PRs.
+
+
+### Official source redistribution terms recheck — 2026-11-11
+
+- Tanzil's official Text License and Download pages state that verbatim Quran text may be copied and distributed under CC BY 3.0, but the text must not be changed; the Tanzil source/link and required copyright notice must accompany the copy. This establishes published general terms, not the identity, completeness, digest, or independent approval of the absent project artifact.
+- QuranEnc's official Bengali Abu Bakr Zakaria page states that translations may be downloaded and republished subject to conditions: no modification/addition/deletion; clearly identify publisher and source; mention the version; preserve transcript information; notify QuranEnc about notes; keep the translation updated to the latest source version; and do not display inappropriate advertisements.
+- These official terms improve the rights evidence for the named sources, but the project still lacks the exact downloaded translation artifact, verified version/transcript metadata, and an evidence trail proving compliance. Separate caching/offline/export permissions are not established by the current project record. No translation route or corpus was activated.
