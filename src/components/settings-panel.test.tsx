@@ -48,7 +48,7 @@ describe("SettingsPanel problem reporting", () => {
     fireEvent.click(screen.getByRole("button", { name: /Submit report/ }));
 
     expect(fetcher).not.toHaveBeenCalled();
-    expect(screen.getByRole("status")).toHaveTextContent("Enter both the Surah number and Ayah number");
+    expect(screen.getByRole("alert")).toHaveTextContent("Enter both the Surah number and Ayah number");
   });
 
   it("sends diagnostics only after explicit consent", async () => {

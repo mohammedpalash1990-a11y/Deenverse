@@ -187,7 +187,7 @@ export function SettingsPanel({ currentSection }: SettingsPanelProps) {
           </label>
 
           {message && (
-            <p className={state === "sent" ? "report-success" : "report-error"} role="status" aria-live="polite">
+            <p className={state === "sent" ? "report-success" : "report-error"} role={state === "error" ? "alert" : "status"} aria-live={state === "error" ? "assertive" : "polite"}>
               {message}
             </p>
           )}
