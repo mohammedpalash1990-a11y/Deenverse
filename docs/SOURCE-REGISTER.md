@@ -122,3 +122,12 @@ This snapshot supersedes the 2026-11-11 01:11 UTC snapshot above for current rep
 - Browser network inspection was not completed because the available TinyFish browser-automation wallet balance is $0.00. No secret values were retrieved or exposed.
 
 No production content, database rows, network permissions, Render environment variables, or deployments were changed by this audit.
+
+
+### Pull-request reconciliation — 2026-11-11
+
+- Merged: PR #91 (reviewer-identity, Hadith cursor, and PWA persistence integration), PR #92 (source-register evidence refresh), and PR #93 (in-app problem reporting).
+- Closed as superseded by current main: PRs #47, #85, #86, #87, #89, #75, and #77. PR #47's report implementation was ported to current main and merged as PR #93. PRs #85–#87's code/test files are byte-identical to current main after PR #91. PR #89's integration snapshot is based on an older main and its code changes are already integrated; its remaining documentation snapshot is superseded by PRs #92 and #93.
+- Closed for release safety: PR #69, which reintroduces a direct browser-side raw-GitHub Quran fallback and unapproved translation/audio publication. The current main reader remains fail-closed.
+- Closed as out of scope: PR #45's 3–5-person shareable review workspace. The requested public feedback path is implemented in PR #93; reports do not approve or publish religious content.
+- Still open and not safe to merge automatically: PR #43 (per-Ayah review workflow, based on an old branch and 48 commits behind current main), PR #79 (share-card/integration branch, 136 commits ahead and 6 behind current main at the last comparison), and PR #11 (older API documentation branch). Their current heads need separate review and exact-head CI before any merge. No religious-content or deployment change is authorized by these PRs.
