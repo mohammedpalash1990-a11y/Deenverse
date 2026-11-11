@@ -155,3 +155,9 @@ No production content, database rows, network permissions, Render environment va
 
 
 - Remaining PR evidence: PR #79's exact old head passed its recorded backend and web CI runs, but its branch is 136 commits ahead and 6 behind current main; it must be rebased and retested before merge. PR #43's backend CI was cancelled (its web check passed) and it is 48 commits behind current main. PR #11 has no exact-head CI and is 37 commits ahead / 76 behind current main. None was merged.
+
+
+### Support-report operational limitation — 2026-11-11
+
+- PR #93 implements the public Settings form and POST storage route, but it does not add an authenticated staff inbox, report-list API, assignment workflow, or notification delivery. Reports are stored in `problem_reports` with status `new`; operational triage currently requires authorized database access. Do not expose report retrieval publicly until authentication/authorization is implemented.
+- The new form and API are not live in Render: the current web/API deployment commits predate the Settings component, report route, and migration. The Neon production database also does not yet contain the `problem_reports` table.
