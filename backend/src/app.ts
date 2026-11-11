@@ -16,6 +16,8 @@ import { ApiErrorResponse } from './types/content.js';
 
 export interface BuildAppOptions {
   db: Knex;
+  /** Separate least-privilege writer for support reports. Null disables report writes. */
+  reportDb?: Knex | null;
   enableRateLimit?: boolean;
   allowedOrigins?: string[];
   rateLimitMax?: number;
@@ -24,6 +26,9 @@ export interface BuildAppOptions {
 
 export function buildApp(opts: BuildAppOptions): FastifyInstance {
   const { db, enableRateLimit = true, allowedOrigins = [], rateLimitMax = 100, rateLimitWindowMs = 60_000 } = opts;
+  const reportDb = opts.reportDb === undefined
+    ? (process.env.NODE_ENV === 'production' ? undefined : db)
+    : opts.reportDb ?? undefined;
   if (!Number.isSafeInteger(rateLimitMax) || rateLimitMax < 1) throw new Error('rateLimitMax must be a positive safe integer.');
   if (!Number.isSafeInteger(rateLimitWindowMs) || rateLimitWindowMs < 1) throw new Error('rateLimitWindowMs must be a positive safe integer.');
 
@@ -127,7 +132,21 @@ export function buildApp(opts: BuildAppOptions): FastifyInstance {
     api.get('/api/v1/ready', { config: { rateLimit: false } }, async (request, reply) => {
       try {
         await db.raw('SELECT 1');
-        if (!(await hasRequiredSchema(db))) {
+        if (!reportDb) {
+          const response: ApiErrorResponse = {
+            error: {
+              code: 'UNAVAILABLE',
+              message: 'Problem-report storage is not configured.',
+              requestId: request.id,
+              details: [],
+              retryable: true
+            }
+          };
+          return reply.status(503).send(response);
+        }
+
+        await reportDb.raw('SELECT 1');
+        if (!(await hasRequiredSchema(db, reportDb))) {
           const response: ApiErrorResponse = {
             error: {
               code: 'UNAVAILABLE',
@@ -139,6 +158,25 @@ export function buildApp(opts: BuildAppOptions): FastifyInstance {
           };
           return reply.status(503).send(response);
         }
+
+        if (reportDb.client.config.client === 'pg') {
+          const privilege = await reportDb.raw(
+            "SELECT has_table_privilege(current_user, 'public.problem_reports', 'INSERT') AS can_insert"
+          );
+          if (privilege.rows?.[0]?.can_insert !== true) {
+            const response: ApiErrorResponse = {
+              error: {
+                code: 'UNAVAILABLE',
+                message: 'Problem-report storage is not writable.',
+                requestId: request.id,
+                details: [],
+                retryable: true
+              }
+            };
+            return reply.status(503).send(response);
+          }
+        }
+
         return {
           status: 'ready',
           probe: 'readiness',
@@ -175,7 +213,7 @@ export function buildApp(opts: BuildAppOptions): FastifyInstance {
     });
     api.register(problemReportRoutes, {
       prefix: '/api/v1',
-      db
+      reportDb
     });
   });
 
