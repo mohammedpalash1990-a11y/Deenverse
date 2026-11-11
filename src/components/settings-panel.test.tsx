@@ -16,7 +16,7 @@ function successfulResponse() {
 
 describe("SettingsPanel problem reporting", () => {
   it("submits a report without diagnostics unless the user opts in", async () => {
-    const fetcher = vi.fn(async () => successfulResponse());
+    const fetcher = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) => successfulResponse());
     vi.stubGlobal("fetch", fetcher);
     render(<SettingsPanel currentSection="Quran" />);
 
@@ -36,7 +36,7 @@ describe("SettingsPanel problem reporting", () => {
   });
 
   it("requires both Surah and Ayah numbers for a Quran-specific report", async () => {
-    const fetcher = vi.fn(async () => successfulResponse());
+    const fetcher = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) => successfulResponse());
     vi.stubGlobal("fetch", fetcher);
     render(<SettingsPanel currentSection="Quran" />);
 
@@ -52,7 +52,7 @@ describe("SettingsPanel problem reporting", () => {
   });
 
   it("sends diagnostics only after explicit consent", async () => {
-    const fetcher = vi.fn(async () => successfulResponse());
+    const fetcher = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) => successfulResponse());
     vi.stubGlobal("fetch", fetcher);
     render(<SettingsPanel currentSection="Settings" />);
 
@@ -70,7 +70,7 @@ describe("SettingsPanel problem reporting", () => {
   });
 
   it("does not send stale Ayah coordinates after changing the report category", async () => {
-    const fetcher = vi.fn(async () => successfulResponse());
+    const fetcher = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) => successfulResponse());
     vi.stubGlobal("fetch", fetcher);
     render(<SettingsPanel currentSection="Quran" />);
 
