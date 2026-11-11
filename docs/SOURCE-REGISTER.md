@@ -84,3 +84,41 @@ This dated snapshot supersedes all earlier statements above about the current ma
 - Authentication implementation, independent religious-content approval, official immutable source artifact acquisition and digest recomputation, and manual RTL/accessibility/offline/device QA remain unverified or blocked. No religious corpus is present in production.
 
 No Quran, translation, Hadith, tafsir, dua, or audio content was imported or activated by this verification.
+
+
+## Production and release recheck — 2026-11-11 09:36 UTC
+
+This snapshot supersedes the 2026-11-11 01:11 UTC snapshot above for current repository, Render, and Neon state. Earlier entries remain historical evidence.
+
+### GitHub mainline
+
+- Current `main` is `c4d37a0f7f044405c6efe469fcc7b4710902f5a7`. PR #91, PR #92, and PR #93 are merged. PR #93 adds the in-app problem-report form and additive `problem_reports` migration; its exact-head backend, web, and OpenAPI checks passed, and the post-merge main backend/web CI passed.
+- GitHub reports `main` as unprotected. The repository has no enforced required status checks.
+- PR #47's stale, 46-commits-behind implementation branch was closed as superseded by PR #93. PR #93 is the current merged implementation.
+- The current main Quran reader remains the fail-closed approval-pending placeholder. It makes no direct Quran/audio source request and renders no religious text.
+
+### Render production services
+
+- The `deenverse-api` service is on branch `main`, but auto-deploy is disabled. Its latest live deployment is commit `f15e82748f1724d5995fe863e54d178a8a22b2b7` from 2026-11-08 22:53 UTC, not current main. The service has no configured Render health-check path and its service IP allowlist is `0.0.0.0/0`.
+- At 2026-11-11 09:35 UTC, `GET /api/v1/health` returned HTTP 200 with `status=healthy`; `GET /api/v1/ready` returned HTTP 200 with `database=connected` and `migrations=applied`. The successful readiness response confirms the currently deployed API can connect to its configured database; it does not prove the current main code is deployed.
+- The `deenverse-web` service is also on branch `main`, but auto-deploy is disabled. Its latest live deployment is commit `f098d650a9cbc5aaaaadee6a925e68dfa9dbdb9a` from 2026-11-05 02:49 UTC, substantially behind current main. It has no configured Render health-check path and its service IP allowlist is `0.0.0.0/0`.
+- A fresh read of the live web HTML still exposes the legacy Quran reader UI: “QURAN · ARABIC & AUDIO”, Tanzil Uthmani 1.1, 114 Surahs, 6,236 Ayahs, a reciter selector, and “সম্পূর্ণ আরবি কুরআন লোড হচ্ছে…”. This conflicts with current main's fail-closed reader. The live bundle must be treated as a release-safety incident until the current fail-closed mainline is deployed and rechecked. This HTML fetch did not establish which external network requests the browser subsequently makes.
+- Both Render services are configured for public access. Current Render environment-variable values could not be inspected through the available read actions; therefore the deployed `CORS_ALLOWED_ORIGINS` / `CORS_ORIGIN` values and browser CORS behavior remain unverified.
+- Render's latest deploy records do not include current main `c4d37a0`. No production deployment or environment change was made.
+
+### Neon production database and content provenance
+
+- Neon `deenverse-db` default branch is Ready but `protected=false`. The project IP allowlist is empty, `protected_branches_only=false`, and `block_public_connections=false`.
+- Read-only production counts: `content_sources=1`, `content_source_approvals=1`, `quran_surahs=0`, `quran_ayahs=0`, `hadith_books=0`, `hadith_chapters=0`, `hadith_records=0`, `hadith_translations=0`, `hadith_grade_assessments=0`, and `hadith_record_reviews=0`.
+- The single Tanzil source row is inactive. Its stored `license_id=CC-BY-3.0`, attribution, `redistribution_allowed=true`, and checksum are database metadata, not independently verified rights or artifact evidence. The source reviewer and approval reviewer are both `project-owner-chat-authorization`; this is not independent human approval. The stored checksum strings match, but no immutable official artifact was acquired and independently re-hashed in this run.
+- The official Quran text file `data/quran/tanzil/quran-uthmani.txt` is absent from current main. The `problem_reports` table is also absent from Neon because PR #93 has not been deployed and no production migration was run.
+
+### Remaining release gates
+
+- Deploy current main to the public web service only after explicit production-deployment authorization; recheck the live page and confirm the fail-closed reader is actually served. Do not assume a GitHub merge updates Render while auto-deploy is disabled.
+- Before deploying the new API, verify its exact CORS allowlist and `NEXT_PUBLIC_API_BASE_URL`, then let the existing PostgreSQL migration runner apply the additive `problem_reports` migration and verify readiness. No manual production SQL was run.
+- Keep Quran, translation, Hadith, tafsir, dua, and audio unavailable until exact immutable artifacts, independently recomputed SHA-256 digests, source-specific redistribution rights/attribution, and qualified independent human approval are evidenced.
+- Authentication/authorization remains unimplemented or unverified. Manual RTL, screen-reader, accessibility, offline, and physical-device QA remain outstanding. CI and service-worker unit tests are not substitutes for those manual checks.
+- Browser network inspection was not completed because the available TinyFish browser-automation wallet balance is $0.00. No secret values were retrieved or exposed.
+
+No production content, database rows, network permissions, Render environment variables, or deployments were changed by this audit.
