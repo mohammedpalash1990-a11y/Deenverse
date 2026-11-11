@@ -180,7 +180,7 @@ This section supersedes earlier dated statements above about the current main SH
 
 - Project `deenverse-db` (`cool-mud-31679014`) and default branch `main` (`br-spring-night-a14ey96s`) are Ready. The branch is unprotected. Project IP allowlist is empty, `protected_branches_only=false`, and `block_public_connections=false`.
 - Read-only row counts: `content_sources=1`, `content_source_approvals=1`, `quran_surahs=0`, `quran_ayahs=0`, `hadith_books=0`, `hadith_chapters=0`, `hadith_records=0`, `hadith_translations=0`, `hadith_grade_assessments=0`, and `hadith_record_reviews=0`.
-- The additive `problem_reports` table does not exist in Neon yet. PR #93 is merged in GitHub, but its migration has not been applied to production; no production SQL or data was changed in this run.
+- The additive `problem_reports` and `quran_ayah_reviews` tables do not exist in Neon yet. PR #93 is merged in GitHub, but its migration has not been applied; PR #43 (which proposes per-Ayah review storage) remains open and is not merge-ready. No production SQL or data was changed in this run.
 - The one source row is `tanzil-uthmani-v1`, inactive, with stored metadata `license_id=CC-BY-3.0`, `redistribution_allowed=true`, reviewer `project-owner-chat-authorization`, and checksum `ac0724796cbbda0f4801470fbbd11d0f3c5802067bae0493466d0128b0c667af`. Its one approval row has the same owner-chat reviewer identity and the same stored artifact checksum. These are database metadata only: the immutable official artifact is absent from the repository, the digest was not independently recomputed from acquired bytes, and the approval is not independent human review.
 - No Quran or Hadith content was imported, activated, or modified.
 
