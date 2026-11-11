@@ -204,6 +204,7 @@ This section supersedes earlier dated statements above about the current main SH
 
 - A Library file named `quran-uthmani.txt` was located (Library-created 2026-11-05 01:00:59 UTC; 1,396,087 bytes). That timestamp is not evidence of the upstream retrieval time.
 - Independently computed SHA-256 of the complete Library file bytes: `6933e133dd56db778c801bf738848454e43648105a151e8d84d86a7cae39ec5f`.
+- The Library file's Git blob SHA `9813920ae5afce9e50d2ac44562457e29bb4bfca` matches the historical GitHub blob at commit `abb4dd06531d7585b13b8f29af45e7d05a995574`; this establishes byte identity with the previously committed copy, not its upstream source authenticity.
 - Structural validation: 6,236 Ayah rows, 114 Surahs, 6,236 unique ordered coordinates (1:1 through 114:6), with each per-Surah count matching the repository's canonical array. Thirty copyright-footer lines follow the Ayah rows.
 - The file's footer identifies Tanzil Uthmani v1.1 and CC BY 3.0, but its copyright year is 2007-2026 while the historical notice quoted in the dossier is 2007-2021. Confirm the current official notice and exact download options before treating the file as the publisher artifact.
 - The production source and approval rows both store `ac0724796cbbda0f4801470fbbd11d0f3c5802067bae0493466d0128b0c667af`, which does not match the Library copy hash. The approval notes' metadata hash `8867c1d88191472adec9db694b3cd9f135b1a2ef580574d32cf888dcb22c5c7a` cannot be independently recomputed without the corresponding metadata XML bytes.
