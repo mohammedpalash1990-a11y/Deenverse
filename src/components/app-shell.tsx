@@ -6,6 +6,7 @@ import { QuranCatalogue } from "@/components/quran-catalogue";
 import { ReaderControls } from "@/components/reader-controls";
 import { QuranBetaReader } from "@/components/quran-beta-reader";
 import { HadithReader } from "@/components/hadith-reader";
+import { SettingsPanel } from "@/components/settings-panel";
 
 const symbols: Record<SectionId, string> = {
   quran: "۞",
@@ -109,6 +110,8 @@ export function AppShell() {
             </>
           ) : active === "hadith" ? (
             <HadithReader />
+          ) : active === "settings" ? (
+            <SettingsPanel currentSection={section.label} />
           ) : (
             <section className="section-placeholder">
               <div className="placeholder-icon">{symbols[active]}</div>
