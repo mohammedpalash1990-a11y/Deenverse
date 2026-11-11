@@ -1,6 +1,6 @@
 # DEENVERSE Verified Content Source Register
 
-**Snapshot:** 2026-11-11 — current main `f56731a39606027da2e8240e729503713521857d`  
+**Snapshot:** 2026-11-11 10:08 UTC — current main `73d2208b067fe2d11bf2a24c0741aa661e67c48f`  
 A provider being listed or reachable through an API does not approve its content for import, redistribution, caching, offline use, or publication. Each content type and edition requires its own evidence.
 
 | Content type | Candidate/provider | Edition/version | Current implementation | Rights/authenticity status | Import/publication status |
@@ -163,7 +163,7 @@ No production content, database rows, network permissions, Render environment va
 - The new form and API are not live in Render: the current web/API deployment commits predate the Settings component, report route, and migration. The Neon production database also does not yet contain the `problem_reports` table.
 
 
-## Current verification after PR #96 — 2026-11-11
+## Historical verification after PR #96 — 2026-11-11
 
 This section supersedes earlier dated statements above about the current main SHA, open pull requests, and production database state. Older audit entries are retained as historical records.
 
@@ -210,3 +210,41 @@ This section supersedes earlier dated statements above about the current main SH
 - The production source and approval rows both store `ac0724796cbbda0f4801470fbbd11d0f3c5802067bae0493466d0128b0c667af`, which does not match the Library copy hash. The approval notes' metadata hash `8867c1d88191472adec9db694b3cd9f135b1a2ef580574d32cf888dcb22c5c7a` cannot be independently recomputed without the corresponding metadata XML bytes.
 - The production source remains inactive; both stored reviewer identities are `project-owner-chat-authorization`. No independent human approval is evidenced. Do not import the Library copy, edit production metadata, or activate the source. The current main tree still does not contain the Quran text file.
 - This is a structural/integrity comparison only, not proof of source authenticity, scholarly correctness, or redistribution approval for any other asset.
+
+
+## Current mainline verification after PR #100 — 2026-11-11 10:08 UTC
+
+This section supersedes the older main-SHA and open-PR snapshots above. The detailed Tanzil Library-copy byte/hash comparison is recorded in `docs/TANZIL-SOURCE-DOSSIER.md`.
+
+### Mainline and CI
+
+- Current `main`: `73d2208b067fe2d11bf2a24c0741aa661e67c48f`; GitHub reports `protected=false`.
+- PR #97 merged as `bd63da7785b33e74157a5dc1319350ea6ec970a9` (current production/source evidence documentation).
+- PR #98 merged as `27733a4a5fbc7d116c9224a1667de49f1163757c` (CORS regression tests for the problem-report POST route: trusted origin succeeds; unlisted origin gets 403 and creates no row).
+- PR #99 merged as `0e67288e12dd5f22a67c3626511234efdb379752` (Tanzil Library-copy structural/hash audit and mismatch with production metadata).
+- PR #100 merged as `73d2208b067fe2d11bf2a24c0741aa661e67c48f` (rate-limit regression test for problem-report POST: first request stores one row; next request receives structured 429).
+- Exact-head checks passed for PR #97 (run #42999684114), PR #98 (runs #42999898419 and #42999898316), PR #99 (run #43000533548), and PR #100 (runs #43000714320 and #43000714321). Post-merge main CI run #43000942774 passed backend and web jobs.
+- The only open PRs are #79, #43, and #11. PR #79 targets an old `integration/platform-foundation` base (`a7ad2eb4dae5d2fdcfb682e1747d4b17d56dab29`), is dirty/non-mergeable, and requires rebase/review. PR #43 targets old main `ef559abe96417acd376df60b0f6ef7973bfd28c6`; its backend check was cancelled and it is not merge-ready. PR #11 targets the old integration base, is dirty/non-mergeable, and has no exact-head CI. Do not merge these without current-main reconciliation and fresh checks.
+- PR #47 (older problem-report implementation) and PR #69 (public Quran beta) are closed unmerged. The merged report implementation is PR #93; the public Quran reader remains fail-closed.
+
+### Neon production state
+
+- Project `deenverse-db` and default branch `main` remain Ready. The Neon branch is unprotected; the IP allowlist is empty; `protected_branches_only=false`; `block_public_connections=false`.
+- Read-only counts remain: `content_sources=1`, `content_source_approvals=1`, all Quran Surah/Ayah tables zero, and all Hadith book/chapter/record/translation/grade/review tables zero.
+- Both `problem_reports` and `quran_ayah_reviews` are absent from Neon. The backend's `hasRequiredSchema` includes `problem_reports`, so the current API build must report readiness 503 until the additive PR #93 migration is applied. No production migration was run.
+- The single Tanzil source row remains inactive. The stored source and approval digests are both `ac0724796cbbda0f4801470fbbd11d0f3c5802067bae0493466d0128b0c667af`; the user-Library copy hash is `6933e133dd56db778c801bf738848454e43648105a151e8d84d86a7cae39ec5f`. The Library copy matches the historical Git blob from commit `abb4dd06531d7585b13b8f29af45e7d05a995574`, but that proves only byte identity with the previously committed copy, not official upstream acquisition. Source and approval reviewers remain the same owner-chat identity; no independent human approval exists.
+- No Quran or Hadith content was imported, activated, or modified.
+
+### API, auth, and support-report operations
+
+- Backend CORS is an explicit origin allowlist. PR #98 now tests the problem-report POST boundary for trusted/untrusted origins. The deployed `CORS_ALLOWED_ORIGINS`/`CORS_ORIGIN` values and browser CORS path remain unverified because Render is not accessible in this run.
+- PR #100 proves the public report endpoint remains under the global rate limit. PR #93 provides public report submission only; there is no authenticated staff inbox, report-list API, assignment, or notification delivery. Do not expose report retrieval without authentication/authorization.
+- No auth/session route or middleware was found in the backend tree. `backend/.env.example` contains only a blank `JWT_SECRET` placeholder; no working login/session implementation is evidenced.
+
+### Render, manual QA, and release gates
+
+- Render service configuration/deploys/events/logs were not rechecked: the connector lists “My Workspace” but reports no selected workspace, and the user-confirmed workspace ID is not available. No Render environment variable, service setting, deployment, or log was accessed or changed.
+- The last recorded Render audit remains the 2026-11-11 09:36 UTC snapshot above: auto-deploy disabled; API/web deployed commits predate current main; API health/readiness returned 200 then, but that does not prove current main is deployed. Do not treat it as fresh evidence.
+- Browser automation was unavailable because the TinyFish wallet balance was $0.00. RTL, keyboard, screen-reader, contrast/zoom, offline recovery, and physical Android/iOS QA remain unverified.
+- Do not deploy current main or apply the production migration without a separately authorized, reversible rollout plan, verified backup/rollback, and exact deployed CORS/API-base configuration.
+- No production data, network permissions, Render configuration, or deployment was changed in this run.
