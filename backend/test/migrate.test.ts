@@ -12,6 +12,7 @@ test('database migration creates the complete schema and is safe to rerun', asyn
     assert.equal(await db.schema.hasTable('quran_surahs'), true);
     assert.equal(await db.schema.hasTable('content_source_approvals'), true);
     assert.equal(await db.schema.hasTable('quran_ayah_reviews'), true);
+    assert.equal(await db('quran_ayah_reviews').count('* as count').first().then((row) => Number(row?.count)), 0);
     assert.equal(await db.schema.hasTable('problem_reports'), true);
     assert.equal(await db('problem_reports').count('* as count').first().then((row) => Number(row?.count)), 0);
     for (const table of [
