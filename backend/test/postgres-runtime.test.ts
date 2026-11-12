@@ -48,6 +48,7 @@ test('PostgreSQL migrations and production runtime are verified against a real P
     await db.schema.dropTableIfExists('hadith_records');
     await db.schema.dropTableIfExists('hadith_chapters');
     await db.schema.dropTableIfExists('hadith_books');
+    await db.schema.dropTableIfExists('quran_ayah_reviews');
     await db.schema.dropTableIfExists('quran_ayahs');
     await db.schema.dropTableIfExists('content_source_approvals');
     await db.schema.dropTableIfExists('quran_surahs');
@@ -68,6 +69,7 @@ test('PostgreSQL migrations and production runtime are verified against a real P
     assert.equal(await db.schema.hasTable('content_sources'), true);
     assert.equal(await db.schema.hasTable('quran_surahs'), true);
     assert.equal(await db.schema.hasTable('quran_ayahs'), true);
+    assert.equal(await db.schema.hasTable('quran_ayah_reviews'), true);
     assert.equal(await db.schema.hasTable('content_source_approvals'), true);
 
     await assert.doesNotReject(() => runMigrations(db), 'PostgreSQL migrations must be safe to rerun.');
@@ -130,6 +132,7 @@ test('PostgreSQL migrations and production runtime are verified against a real P
     await db.schema.dropTableIfExists('hadith_records');
     await db.schema.dropTableIfExists('hadith_chapters');
     await db.schema.dropTableIfExists('hadith_books');
+    await db.schema.dropTableIfExists('quran_ayah_reviews');
     await db.schema.dropTableIfExists('quran_ayahs');
     await db.schema.dropTableIfExists('content_source_approvals');
     await db.schema.dropTableIfExists('quran_surahs');

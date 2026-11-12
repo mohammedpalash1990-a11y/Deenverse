@@ -5,6 +5,7 @@ import { createDatabaseConnection, resolveDatabaseConfig, DatabaseConfig } from 
 import * as initialSchema from './migrations/20261102_000001_initial_schema.js';
 import * as sourceApprovalGate from './migrations/20261103_000002_source_approval_gate.js';
 import * as quranAyahs from './migrations/20261104_000003_quran_ayahs.js';
+import * as quranAyahReviews from './migrations/20261104_000004_quran_ayah_reviews.js';
 import * as hadithLibrary from './migrations/20261104_000005_hadith_library.js';
 import * as problemReports from './migrations/20261111_000006_problem_reports.js';
 
@@ -46,6 +47,9 @@ async function applyMigrations(db: import('knex').Knex): Promise<void> {
   if (!(await db.schema.hasTable('quran_ayahs'))) {
     await quranAyahs.up(db);
   }
+
+  // Ayah text is not publishable unless its source-bound human review exists.
+  await quranAyahReviews.up(db);
 
   // Always invoke its preflight: a lone hadith_books table must not conceal
   // missing companion tables, and orphan companion tables must not be ignored.

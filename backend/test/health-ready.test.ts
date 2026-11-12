@@ -5,6 +5,7 @@ import { createDatabaseConnection } from '../src/db/connection.js';
 import * as initialSchema from '../src/db/migrations/20261102_000001_initial_schema.js';
 import * as sourceApprovalGate from '../src/db/migrations/20261103_000002_source_approval_gate.js';
 import * as quranAyahs from '../src/db/migrations/20261104_000003_quran_ayahs.js';
+import * as quranAyahReviews from '../src/db/migrations/20261104_000004_quran_ayah_reviews.js';
 import * as hadithLibrary from '../src/db/migrations/20261104_000005_hadith_library.js';
 import * as problemReports from '../src/db/migrations/20261111_000006_problem_reports.js';
 
@@ -46,6 +47,7 @@ test('Liveness and Readiness Probes', async (t) => {
     await initialSchema.up(db);
     await sourceApprovalGate.up(db);
     await quranAyahs.up(db);
+    await quranAyahReviews.up(db);
     await hadithLibrary.up(db);
     await problemReports.up(db);
 
@@ -62,7 +64,16 @@ test('Liveness and Readiness Probes', async (t) => {
     assert.equal(body.migrations, 'applied');
   });
 
+  await t.test('GET /api/v1/ready rejects a missing per-Ayah review table', async () => {
+    await db.schema.dropTable('quran_ayah_reviews');
+    const res = await app.inject({ method: 'GET', url: '/api/v1/ready' });
+    assert.equal(res.statusCode, 503);
+    assert.equal(res.json().error.code, 'UNAVAILABLE');
+    await quranAyahReviews.up(db);
+  });
+
   await t.test('GET /api/v1/ready rejects a table whose required columns are missing', async () => {
+    await db.schema.dropTable('quran_ayah_reviews');
     await db.schema.dropTable('quran_ayahs');
     await db.schema.createTable('quran_ayahs', (table) => { table.integer('id').primary(); });
     const res = await app.inject({ method: 'GET', url: '/api/v1/ready' });
