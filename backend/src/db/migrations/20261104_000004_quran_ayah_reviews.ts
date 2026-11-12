@@ -10,6 +10,11 @@ export async function up(knex: Knex): Promise<void> {
   if (!(await knex.schema.hasTable('quran_ayahs'))) {
     throw new Error('Cannot add Ayah reviews before quran_ayahs exists.');
   }
+  const ayahColumns = await knex('quran_ayahs').columnInfo();
+  const requiredAyahColumns = ['source_id', 'surah_number', 'ayah_number'];
+  if (!requiredAyahColumns.every((column) => Object.hasOwn(ayahColumns, column))) {
+    throw new Error('Cannot add Ayah reviews before quran_ayahs has the required source/coordinate columns.');
+  }
 
   await knex.schema.createTable('quran_ayah_reviews', (table) => {
     table.increments('id').primary();
