@@ -1,6 +1,7 @@
 import { buildApp } from './app.js';
 import { createDatabaseConnection, resolveDatabaseConfig } from './db/connection.js';
 import { seedTanzilUthmaniFromOfficialSource } from './db/seed-tanzil.js';
+import { resolveCorsOrigins } from './cors-config.js';
 
 function readPositiveInteger(name: string, fallback: number): number {
   const raw = process.env[name];
@@ -17,10 +18,7 @@ if (PORT > 65_535) throw new Error('PORT must not exceed 65535.');
 const RATE_LIMIT_MAX = readPositiveInteger('RATE_LIMIT_MAX', 100);
 const RATE_LIMIT_WINDOW_MS = readPositiveInteger('RATE_LIMIT_WINDOW_MS', 60_000);
 const HOST = process.env.HOST || '0.0.0.0';
-const CORS_ORIGIN = (process.env.CORS_ALLOWED_ORIGINS || process.env.CORS_ORIGIN || 'http://localhost:3000')
-  .split(',')
-  .map((origin) => origin.trim())
-  .filter(Boolean);
+const CORS_ORIGIN = resolveCorsOrigins();
 
 async function main(): Promise<void> {
   const databaseConfig = resolveDatabaseConfig();
