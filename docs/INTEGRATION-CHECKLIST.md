@@ -259,3 +259,13 @@ The successful backend logs include non-failing `punycode`, `url.parse`, Postgre
 - [ ] Manual Arabic RTL, keyboard, screen-reader, responsive, contrast/zoom, offline/install, Android, and iOS QA: not executed.
 
 No production data, schema, permissions, environment variables, Render configuration, or deployments were changed.
+
+
+### QuranEnc Bengali Zakaria candidate archive update — 2026-11-13
+
+- [x] Two Library candidate archives located; ZIP and extracted-member SHA-256 values recorded in docs/QURANENC-SOURCE-DOSSIER.md.
+- [x] SQLite and JSON formats internally match all 6,236 Ayah coordinates and translation strings; all 114 Surahs and canonical per-Surah counts are present.
+- [ ] Official acquisition URL/options, source receipt, exact simple variant/version, and matching upstream digest remain unverified.
+- [ ] Publisher/source attribution, version, transcript metadata, and footnote completeness must be reconciled with QuranEnc's current terms before republishing.
+- [ ] Qualified independent human review remains outstanding. Do not import or activate the candidate.
+
