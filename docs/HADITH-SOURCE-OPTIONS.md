@@ -67,3 +67,22 @@ Before any Hadith import:
 6. Import only rows with complete provenance/licence/approval metadata. Keep unapproved or rights-unclear rows absent, not merely hidden in the UI.
 
 No candidate was downloaded into the repository or production, and no Hadith content or production data was changed during this audit.
+
+
+## Candidate 5 — The Hadith Project
+
+Website: https://thehadithproject.com/  
+Repository: https://github.com/ibnmukthar/thehadithproject  
+Data licence: https://github.com/ibnmukthar/thehadithproject/blob/main/LICENSE-DATA.md  
+Bukhari source dossier: https://github.com/ibnmukthar/thehadithproject/blob/main/data/collections/bukhari/README.md
+
+This is the strongest reviewed-data-process candidate found in this audit, but it is still not approved for Deenverse:
+
+- The repository declares its dataset CC BY 4.0 and code Apache 2.0. It says classical Arabic text is public domain and modern copyrighted translations are excluded; its English renderings are the project's own CC BY 4.0.
+- The Bukhari collection contains 7,580 narrations, not a 49,000+ multi-collection corpus. It has standard numbering and per-narration SHA-256 fingerprints, but no frozen artifact or independently recomputed release digest was acquired in this audit.
+- The collection README identifies upstream Open-Hadith-Data text under ODbL 1.0 + DbCL 1.0 and fawazahmed0/hadith-api under Unlicense, with a public-domain claim for the Arabic text. ODbL/DbCL obligations and the exact upstream edition/row mapping require separate review; the repository-level CC BY 4.0 declaration does not erase upstream obligations.
+- The project describes 14 studied Hadith as examined link-by-link. The 7,580-entry Bukhari collection's chains and splits are explicitly machine-parsed proposals awaiting human review.
+- The current public editorial board file lists only the founding editor, Muhammad Mukthar. The reviewer policy says the founding editor approves everything until two reviewers agree to serve. No independent qualified reviewer is currently evidenced by the inspected board file.
+- No Bangla translation is provided in the inspected collection or licence description.
+
+**Assessment:** a promising Arabic Bukhari/English-rendering candidate for a limited, attribution-compliant pilot after upstream licence review, frozen-artifact hashing, and independent qualified review. It does not satisfy Deenverse's Bangla or 49,000+ collection requirement, and its current single-editor sign-off model does not satisfy the independent-review gate. Do not import or publish it yet.
