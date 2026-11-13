@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AppShell } from "./app-shell";
@@ -55,6 +57,18 @@ describe("DEENVERSE app shell", () => {
     expect(toggle).toHaveAttribute("aria-expanded", "true");
     fireEvent.click(toggle);
     expect(toggle).toHaveAttribute("aria-expanded", "false");
+  });
+
+  it("moves keyboard focus into the mobile navigation when opened", () => {
+    render(<AppShell />);
+    fireEvent.click(screen.getByRole("button", { name: "Toggle navigation" }));
+    const navigation = screen.getByRole("navigation", { name: "Main navigation" });
+    expect(within(navigation).getByRole("button", { name: "Quran" })).toHaveFocus();
+  });
+
+  it("hides the closed mobile sidebar from keyboard and assistive navigation", () => {
+    const css = readFileSync(resolve(process.cwd(), "src/app/globals.css"), "utf8");
+    expect(css).toMatch(/@media\(max-width:680px\)\{\.app-frame\{display:block\}\.sidebar\{[^}]*visibility:hidden[^}]*\}\.sidebar\.sidebar-open\{[^}]*visibility:visible/);
   });
 
   it("closes the mobile navigation with Escape and restores focus", () => {
