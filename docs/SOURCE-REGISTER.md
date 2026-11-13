@@ -453,3 +453,46 @@ This section supersedes earlier GitHub mainline/PR status in this register. The 
 ### Release decision
 
 Keep Quran Arabic, Bengali translation, Hadith, tafsir, dua, and audio unavailable. Production still has no corpus rows, the independent review and exact official artifact/provenance gates are unresolved, and the database schema is missing the two current-main readiness tables. Next priority remains Render runtime verification followed by a backup-backed additive migration plan; no production migration or deployment was performed.
+
+
+## Verified mainline and release-gate recheck — 2026-11-13 10:58 UTC
+
+This snapshot supersedes earlier mainline/PR and read-only Neon observations above. It records repository, database, and source evidence checked after PR #115 and PR #117 merged. No production data, schema, credentials, permissions, Render settings, or deployments were changed.
+
+### GitHub mainline, PRs, and CI
+
+- Current main is \`9042d546d82a6a175f4d07235b780af50e19e5cf\`: [commit](https://github.com/mohammedpalash1990-a11y/Deenverse/commit/9042d546d82a6a175f4d07235b780af50e19e5cf).
+- PR #114 reconciled the source register with the 2026-11-13 production evidence. PR #115 added a modal mobile navigation drawer with Tab/Shift+Tab focus containment, an inert/aria-hidden main page while open, Escape/backdrop close, and focus restoration. Its exact-head checks passed: [backend/web run #43411917978](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/43411917978) and [verify run #43411918040](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/43411918040).
+- PR #117 makes production startup fail if neither CORS_ALLOWED_ORIGINS nor CORS_ORIGIN contains an exact HTTP(S) origin. It rejects wildcard, credential, path, query, and fragment entries; non-production retains the localhost fallback. Exact-head backend/web checks passed in [run #43412555644](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/43412555644); OpenAPI/verify passed in [run #43412555498](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/43412555498). Post-merge main CI passed on the current main SHA: [run #43412747653](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/43412747653).
+- PR #91 remains merged; its reviewer-identity normalization, Hadith cursor scoping, and awaited PWA cache writes are in main. PRs #85–#87 were overlapping inputs to that integration and are no longer active. PR #93 added the in-app problem-report endpoint/form; PR #95 improved error announcements; PR #105 added the per-Ayah review gate; PR #112 added complete-Surah-catalogue fail-closed checks; PR #113/#115 improved mobile navigation accessibility.
+- PR #116 was closed after its backend startup-guard test failed because CORS validation ran before the existing production PostgreSQL guard. The corrected/rebased PR #117 passed all exact-head checks and was merged. No failed PR was merged.
+- The only open PRs are #79 and #11. Both target the old integration/platform-foundation base and are non-mergeable. PR #79 contains a 48-file mixed change set including data/quran/tanzil/quran-uthmani.txt; do not merge it because it reintroduces an unverified religious artifact and unrelated code. PR #11 is an older documentation-only integration-gap set and is stale as-is.
+- GitHub reports main as unprotected and the repository rulesets list is empty. The releases list is empty. The deployment inventory endpoint is unavailable through the current GitHub fetch integration; no deployment commit is claimed.
+
+### Neon production schema, content, and network posture
+
+- Neon project deenverse-db (cool-mud-31679014), region aws-ap-southeast-1, default branch main (br-spring-night-a14ey96s), is Ready. The default branch is unprotected. Project IP allowlist is empty, protected_branches_only=false, and block_public_connections=false.
+- Current production table inventory has ten tables. quran_ayah_reviews and problem_reports are absent, although current main's schema-readiness check requires both. A current-main API deployment against this schema should report readiness unavailable until both additive migrations are applied; this is a code/schema inference, not a live Render readiness response.
+- Read-only row counts: content_sources=1, content_source_approvals=1; quran_surahs=0, quran_ayahs=0; hadith_books=0, hadith_chapters=0, hadith_records=0, hadith_translations=0, hadith_grade_assessments=0, hadith_record_reviews=0. No Quran or Hadith corpus is present.
+- The only source row is tanzil-uthmani-v1, inactive, with redistribution_allowed=true and metadata license CC-BY-3.0. Its approval row says approved, but the source reviewer and approval reviewer are both project-owner-chat-authorization. The stored source/approval digest is ac0724796cbbda0f4801470fbbd11d0f3c5802067bae0493466d0128b0c667af. This is not independent human approval.
+- Existing Deenverse roles are not superusers. The read-only role query confirmed SELECT-only access to content_sources for deenverse_runtime_ro; no database grant, role, or permission was changed.
+
+### Source artifact, digest, licensing, and review
+
+- The Library candidate quran-uthmani.txt was independently re-materialized and SHA-256 recomputed: 1,396,087 bytes; digest 6933e133dd56db778c801bf738848454e43648105a151e8d84d86a7cae39ec5f. Structural parsing found 6,236 unique numbered Ayahs across 114 Surahs, with no duplicate coordinates and canonical per-Surah counts. This verifies only the Library copy's bytes and structure, not official Tanzil acquisition or scholarly correctness.
+- The candidate digest does not match the production source/approval digest above. The artifact is absent from current main. No official download receipt, selected download options, retrieval timestamp, or independently approved acquisition record was found. Do not import or activate the Library copy.
+- The Library file's copyright block says 2007–2026, while the official [Tanzil Text License page](https://tanzil.net/docs/Text_License) currently displays Copyright (C) 2007–2021. Tanzil permits verbatim copying/distribution with clear attribution, a tanzil.net link, and preservation of the copyright/license notice; changing the text is prohibited. The notice discrepancy and byte-provenance mismatch remain unresolved.
+- The official QuranEnc listing still identifies Bengali Translation — Abu Bakr Zakaria as V1.1.1, dated 22 May 2021. Its [republishing terms](https://quranenc.com/en/home/api/) require unchanged content, publisher/source attribution, version number, retained transcript information, notification of translation notes, updating to the latest version, and no inappropriate advertising. No exact translation/transcript artifact is retained in the Library; caching/offline/export use still needs a documented use-specific review.
+- No Hadith source artifact, approved collection, translation, grading dataset, or source-specific redistribution dossier is present. PR #105's per-Ayah gate is in main, but the required production review table is absent and no qualified independent human review is evidenced. Reviewer identity separation does not authenticate a reviewer or prove scholarly qualification.
+
+### Render, authentication, CORS, PWA, and manual QA
+
+- Render workspace selection remains unconfirmed. No Render service configuration, environment values, deploys, events, logs, API health/readiness, live CORS behavior, or Render-to-Neon connectivity was accessed. Production deploy SHAs and availability remain unavailable.
+- PR #117 now prevents a production API from silently starting with only the localhost CORS fallback. The deployed allowlist values are not visible without Render access.
+- No login/session/OTP/authentication middleware or private-resource authorization route is present. The public problem-report endpoint stores support reports, but there is no authenticated staff inbox/list/assignment/notification workflow.
+- The service worker caches the app shell and immutable same-origin build assets plus manifest/icon. API responses and religious/user data are excluded. Automated tests do not replace manual install/offline-recovery testing.
+- Manual Arabic RTL, Bengali/English localization, keyboard, screen-reader, contrast/zoom, responsive, browser, and physical Android/iOS QA remain unverified. The mobile drawer focus behavior has automated regression coverage only.
+
+### Release decision
+
+Keep Quran Arabic, Bengali translation, Hadith, tafsir, dua, and audio publication fail-closed. Do not run production migrations or deploy until the correct Render workspace/service is verified, the two missing additive migrations have a backup-backed reversible plan, CORS/runtime credentials are confirmed, and readiness is observed on the deployed API. Do not change Neon network settings until the actual Render egress path is known. Authentication and manual client QA remain separate release blockers.

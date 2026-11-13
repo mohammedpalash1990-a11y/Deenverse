@@ -240,3 +240,22 @@ These are real historical implementation deliveries, but both PRs are closed and
 ### CI warnings
 
 The successful backend logs include non-failing `punycode`, `url.parse`, PostgreSQL client query, and GitHub Actions Node 20 deprecation warnings. These did not fail any step. Track dependency and workflow-action updates separately; do not misreport warnings as test failures.
+
+
+## 2026-11-13 current-main verification
+
+- [x] Main SHA \`9042d546d82a6a175f4d07235b780af50e19e5cf\` passed post-merge backend/web CI: [run #43412747653](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/43412747653).
+- [x] PR #115 mobile drawer focus containment merged; exact-head backend/web run #43411917978 and verify #43411918040 passed.
+- [x] PR #117 production CORS origin validation merged; exact-head backend/web run #43412555644 and verify #43412555498 passed.
+- [x] Current API inventory is ten GET operations plus POST /api/v1/problem-reports. The support-report route is separate from religious-content approval and cannot publish or edit content.
+- [x] Current main has no hard-coded Render host in the report form; it uses the shared API-base resolver.
+- [ ] GitHub main branch protection and required-check enforcement: main is unprotected and repository rulesets are empty.
+- [ ] Neon hardening: default branch is unprotected, IP allowlist is empty, and public connections are not blocked. Do not change the allowlist before verifying Render egress.
+- [ ] Production additive migrations: quran_ayah_reviews and problem_reports are absent; current readiness schema requires both. No production migration was run.
+- [ ] Render runtime, environment, deploys, events/logs, API health/readiness, live CORS, and Render-to-Neon connectivity: unavailable because no workspace is confirmed.
+- [ ] Official immutable Quran artifact, independently matching SHA-256, source-specific rights/attribution, and qualified independent human approval: incomplete. The Library candidate digest differs from production metadata.
+- [ ] Hadith source artifacts, edition/translation/grading rights, and production content: absent/unverified.
+- [ ] Authentication/session and staff authorization: not implemented. The public problem-report endpoint has no authenticated staff inbox.
+- [ ] Manual Arabic RTL, keyboard, screen-reader, responsive, contrast/zoom, offline/install, Android, and iOS QA: not executed.
+
+No production data, schema, permissions, environment variables, Render configuration, or deployments were changed.

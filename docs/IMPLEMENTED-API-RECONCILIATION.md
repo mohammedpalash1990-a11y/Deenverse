@@ -178,3 +178,15 @@ The active registration in `backend/src/app.ts` and the OpenAPI snapshot contain
 Quran catalogue, Ayah, and Hadith adapters resolve the API origin through `src/lib/api-config.ts`. The default is same-origin `/api/v1`; `NEXT_PUBLIC_API_BASE_URL` must not contain secrets. The translation route module is not registered, both public QuranEnc paths are absent, and the translation client remains dormant. No active audio/reciter, auth/session, bookmark/progress, dua, tafsir, admin-publishing, or problem-report route is registered.
 
 Hadith record review rows are source-bound in main after merged PR #80. The integration candidate additionally ports the exact-query cursor change from PR #86, Quran reviewer-identity normalization from PR #85, and awaited service-worker cache persistence from PR #87. Those candidate changes require a combined exact-head CI run before acceptance.
+
+
+## Current mainline API and release snapshot — 2026-11-13
+
+**Main SHA:** \`9042d546d82a6a175f4d07235b780af50e19e5cf\`. The registered backend boundary now contains ten GET operations plus one POST support-report operation. The 10 GET routes are health, readiness, Quran Surah list/detail, one Ayah read, and five Hadith operations. QuranEnc translation routes remain unregistered; there are no audio, reciter, authentication/session, bookmark/progress, dua, tafsir, or admin-publishing routes.
+
+- \`POST /api/v1/problem-reports\` accepts validated app/support reports. It is globally rate-limited, stores reports in a separate table, and does not mutate Quran, Hadith, translation, grading, review, or publication tables. Optional browser/device diagnostics are sent only after explicit user consent. The SettingsPanel uses the shared \`resolveApiBaseUrl()\` resolver; no hard-coded Render host is used.
+- The support-report endpoint is not an authentication system or staff workflow. There is no authenticated inbox/list/assignment/notification route.
+- PR #115 adds mobile navigation focus containment and page isolation; PR #117 requires explicit production CORS origins and validates exact HTTP(S) origins. Both are merged. Current main push CI run [#43412747653](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/43412747653) passed backend and web typecheck, tests, builds, and dependency audits.
+- Main remains unprotected. Only PRs #79 and #11 are open; both target the stale integration branch and are not mergeable as-is.
+
+The API route and code-level checks do not establish production readiness. Neon lacks the required quran_ayah_reviews and problem_reports tables; all Quran/Hadith content tables are empty. No official immutable Quran artifact with a matching independently recomputed digest, qualified independent reviewer approval, or Hadith source dossier is verified. Render runtime/CORS/deploy state, authentication, and manual RTL/accessibility/device QA remain unverified or blocked.
