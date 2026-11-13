@@ -496,3 +496,16 @@ This snapshot supersedes earlier mainline/PR and read-only Neon observations abo
 ### Release decision
 
 Keep Quran Arabic, Bengali translation, Hadith, tafsir, dua, and audio publication fail-closed. Do not run production migrations or deploy until the correct Render workspace/service is verified, the two missing additive migrations have a backup-backed reversible plan, CORS/runtime credentials are confirmed, and readiness is observed on the deployed API. Do not change Neon network settings until the actual Render egress path is known. Authentication and manual client QA remain separate release blockers.
+
+
+## QuranEnc Bengali Zakaria Library archive recheck — 2026-11-13 11:10 UTC
+
+This section corrects the earlier 10:58 UTC snapshot: two candidate Abu Bakr Zakaria archives are present in the user's Library. The previous statement that no translation archive was retained is superseded. They are still not official-provenance or publication-approved artifacts.
+
+- Library candidates: dr-abu-bakr-muhammad-zakaria-simple.db.zip (513,989 bytes; SHA-256 ddd05bf3c6780e8231b39f4fc5e63fbee5d0affd46879678bc9f7fdfd63026e0) and dr-abu-bakr-muhammad-zakaria-simple.json.zip (414,183 bytes; SHA-256 a4939eff1291b0527fad109895fb8e556b12d7fa8866989242ce4ed32aac1b82).
+- Extracted member SHA-256 values: SQLite DB bfdc89c228fc2d8edc78ab3cd3db74b5c55f02c346e815c220c3727275190358; JSON e053a63f7e59d65b197041878b009e39ca4f53e1f72351c8e465fd1f4815bb59.
+- The SQLite archive has one translation table and 6,236 rows. The JSON archive has 6,236 coordinate keys. Both cover all 114 Surahs, match the canonical per-Surah Ayah counts, have no duplicate coordinates or empty strings, and match each other exactly across all 6,236 translation strings.
+- Neither archive embeds the source URL, publisher/translator metadata, translation version, last-update date, transcript metadata, or footnotes. The internal ZIP timestamp (2025-05-27 07:12) and Library creation timestamp (2026-11-05 01:00:40 UTC) are not proof of official retrieval.
+- QuranEnc's official listing identifies key bengali_zakaria, V1.1.1, last updated 2021-05-22. Its current API and republishing terms require unchanged content, source/publisher attribution, version, retained transcript information, notifying QuranEnc of notes, updating to the latest version, and no inappropriate advertisements. The API response shape includes footnotes; a spot-check of the official page shows footnote markers absent from the simple archive. The exact simple variant/version is unverified.
+- Full hashes, structure, source links, and limitations are recorded in docs/QURANENC-SOURCE-DOSSIER.md. The files are not in main or Neon and were not imported. Keep the translation fail-closed.
+
