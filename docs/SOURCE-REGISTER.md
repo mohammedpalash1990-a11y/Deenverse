@@ -1,6 +1,6 @@
 # DEENVERSE Verified Content Source Register
 
-**Snapshot:** 2026-11-11 10:08 UTC — current main `73d2208b067fe2d11bf2a24c0741aa661e67c48f`  
+**Snapshot:** 2026-11-13 09:46 UTC — current main `89b0d7880e1544f16e162f57bbd286a514cd78f7`  
 A provider being listed or reachable through an API does not approve its content for import, redistribution, caching, offline use, or publication. Each content type and edition requires its own evidence.
 
 | Content type | Candidate/provider | Edition/version | Current implementation | Rights/authenticity status | Import/publication status |
@@ -336,3 +336,48 @@ This snapshot records evidence gathered directly from GitHub, Neon, and the user
 Keep public Quran/Hadith content fail-closed. Do not activate the Library Quran copy, translations, Hadith, tafsir, dua, or audio until immutable source acquisition, independent SHA-256 recomputation, source-specific lawful redistribution evidence, required attribution, and qualified independent human approval are documented. The new per-Ayah code gate in PR #105 checks distinct reviewer identities and review metadata, but it does not establish scholarly qualifications or authenticate reviewer identity.
 
 Highest-priority next work: finish exact-head CI and safely merge PR #105 if all checks pass; then plan a separately reviewed, backed-up production migration and deployment only after Render access, rollback, CORS, and runtime configuration are confirmed. Secure GitHub/Neon branch and network controls after verified Render egress; implement authenticated staff/report access; then complete manual client QA. No production migration, permission change, Render configuration change, or deployment was performed in this recheck.
+
+
+## Verified release-gate recheck — 2026-11-13
+
+This snapshot supersedes the 2026-11-12 release-gate snapshot for the current mainline, Neon schema, source-artifact recheck, and PR reconciliation. It records read-only checks only; no production rows, migrations, credentials, permissions, infrastructure settings, or deployments were changed.
+
+### GitHub mainline and CI
+
+- Current `main`: `89b0d7880e1544f16e162f57bbd286a514cd78f7` — [commit](https://github.com/mohammedpalash1990-a11y/Deenverse/commit/89b0d7880e1544f16e162f57bbd286a514cd78f7). This is PR #105, which adds the source-bound per-Ayah review table, independent reviewer-identity checks, and migration/readiness regression coverage.
+- Exact-head main push CI run #43202041023 passed both backend typecheck/tests/build and web typecheck/tests/production build: [run](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/43202041023). PR #105 exact-head checks also passed: [backend/combined CI #43196524459](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/43196524459) and [web checks #43196524417](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/43196524417).
+- PR #91 remains merged at `888157747892681ed50360c1140d482967354ceb`; its exact head `874a53406fff0c2e580643e11f34e0aadb5f575d` passed DEENVERSE CI, Web foundation, and OpenAPI validation (runs #42790399241, #42790399235, #42790399346). The reviewer-normalization, Hadith cursor-scope, and PWA cache-persistence changes from PRs #85–#87 are present through #91; those old PRs and integration PR #89 are closed unmerged.
+- PR #105 is merged at the current main SHA. PR #106 is merged at `e55c310aaf2443d5cb54a213cc948f8c813a58f9` and records the 2026-11-12 audit.
+- PR #43 was closed unmerged on 2026-11-13 as superseded by PR #105. Its old branch was based on `ef559abe96417acd376df60b0f6ef7973bfd28c6`, was non-mergeable, and its backend CI was cancelled; no code from that stale branch was merged separately. [PR #43](https://github.com/mohammedpalash1990-a11y/Deenverse/pull/43).
+- Remaining open PRs: [#79](https://github.com/mohammedpalash1990-a11y/Deenverse/pull/79) targets the old `integration/platform-foundation` base `a7ad2eb4dae5d2fdcfb682e1747d4b17d56dab29`; its exact head has passing historical runs #42368981912 and #42368981954, but the PR is a 48-file/136-commit divergent branch and is not safe to merge as-is. [#11](https://github.com/mohammedpalash1990-a11y/Deenverse/pull/11) targets the same old integration base and has no exact-head CI. Neither is merge-ready.
+- GitHub branch metadata reports `main` as `protected=false`; the branch-protection detail endpoint returned 403 to this integration. No required-check enforcement is evidenced. The GitHub releases list is empty; the deployment inventory endpoint is not supported by the available GitHub fetch wrapper.
+
+### Neon production schema and network posture
+
+- Project `deenverse-db` (`cool-mud-31679014`) and default branch `main` (`br-spring-night-a14ey96s`) are Ready. The branch is unprotected; project IP allowlist is empty; `protected_branches_only=false`; `block_public_connections=false`.
+- The public schema currently contains ten tables: `content_sources`, `content_source_approvals`, four Quran/Hadith catalogue tables plus review/translation/grade tables. `quran_ayah_reviews` and `problem_reports` are absent from the production table inventory, although current main's `hasRequiredSchema` requires both.
+- Read-only counts: `content_sources=1`, `content_source_approvals=1`; `quran_surahs=0`, `quran_ayahs=0`; `hadith_books=0`, `hadith_chapters=0`, `hadith_records=0`, `hadith_translations=0`, `hadith_grade_assessments=0`, and `hadith_record_reviews=0`. No Quran or Hadith corpus is present in production.
+- The only source row is `tanzil-uthmani-v1`, inactive, with metadata `CC-BY-3.0` and `redistribution_allowed=true`. Its approval row says `approved`, but source and approval reviewer IDs are the same reserved project-owner chat identity. The stored source/approval checksum strings match each other (`ac0724796cbbda0f4801470fbbd11d0f3c5802067bae0493466d0128b0c667af`) but do not match the independently re-hashed Library candidate below. This is not independent human approval or verified upstream provenance.
+- Because both additive tables are absent, the current main readiness schema check would return unavailable until the `problem_reports` and `quran_ayah_reviews` migrations are applied. This is a schema inference from current code plus read-only table inventory, not a live Render readiness response. No production migration was run.
+
+### Quran/Hadith artifacts, licensing, and human approval
+
+- The Library `quran-uthmani.txt` was independently re-materialized and re-hashed in this run: 1,396,087 bytes; SHA-256 `6933e133dd56db778c801bf738848454e43648105a151e8d84d86a7cae39ec5f`. Structural checks found 6,236 numbered Ayahs, all 114 Surahs, no duplicate coordinates, sequential Ayah numbering, per-Surah counts matching the repository's `EXPECTED_AYAH_COUNTS`, and the Tanzil copyright/license block. This verifies only the Library copy's bytes and structure, not official Tanzil acquisition or scholarly correctness.
+- `data/quran/tanzil/quran-uthmani.txt` remains absent from current main; only `SOURCE_INFO.md` is present, and it explicitly labels the source candidate/not approved. The Library hash differs from the production source/approval checksum. No official download receipt/options, retrieval timestamp, preserved official metadata artifact, or qualified independent source approval was found. Do not restore/import/activate this copy on the current evidence.
+- Tanzil's dossier records published CC BY 3.0 terms for verbatim distribution with attribution, source link, and preserved copyright notice; changing the text is prohibited. The published terms do not authenticate the Library copy. QuranEnc Bengali Zakaria V1.1.1 remains a candidate; the exact translation/transcript artifact is not retained and web/mobile hosting, caching, offline, and export rights are not established.
+- Hadith source evaluation remains research-only (HadeethEnc, Sunnah.com API, and Dorar candidates). No approved Hadith collection, translation, grading artifact, or production corpus is recorded; no matching Hadith dataset was returned by the Library search used for this recheck. No tafsir, dua, or audio source dossier is approved.
+- PR #105 enforces source-bound per-Ayah review rows and distinct reviewer identities before the Ayah service can return text. It does not authenticate reviewer identity or establish scholarly qualifications. The review protocol still states no Ayah has been human-approved; qualified independent human sign-off remains outstanding.
+
+### Render, authentication, CORS, PWA, and manual QA
+
+- Render workspace listing returned `My Workspace`, but no workspace is selected. The connector requires a user-confirmed workspace ID before service access; therefore no Render service, deployment, event, log, environment value, API health/readiness, live CORS, or Render-to-Neon connectivity was accessed in this run.
+- Backend code has an explicit CORS origin allowlist, but deployed `CORS_ALLOWED_ORIGINS`/`CORS_ORIGIN` values and live browser behavior remain unverified. Current production API/web deploy SHAs and availability are unavailable in this run.
+- No authentication/session/login/OTP route or middleware is evidenced in the current backend tree. `backend/.env.example` has only a blank JWT placeholder. The public problem-report POST stores reports, but there is no authenticated staff inbox/list/assignment/notification workflow.
+- PWA code caches the root app shell and same-origin immutable build assets plus manifest/icon; `/api/` responses, religious content, and user data are excluded. Automated service-worker tests are included in CI. Manual installation/offline-recovery, Arabic RTL, keyboard, screen-reader, contrast/zoom, responsive, and physical Android/iOS QA remain unverified.
+
+### Release decision and next priority
+
+- Keep Quran, translation, Hadith, tafsir, dua, and audio publication fail-closed. No corpus was imported or activated.
+- Highest-priority operational work is to obtain the correct Render workspace selection, inspect the deployed commits and service health, then prepare a separately reviewed/backup-backed migration and deployment plan for the two missing additive tables. Do not apply migrations or deploy until the exact service configuration, backup/rollback, CORS, and runtime credentials are verified.
+- Secure GitHub/Neon branch and network controls only after the deployed Render egress path is known. Authentication/authorization and manual RTL/accessibility/device QA remain release blockers.
+- No production data, schema, network permissions, environment variables, Render configuration, or deployment was changed in this recheck.
