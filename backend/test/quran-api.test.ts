@@ -244,7 +244,7 @@ test('Quran Catalogue API Integration', async (t) => {
     // Fetch page 2 using cursor
     const resPage2 = await app.inject({
       method: 'GET',
-      url: `/api/v1/quran/surahs?limit=1&cursor=${body.meta.nextCursor}`
+      url: `/api/v1/quran/surahs?limit=113&cursor=${body.meta.nextCursor}`
     });
 
     assert.equal(resPage2.statusCode, 200);
