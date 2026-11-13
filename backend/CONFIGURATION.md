@@ -13,6 +13,7 @@ Numeric settings must be positive safe integers. Invalid values stop startup rat
 ## Browser origins
 
 - `CORS_ALLOWED_ORIGINS` or `CORS_ORIGIN`: comma-separated exact origin allowlist.
+- Production must set at least one exact deployed frontend origin; startup fails if both settings are missing or empty. The `http://localhost:3000` fallback is development-only.
 - Requests without an `Origin` header are allowed for non-browser clients.
 - Browser origins not present in the allowlist are rejected.
 
