@@ -1,6 +1,6 @@
 # DEENVERSE Verified Content Source Register
 
-**Snapshot:** 2026-11-13 13:08 UTC — current main `69c497435c1bfe773e8ccaa2273507833fd1b605`  
+**Snapshot:** 2026-11-13 10:30 UTC — current main `c93db8cc13a6016a3f67eccdcfc952a81824ba20`  
 A provider being listed or reachable through an API does not approve its content for import, redistribution, caching, offline use, or publication. Each content type and edition requires its own evidence.
 
 | Content type | Candidate/provider | Edition/version | Current implementation | Rights/authenticity status | Import/publication status |
@@ -422,3 +422,33 @@ Keep Quran Arabic, Bengali translation, Hadith, tafsir, dua, and audio unavailab
 The backend entry point does not run migrations during normal API startup. Production schema changes use the separate `npm run db:migrate` / `tsx src/db/migrate.ts` path, which requires a PostgreSQL `MIGRATION_DATABASE_URL`; the HTTP runtime uses `DATABASE_URL`. The current `backend/.env.example` documents the runtime URL but not the separate migration URL. Do not point the migration command at an unverified legacy or production database.
 
 Next priority is to inspect the correct Render workspace and live API/web services, then prepare a backup-backed, reversible plan for the missing additive migrations and a controlled deployment. Do not migrate or deploy until the service configuration, CORS, runtime credentials, backup, and rollback path are verified. Branch/network hardening must wait until the deployed Render egress path is known. Authentication and manual client QA remain separate release blockers.
+
+
+## Post-merge verification — 2026-11-13 10:30 UTC
+
+This section supersedes earlier GitHub mainline/PR status in this register. The read-only Neon evidence was rechecked after the merges and remains unchanged. No production data, schema, credentials, permissions, Render settings, or deployments were changed.
+
+### Merged repository work and exact verification
+
+- Current `main`: `c93db8cc13a6016a3f67eccdcfc952a81824ba20` — [commit](https://github.com/mohammedpalash1990-a11y/Deenverse/commit/c93db8cc13a6016a3f67eccdcfc952a81824ba20).
+- PR #108 refreshed the evidence register. Exact-head web verification passed: [run #43407805763](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/43407805763).
+- PR #109 documented the separate write-capable `MIGRATION_DATABASE_URL` for the controlled `npm run db:migrate` step. Exact-head checks passed: [DEENVERSE CI #43407962280](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/43407962280) and [web foundation #43407962442](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/43407962442). Post-merge main push CI passed: [run #43408130136](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/43408130136).
+- PR #111 added explicit `lang="bn"` to Bengali reader heading/status copy with regression tests. Exact-head checks passed: [DEENVERSE CI #43408192304](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/43408192304) and [web foundation #43408192412](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/43408192412). Post-merge main push CI passed: [run #43408331619](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/43408331619).
+- PR #112 made the Quran Surah catalogue fail closed unless all 114 Surahs are present in order and each has the canonical Ayah count from the existing count registry. Both list and single-Surah reads use this gate. Tests use synthetic metadata only and add no Quran text. Exact-head checks passed: [DEENVERSE CI #43408864832](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/43408864832) and [web foundation #43408864845](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/43408864845). Post-merge main push CI passed: [run #43409005793](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/43409005793).
+- PR #113 moved keyboard focus into the first mobile navigation item and made the closed off-canvas sidebar `visibility:hidden`, removing hidden controls from keyboard/assistive navigation while retaining the open/close transition. Exact-head checks passed: [DEENVERSE CI #43409371713](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/43409371713) and [web foundation #43409371752](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/43409371752). Post-merge main push CI passed on current main: [run #43409590711](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/43409590711).
+- PR #110 was closed unmerged as a stale-base duplicate of PR #111. No changes from #110 were merged.
+- The only open PRs remain #79 and #11. Both still target the old `integration/platform-foundation` base `a7ad2eb4dae5d2fdcfb682e1747d4b17d56dab29`; both remain dirty/non-mergeable and were not merged.
+- The main branch remains unprotected and the repository rulesets list remains empty. Code changes now receive a post-merge main push CI run, but GitHub does not enforce required checks through branch protection. The releases list remains empty; deployment inventory is still unavailable through the current GitHub fetch integration.
+
+### Reconfirmed production gates
+
+- Neon `deenverse-db` (`cool-mud-31679014`) remains Ready in `aws-ap-southeast-1`; default branch `main` (`br-spring-night-a14ey96s`) remains unprotected. The IP allowlist remains empty, `protected_branches_only=false`, and `block_public_connections=false`.
+- Fresh table inventory still contains only ten public base tables. `quran_ayah_reviews` and `problem_reports` are still absent. The content row counts remain: one source row and one approval row; zero Quran Surahs/Ayahs; zero Hadith books, chapters, records, translations, grade assessments, and record reviews.
+- The only Quran source remains inactive. Source reviewer and approval reviewer remain the same reserved `project-owner-chat-authorization` identity; the stored digest still does not match the independently re-hashed Library candidate. No independent human approval or official artifact acquisition was established.
+- The merged 114-Surah API gate improves code safety but does not add production content or waive any source, digest, licensing, or reviewer gate.
+- The backend still requires a separate controlled `npm run db:migrate` using `MIGRATION_DATABASE_URL`; API startup does not run migrations. Do not run it until the correct Render service, backup, migration target, and rollback plan are verified.
+- Render workspace/service access remains unconfirmed, so current deploy SHAs, service environment, logs, health/readiness, live CORS, and Render-to-Neon connectivity remain unverified. The backend source tree still has no authentication/session/OTP middleware or login route. Manual RTL, screen-reader, keyboard, offline-install/recovery, and Android/iOS device QA remain outstanding.
+
+### Release decision
+
+Keep Quran Arabic, Bengali translation, Hadith, tafsir, dua, and audio unavailable. Production still has no corpus rows, the independent review and exact official artifact/provenance gates are unresolved, and the database schema is missing the two current-main readiness tables. Next priority remains Render runtime verification followed by a backup-backed additive migration plan; no production migration or deployment was performed.
