@@ -1,5 +1,7 @@
 # DEENVERSE — Implemented API and integration reconciliation
 
+> **Historical snapshot only — 2026-11-04.** This document is retained as an audit record and is not the current API inventory. Its PR dispositions, route list, cursor behavior, Quran source-selection description, and per-Ayah review status were superseded by later mainline work. Use `docs/API-CONTRACT.md` and `docs/SOURCE-REGISTER.md` for current behavior. As of main `69c497435c1bfe773e8ccaa2273507833fd1b605`: PR #91 supplies the current Hadith cursor scope; PR #93 registers public `POST /api/v1/problem-reports`; PR #105 enforces the source-bound per-Ayah review gate and rejects zero or multiple eligible Quran sources; QuranEnc translation routes remain unregistered. Do not use the historical route/PR inventory below to authorize a deployment or content release.
+
 **Evidence snapshot:** 2026-11-04  
 **Main inspected:** `a7ff4130f6d74e9319b6d894c118d270b44171cd`  
 **Integration owner branch:** `integration/platform-foundation`  
