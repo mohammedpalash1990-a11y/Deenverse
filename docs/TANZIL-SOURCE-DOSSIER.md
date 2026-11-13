@@ -116,7 +116,7 @@ The source remains **CANDIDATE — NOT APPROVED/IMPORTED** until artifact acquis
 
 # Bengali Translation — Abu Bakr Muhammad Zakaria
 
-**Status: CANDIDATE — OFFICIAL PUBLISHER TERMS IDENTIFIED; NOT YET ACQUIRED, IMPORTED, OR APPROVED**
+**Status: CANDIDATE — LIBRARY ARCHIVES FOUND; OFFICIAL PROVENANCE/VARIANT NOT VERIFIED; NOT IMPORTED OR APPROVED**
 
 ## Source identity
 
@@ -124,7 +124,7 @@ The source remains **CANDIDATE — NOT APPROVED/IMPORTED** until artifact acquis
 - Official digital publisher and source: QuranEnc.com — Encyclopedia of the Noble Quran.
 - Official Bengali edition page: https://quranenc.com/bn/browse/bengali_zakaria
 - Official English edition page: https://quranenc.com/en/browse/bengali_zakaria/
-- Translation key: `bengali_zakaria` (from the official page route; verify against the official API response before use).
+- Translation key: `bengali_zakaria` (the dedicated Surah API endpoint accepts this key; the current translation-list API omitted it, so version metadata must be independently pinned).
 - Publisher-listed edition: V1.1.1, dated 22 May 2021.
 - Publisher's terms: https://quranenc.com/en/home
 - Official publisher API documentation is displayed on the translation page.
@@ -160,7 +160,7 @@ Do not guess the API schema beyond the official documentation. Before implementa
 - Treat Arabic Quran text and Bengali translation as separate content sources with independent provenance, versions, approvals, and checksums.
 - Store the translation key, publisher, translator, edition/version, source URL, retrieval timestamp, source response/artifact digest, and transcript metadata.
 - Preserve every verse coordinate and confirm complete coverage/order against the source's own Surah/Ayah boundaries; do not assume a total count without verifying the official payload.
-- The API adapter is pinned to publisher edition `V1.1.1`; if QuranEnc reports any other version, it must fail closed until the new edition is acquired, compared, and explicitly reviewed. A live version-list response is not permission to silently switch editions.
+- The official browse listing identifies `V1.1.1` (2021-05-22), but the current translation-list API does not return `bengali_zakaria`. Before implementation, capture the exact official Surah API responses and pin the edition/version from the official listing; fail closed if that version cannot be verified. Do not infer a version from the Library filename.
 - Compare every imported translation and footnote byte-for-byte (after a documented transport decoding only) with the official source response. Any mismatch blocks publication.
 - Retain the original source payload unchanged in restricted source storage and produce a reproducible import/validation report.
 - Show attribution in the reader and provide a direct link to QuranEnc.com and the edition page.
@@ -170,10 +170,26 @@ Do not guess the API schema beyond the official documentation. Before implementa
 
 ## Release decision
 
-The Abu Bakr Muhammad Zakaria translation is an **identified official source candidate**, not yet a production-approved dataset. The current dossier does not claim that its full text has been downloaded, hashed, checked, imported, or independently reviewed.
+The Abu Bakr Muhammad Zakaria translation is an **identified official source candidate**, not yet a production-approved dataset. The Library contains candidate DB/JSON archives that have now been independently hashed and structurally checked. They are not proven official source artifacts, and no production import or independent human review has occurred. See the 2026-11-13 candidate-archive audit below and docs/QURANENC-SOURCE-DOSSIER.md.
 
 ## References
 
 - QuranEnc Bengali edition and API specification: https://quranenc.com/bn/browse/bengali_zakaria
 - QuranEnc English edition and republication conditions: https://quranenc.com/en/browse/bengali_zakaria/
 - QuranEnc Bengali translations index and edition version/date: https://quranenc.com/bn/home
+
+
+## QuranEnc Library candidate archive correction — 2026-11-13
+
+The earlier wording "not yet acquired" means that no verified official download has been acquired. It does not mean that no candidate file exists. Two candidate archives are present in the user's Library:
+
+- dr-abu-bakr-muhammad-zakaria-simple.db.zip — 513,989 bytes; SHA-256 ddd05bf3c6780e8231b39f4fc5e63fbee5d0affd46879678bc9f7fdfd63026e0. Extracted DB: 2,449,408 bytes; SHA-256 bfdc89c228fc2d8edc78ab3cd3db74b5c55f02c346e815c220c3727275190358.
+- dr-abu-bakr-muhammad-zakaria-simple.json.zip — 414,183 bytes; SHA-256 a4939eff1291b0527fad109895fb8e556b12d7fa8866989242ce4ed32aac1b82. Extracted JSON: 2,254,464 bytes; SHA-256 e053a63f7e59d65b197041878b009e39ca4f53e1f72351c8e465fd1f4815bb59.
+
+The SQLite and JSON archives each contain 6,236 unique Ayah coordinates covering all 114 Surahs and matching the canonical per-Surah Ayah counts. All coordinates and translation strings match exactly between the two formats. The SQLite file has one translation table; JSON values contain only a text field. Neither archive includes source URL, publisher/version metadata, last-update date, transcript metadata, or footnotes.
+
+The current official QuranEnc index lists Abu Bakr Zakaria as V1.1.1, last updated 2021-05-22, but shows only a Browse Translation link for this entry, not a direct XML/CSV/SQLite download. The documented translation-list API returned 76 entries without the bengali_zakaria key, while the dedicated Surah endpoint still returned the translation and footnotes. Fourteen sampled coordinates across Surahs 1, 2, 18, 36, 55, and 114 matched the candidate text after bracketed footnote-marker removal; the candidate archives contain neither those markers nor the separate footnotes. This could be an authorized "simple" export, but no official release manifest proves that variant or its version.
+
+QuranEnc's terms require unchanged content, publisher/source attribution, version identification, transcript information retained in the document, notification of notes, current-version updates, and no inappropriate advertisements. The archive's omission of markers/footnotes and lack of embedded metadata must be reconciled against an official release before use. The internal ZIP timestamp and Library creation timestamp are not official retrieval evidence.
+
+Do not import, activate, or publish either candidate archive. The complete hash/structure/API comparison and release decision are in docs/QURANENC-SOURCE-DOSSIER.md. No production data or religious content was changed during this audit.
