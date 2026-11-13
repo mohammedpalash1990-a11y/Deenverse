@@ -269,3 +269,12 @@ No production data, schema, permissions, environment variables, Render configura
 - [ ] Publisher/source attribution, version, transcript metadata, and footnote completeness must be reconciled with QuranEnc's current terms before republishing.
 - [ ] Qualified independent human review remains outstanding. Do not import or activate the candidate.
 
+
+### Hadith provenance and licensing update — 2026-11-13
+
+- [x] Confirmed no Hadith source artifact in the Library by filename or semantic search.
+- [x] Confirmed all six production Hadith content/review tables contain zero rows.
+- [x] Documented four candidate source paths and source-specific licensing gaps in docs/HADITH-SOURCE-OPTIONS.md.
+- [ ] No candidate has yet passed primary-source provenance, exact edition/version, redistribution-rights, immutable SHA-256, and qualified independent human-review gates.
+- [ ] Do not import Sunnah.com-derived English translations or community Bangla data until the actual translator/publisher grants and per-item provenance are verified.
+
