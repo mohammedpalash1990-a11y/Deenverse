@@ -265,7 +265,7 @@ No production data, schema, permissions, environment variables, Render configura
 
 - [x] Two Library candidate archives located; ZIP and extracted-member SHA-256 values recorded in docs/QURANENC-SOURCE-DOSSIER.md.
 - [x] SQLite and JSON formats internally match all 6,236 Ayah coordinates and translation strings; all 114 Surahs and canonical per-Surah counts are present.
-- [ ] Official acquisition URL/options, source receipt, exact simple variant/version, and matching upstream digest remain unverified. The current listing has no direct XML/CSV/SQLite download link for Abu Bakr Zakaria; the API response includes footnotes absent from the candidate archive.
+- [ ] Official acquisition URL/options, source receipt, exact simple variant/version, and matching upstream digest remain unverified. The current listing has no direct XML/CSV/SQLite download link; the translation-list API omits bengali_zakaria although its dedicated Surah endpoint still serves footnotes. Five sampled verses match only after footnote-marker removal; the candidate omits the markers and footnotes.
 - [ ] Publisher/source attribution, version, transcript metadata, and footnote completeness must be reconciled with QuranEnc's current terms before republishing.
 - [ ] Qualified independent human review remains outstanding. Do not import or activate the candidate.
 
