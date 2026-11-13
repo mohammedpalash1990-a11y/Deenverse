@@ -5,6 +5,7 @@ import {
   SurahPayload
 } from '../types/content.js';
 import { ContentProvenanceSchema } from './validation.js';
+import { EXPECTED_AYAH_COUNTS } from './quran-surah-counts.js';
 import { findSingleApprovedQuranSource } from './approved-quran-source.js';
 
 export interface SurahListQuery {
@@ -14,6 +15,22 @@ export interface SurahListQuery {
 
 export class QuranCatalogueService {
   constructor(private db: Knex) {}
+
+  /**
+   * The public catalogue is all-or-nothing: a source is not readable unless
+   * every canonical Surah is present exactly once and has its canonical Ayah count.
+   */
+  private async hasCompleteSurahCatalogue(sourceId: string): Promise<boolean> {
+    const rows = await this.db('quran_surahs')
+      .where({ source_id: sourceId })
+      .select('surah_number', 'verses_count')
+      .orderBy('surah_number', 'asc');
+
+    return rows.length === EXPECTED_AYAH_COUNTS.length && rows.every((row, index) =>
+      Number(row.surah_number) === index + 1 &&
+      Number(row.verses_count) === EXPECTED_AYAH_COUNTS[index]
+    );
+  }
 
   /**
    * Retrieves paginated Quran Surah catalogue metadata only after an explicit
@@ -48,6 +65,10 @@ export class QuranCatalogueService {
 
     const provenanceValidation = ContentProvenanceSchema.safeParse(provenance);
     if (!provenanceValidation.success) return { items: [], total: 0, hasApprovedSource: false };
+
+    if (!(await this.hasCompleteSurahCatalogue(source.id))) {
+      return { items: [], total: 0, hasApprovedSource: false };
+    }
 
     const countResult = await this.db('quran_surahs')
       .where({ source_id: source.id })
@@ -108,6 +129,10 @@ export class QuranCatalogueService {
 
     const provenanceValidation = ContentProvenanceSchema.safeParse(provenance);
     if (!provenanceValidation.success) return { item: null, hasApprovedSource: false };
+
+    if (!(await this.hasCompleteSurahCatalogue(source.id))) {
+      return { item: null, hasApprovedSource: false };
+    }
 
     const row = await this.db('quran_surahs')
       .where({ source_id: source.id, surah_number: surahNumber })
