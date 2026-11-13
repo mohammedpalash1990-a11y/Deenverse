@@ -56,6 +56,7 @@ test('Quran Catalogue API Integration', async (t) => {
   await initialSchema.up(db);
   await sourceApprovalGate.up(db);
   const app = buildApp({ db, enableRateLimit: false });
+  const surahFixtures = buildSyntheticSurahFixtures('src-test-fixture');
 
   t.after(async () => {
     await app.close();
@@ -205,7 +206,6 @@ test('Quran Catalogue API Integration', async (t) => {
       .update({ source_url: 'https://example.org/synthetic-test-fixture' });
 
     // Synthetic catalogue metadata only; no Quran text is used in this fixture.
-    const surahFixtures = buildSyntheticSurahFixtures('src-test-fixture');
     await db('quran_surahs').insert(surahFixtures);
 
     const res = await app.inject({
