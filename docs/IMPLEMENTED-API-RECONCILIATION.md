@@ -190,3 +190,8 @@ Hadith record review rows are source-bound in main after merged PR #80. The inte
 - Main remains unprotected. Only PRs #79 and #11 are open; both target the stale integration branch and are not mergeable as-is.
 
 The API route and code-level checks do not establish production readiness. Neon lacks the required quran_ayah_reviews and problem_reports tables; all Quran/Hadith content tables are empty. No official immutable Quran artifact with a matching independently recomputed digest, qualified independent reviewer approval, or Hadith source dossier is verified. Render runtime/CORS/deploy state, authentication, and manual RTL/accessibility/device QA remain unverified or blocked.
+
+
+### QuranEnc Bengali candidate archive correction — 2026-11-13
+
+Two Library archives for the Abu Bakr Zakaria Bengali translation exist, but neither is in main or production. They are structurally complete and internally identical across SQLite/JSON (6,236 rows, all 114 Surahs, canonical Ayah counts). They do not contain source/version/transcript metadata or footnotes, and their exact official simple variant/version is unverified. The translation API remains unregistered and no translation rows exist in production. See docs/QURANENC-SOURCE-DOSSIER.md; keep the content disabled until source, terms, and independent review are verified.
