@@ -4,7 +4,7 @@
 
 DEENVERSE is a premium, multilingual Islamic knowledge and worship platform for Web, Android, and iOS.
 
-## Product scope
+## Planned product scope
 
 - Verified Quran text, translations, and tafsir with source attribution
 - Quran reading, search, bookmarks, reading progress, and audio recitation
@@ -31,22 +31,25 @@ DEENVERSE is a premium, multilingual Islamic knowledge and worship platform for 
 - Accessibility, RTL correctness, localization, and offline behavior
 - Feature branches and pull requests; do not commit directly to `main` for feature work
 
-## Current status
+## Current verified status — 2026-11-13
 
-Repository bootstrap. Product implementation, architecture decisions, source selection, and test coverage must be documented as they are completed. Do not claim a feature is complete without code and verification evidence.
+The repository now contains a Next.js web/PWA shell, a Fastify backend, PostgreSQL-compatible schema/migrations, documented API routes, and automated integration tests. The code baseline on main (commit 9042d5f) passed the main CI run: 121 backend tests, 186 frontend tests, typechecks, production builds, and dependency audit. Later commits in main are documentation-only.
 
-## Working branches
+This is **not a production-ready or content-complete release**. No current Render service deployment, public API health/readiness, CORS configuration, or Render-to-Neon connection was verified. The production Neon database has no Quran or Hadith corpus rows. Quran display remains a fail-closed approval-pending placeholder; no Quran Arabic, translation, tafsir, or recitation is rendered. The Hadith reader is connected to API clients, but the production Hadith tables are empty. The problem-report API exists, but its production table is not yet present. Authentication/authorization and an authenticated staff report inbox are not implemented. The PWA caches the app shell and immutable static assets only; it does not provide offline religious content. Manual RTL, screen-reader, and physical-device QA remains outstanding.
 
-- `jules/backend-foundation` — backend, data model, API contracts, security, tests
-- `queen/frontend-foundation` — product UI, design system, reader experience, accessibility
-- `integration/platform-foundation` — integration and cross-cutting documentation
+Do not describe a source, content corpus, API, or deployment as live until its exact evidence and release gates are verified.
 
-All contributions should be submitted as pull requests against `main`.
+## Branch status
+
+- `main` is the canonical branch.
+- `jules/backend-foundation`, `queen/frontend-foundation`, and `integration/platform-foundation` are historical delivery branches; no active agent work is claimed from them.
+- Open legacy PRs #11 and #79 target the integration branch and are not approved for merge into main.
+- At the latest repository audit, main branch protection was disabled. Continue to use pull requests and manually verify exact-head checks before merging.
 
 
-## Phase 1 web foundation
+## Current web and API foundation
 
-A responsive Next.js UI foundation is being developed on `assistant/phase1-web-foundation`. It includes the primary navigation shell, Quran entry state, responsive layouts, PWA manifest metadata, and initial navigation tests.
+The responsive Next.js application shell, navigation, Quran approval-pending state, Hadith API reader, report form, PWA manifest, and service-worker shell caching are in the main branch. The Fastify API includes Quran catalogue/Ayah, Hadith, health/readiness, and problem-report routes. Production service configuration and live frontend-to-API connectivity remain unverified.
 
 ### Local web setup
 
@@ -64,7 +67,7 @@ npm test
 npm run build
 ```
 
-The web shell intentionally contains no Quranic Arabic, hadith, dua, translation, tafsir, or reciter data. A provider-neutral `ContentSource` boundary and runtime provenance validator now define how an approved API may be integrated; the default source remains unavailable and fails closed. It is not connected to a backend, does not sync bookmarks, and does not claim audio playback or offline religious-content availability. See `docs/PHASE-1-MVP.md` and `docs/VERIFIED-CONTENT-DELIVERY.md` for the release gates.
+The Quran reader remains fail-closed and does not fetch or render Quran text/audio. The Hadith reader uses the backend API, but no production Hadith corpus is available. A provider-neutral `ContentSource` boundary and runtime provenance validator keep unapproved religious content unavailable. Bookmark synchronization, authenticated user flows, audio playback, and offline religious-content availability are not verified or released. See `docs/PHASE-1-MVP.md`, `docs/VERIFIED-CONTENT-DELIVERY.md`, `docs/TANZIL-SOURCE-DOSSIER.md`, `docs/QURANENC-SOURCE-DOSSIER.md`, and `docs/HADITH-SOURCE-OPTIONS.md` for current source and release gates.
 
 
 ## Quran catalogue integration
