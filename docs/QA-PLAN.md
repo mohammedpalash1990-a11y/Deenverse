@@ -556,3 +556,10 @@ No religious content was imported or generated. The Quran reader is currently a 
 - Automated mobile focus and PWA service-worker tests passed in CI. Manual Arabic RTL, keyboard, screen-reader, responsive, contrast/zoom, installation/offline-recovery, browser, Android, and iOS QA was not executed.
 
 Release remains blocked. Do not publish Quran/Hadith/translation/audio content or deploy until provenance, rights, independent human approval, hosted PostgreSQL migrations/readiness, Render configuration, authentication requirements, and manual QA are evidenced.
+
+
+### QuranEnc Bengali Zakaria candidate archives — 2026-11-13
+
+Two Library archives named dr-abu-bakr-muhammad-zakaria-simple.db.zip and dr-abu-bakr-muhammad-zakaria-simple.json.zip were found and independently hashed. Each contains 6,236 entries; the SQLite and JSON coordinates and translation strings match exactly, cover all 114 Surahs, and match canonical per-Surah counts. This is a structural/internal-parity result only.
+
+The archives contain no source URL, version, last-update, transcript metadata, or footnotes. QuranEnc's official terms require no changes, publisher/source attribution, version identification, retained transcript information, and current-version updates. The exact official simple variant/version is unverified; a spot-check shows footnote markers on the official page that are absent in the archive. Keep it disabled. See docs/QURANENC-SOURCE-DOSSIER.md for ZIP/member hashes and detailed evidence.
