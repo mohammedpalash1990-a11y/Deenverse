@@ -419,4 +419,6 @@ This snapshot supersedes the 09:46 UTC snapshot above for current GitHub mainlin
 
 Keep Quran Arabic, Bengali translation, Hadith, tafsir, dua, and audio unavailable. The exact official source artifacts, independently matching digests, source-specific rights dossier for the actual bytes/use cases, and qualified independent human approval are not established. Do not seed synthetic religious content or manufacture approval records.
 
+The backend entry point does not run migrations during normal API startup. Production schema changes use the separate `npm run db:migrate` / `tsx src/db/migrate.ts` path, which requires a PostgreSQL `MIGRATION_DATABASE_URL`; the HTTP runtime uses `DATABASE_URL`. The current `backend/.env.example` documents the runtime URL but not the separate migration URL. Do not point the migration command at an unverified legacy or production database.
+
 Next priority is to inspect the correct Render workspace and live API/web services, then prepare a backup-backed, reversible plan for the missing additive migrations and a controlled deployment. Do not migrate or deploy until the service configuration, CORS, runtime credentials, backup, and rollback path are verified. Branch/network hardening must wait until the deployed Render egress path is known. Authentication and manual client QA remain separate release blockers.
