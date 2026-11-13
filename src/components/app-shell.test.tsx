@@ -71,6 +71,27 @@ describe("DEENVERSE app shell", () => {
     expect(css).toMatch(/@media\(max-width:680px\)\{\.app-frame\{display:block\}\.sidebar\{[^}]*visibility:hidden[^}]*\}\.sidebar\.sidebar-open\{[^}]*visibility:visible/);
   });
 
+  it("traps keyboard focus in the open mobile navigation and makes the page inert", () => {
+    render(<AppShell />);
+    fireEvent.click(screen.getByRole("button", { name: "Toggle navigation" }));
+
+    const dialog = screen.getByRole("dialog", { name: "Mobile navigation" });
+    const brand = within(dialog).getByRole("link", { name: "DEENVERSE home" });
+    const lastNavigationItem = within(dialog).getByRole("button", { name: "Settings" });
+    const main = document.getElementById("main-content");
+
+    expect(main).toHaveAttribute("inert");
+    expect(main).toHaveAttribute("aria-hidden", "true");
+
+    brand.focus();
+    fireEvent.keyDown(window, { key: "Tab", shiftKey: true });
+    expect(lastNavigationItem).toHaveFocus();
+
+    lastNavigationItem.focus();
+    fireEvent.keyDown(window, { key: "Tab" });
+    expect(brand).toHaveFocus();
+  });
+
   it("closes the mobile navigation with Escape and restores focus", () => {
     render(<AppShell />);
     const toggle = screen.getByRole("button", { name: "Toggle navigation" });
