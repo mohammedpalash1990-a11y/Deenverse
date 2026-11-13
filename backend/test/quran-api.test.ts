@@ -5,6 +5,7 @@ import { createDatabaseConnection } from '../src/db/connection.js';
 import * as initialSchema from '../src/db/migrations/20261102_000001_initial_schema.js';
 import * as sourceApprovalGate from '../src/db/migrations/20261103_000002_source_approval_gate.js';
 import { ContentProvenanceSchema } from '../src/services/validation.js';
+import { EXPECTED_AYAH_COUNTS } from '../src/services/quran-surah-counts.js';
 
 
 test('Content provenance requires a SHA-256 checksum in hexadecimal format', () => {
@@ -31,6 +32,24 @@ test('Content provenance requires a SHA-256 checksum in hexadecimal format', () 
   assert.equal(ContentProvenanceSchema.safeParse({ ...validProvenance, checksum: 'g'.repeat(64) }).success, false);
   assert.equal(ContentProvenanceSchema.safeParse({ ...validProvenance, checksum: 'a'.repeat(63) }).success, false);
 });
+
+function buildSyntheticSurahFixtures(sourceId: string) {
+  return EXPECTED_AYAH_COUNTS.map((versesCount, index) => {
+    const surahNumber = index + 1;
+    const first = surahNumber === 1;
+    const second = surahNumber === 2;
+    return {
+      surah_number: surahNumber,
+      name_arabic: first ? 'الفاتحة' : second ? 'البقرة' : `synthetic-arabic-${surahNumber}`,
+      name_simple: first ? 'Al-Fatihah' : second ? 'Al-Baqarah' : `Fixture Surah ${surahNumber}`,
+      name_english: first ? 'The Opener' : second ? 'The Cow' : `Fixture Surah ${surahNumber}`,
+      revelation_place: surahNumber % 2 === 1 ? 'makkah' : 'madinah',
+      revelation_order: surahNumber,
+      verses_count: versesCount,
+      source_id: sourceId
+    };
+  });
+}
 
 test('Quran Catalogue API Integration', async (t) => {
   const db = createDatabaseConnection({ connection: ':memory:' });
@@ -185,29 +204,9 @@ test('Quran Catalogue API Integration', async (t) => {
       .where({ id: 'src-test-fixture' })
       .update({ source_url: 'https://example.org/synthetic-test-fixture' });
 
-    // Insert surah catalog metadata (Surah 1 Al-Fatihah, Surah 2 Al-Baqarah)
-    await db('quran_surahs').insert([
-      {
-        surah_number: 1,
-        name_arabic: 'الفاتحة',
-        name_simple: 'Al-Fatihah',
-        name_english: 'The Opener',
-        revelation_place: 'makkah',
-        revelation_order: 5,
-        verses_count: 7,
-        source_id: 'src-test-fixture'
-      },
-      {
-        surah_number: 2,
-        name_arabic: 'البقرة',
-        name_simple: 'Al-Baqarah',
-        name_english: 'The Cow',
-        revelation_place: 'madinah',
-        revelation_order: 87,
-        verses_count: 286,
-        source_id: 'src-test-fixture'
-      }
-    ]);
+    // Synthetic catalogue metadata only; no Quran text is used in this fixture.
+    const surahFixtures = buildSyntheticSurahFixtures('src-test-fixture');
+    await db('quran_surahs').insert(surahFixtures);
 
     const res = await app.inject({
       method: 'GET',
@@ -279,17 +278,27 @@ test('Quran Catalogue API Integration', async (t) => {
     assert.ok(body.error.requestId.startsWith('req_'));
   });
 
-  await t.test('GET /api/v1/quran/surahs/50 returns 404 for unseeded surah', async () => {
-    const res = await app.inject({
-      method: 'GET',
-      url: '/api/v1/quran/surahs/50'
-    });
+  await t.test('fails closed for missing Surahs and non-canonical per-Surah Ayah counts', async () => {
+    await db('quran_surahs').where({ source_id: 'src-test-fixture', surah_number: 50 }).delete();
 
-    assert.equal(res.statusCode, 404);
-    const body = JSON.parse(res.body);
-    assert.equal(body.error.code, 'NOT_FOUND');
-    assert.ok(body.error.requestId.startsWith('req_'));
-    assert.deepEqual(body.error.details, []);
+    for (const url of ['/api/v1/quran/surahs', '/api/v1/quran/surahs/1']) {
+      const missing = await app.inject({ method: 'GET', url });
+      assert.equal(missing.statusCode, 503, url);
+      assert.equal(missing.json().error.code, 'CONTENT_UNAVAILABLE', url);
+    }
+
+    await db('quran_surahs').insert(surahFixtures[49]);
+
+    await db('quran_surahs').where({ source_id: 'src-test-fixture', surah_number: 1 })
+      .update({ verses_count: EXPECTED_AYAH_COUNTS[0] + 1 });
+    for (const url of ['/api/v1/quran/surahs', '/api/v1/quran/surahs/1']) {
+      const incorrectCount = await app.inject({ method: 'GET', url });
+      assert.equal(incorrectCount.statusCode, 503, url);
+      assert.equal(incorrectCount.json().error.code, 'CONTENT_UNAVAILABLE', url);
+    }
+
+    await db('quran_surahs').where({ source_id: 'src-test-fixture', surah_number: 1 })
+      .update({ verses_count: EXPECTED_AYAH_COUNTS[0] });
   });
   await t.test('fails closed when more than one active approved Quran edition exists', async () => {
     await db('content_sources').insert({
