@@ -23,19 +23,55 @@ export function AppShell() {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const firstNavItemRef = useRef<HTMLButtonElement>(null);
+  const sidebarRef = useRef<HTMLElement>(null);
+  const wasMenuOpenRef = useRef(false);
   const closeMobileMenu = () => {
     setMenuOpen(false);
-    menuButtonRef.current?.focus();
   };
 
   useEffect(() => {
-    if (!menuOpen) return;
+    if (!menuOpen) {
+      if (wasMenuOpenRef.current) {
+        wasMenuOpenRef.current = false;
+        menuButtonRef.current?.focus();
+      }
+      return;
+    }
+
+    wasMenuOpenRef.current = true;
     firstNavItemRef.current?.focus();
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") closeMobileMenu();
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setMenuOpen(false);
+        return;
+      }
+      if (event.key !== "Tab") return;
+
+      const sidebar = sidebarRef.current;
+      if (!sidebar) return;
+      const focusable = Array.from(
+        sidebar.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])')
+      ).filter((element) => !element.hasAttribute("hidden") && element.getAttribute("aria-hidden") !== "true");
+      if (focusable.length === 0) {
+        event.preventDefault();
+        return;
+      }
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement;
+      if (event.shiftKey && (active === first || !sidebar.contains(active))) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && (active === last || !sidebar.contains(active))) {
+        event.preventDefault();
+        first.focus();
+      }
     };
-    window.addEventListener("keydown", handleEscape);
-    return () => window.removeEventListener("keydown", handleEscape);
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [menuOpen]);
 
   const section = getSection(active);
@@ -47,7 +83,14 @@ export function AppShell() {
   return (
     <div className="app-frame">
       <a className="skip-link" href="#main-content">Skip to main content</a>
-      <aside id="primary-sidebar" className={`sidebar ${menuOpen ? "sidebar-open" : ""}`}>
+      <aside
+        ref={sidebarRef}
+        id="primary-sidebar"
+        className={`sidebar ${menuOpen ? "sidebar-open" : ""}`}
+        role={menuOpen ? "dialog" : undefined}
+        aria-modal={menuOpen ? true : undefined}
+        aria-label={menuOpen ? "Mobile navigation" : undefined}
+      >
         <a className="brand" href="/" aria-label="DEENVERSE home">
           <span className="brand-mark">D<span>·</span></span>
           <span className="brand-copy"><strong>DEENVERSE</strong><small>One universe. Infinite knowledge.</small></span>
@@ -73,9 +116,9 @@ export function AppShell() {
           <span className="version">FOUNDATION PREVIEW · 0.1</span>
         </div>
       </aside>
-      {menuOpen && <button type="button" className="sidebar-backdrop" aria-label="Close navigation" onClick={closeMobileMenu} />}
+      {menuOpen && <button type="button" className="sidebar-backdrop" aria-label="Close navigation" tabIndex={-1} onClick={closeMobileMenu} />}
 
-      <main id="main-content" className="main-panel" tabIndex={-1}>
+      <main id="main-content" className="main-panel" tabIndex={-1} inert={menuOpen} aria-hidden={menuOpen}>
         <header className="topbar">
           <button ref={menuButtonRef} type="button" className="mobile-menu" onClick={() => setMenuOpen(!menuOpen)} aria-label="Toggle navigation" aria-controls="primary-sidebar" aria-expanded={menuOpen}>☰</button>
           <div className="breadcrumb" aria-live="polite" aria-atomic="true">DEENVERSE <span>/</span> {section.label.toUpperCase()}</div>
