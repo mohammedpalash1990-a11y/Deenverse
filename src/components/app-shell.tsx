@@ -22,6 +22,7 @@ export function AppShell() {
   const [query, setQuery] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const firstNavItemRef = useRef<HTMLButtonElement>(null);
   const closeMobileMenu = () => {
     setMenuOpen(false);
     menuButtonRef.current?.focus();
@@ -29,6 +30,7 @@ export function AppShell() {
 
   useEffect(() => {
     if (!menuOpen) return;
+    firstNavItemRef.current?.focus();
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") closeMobileMenu();
     };
@@ -54,6 +56,7 @@ export function AppShell() {
         <nav className="nav-list" aria-label="Main navigation">
           {sections.map((item) => (
             <button
+              ref={item.id === "quran" ? firstNavItemRef : undefined}
               className={`nav-item ${active === item.id ? "active" : ""}`}
               key={item.id}
               onClick={() => { setActive(item.id); if (menuOpen) closeMobileMenu(); }}
