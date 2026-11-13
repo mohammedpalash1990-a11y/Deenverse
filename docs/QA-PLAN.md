@@ -542,3 +542,17 @@ No local checkout, `npm ci`, typecheck, test, build, migration, database query, 
 ### Content and release gates
 
 No religious content was imported or generated. The Quran reader is currently a no-fetch approval-pending placeholder. The Tanzil artifact path is absent from current main and the source dossier records no official artifact acquisition or digest. Translation redistribution rights, Hadith collection/edition approvals, tafsir, dua, and audio rights remain unverified. Authentication, private user data isolation, backup/restore, Neon network hardening, and manual device QA remain release blockers.
+
+
+## Current mainline QA recheck — 2026-11-13
+
+- Main SHA \`9042d546d82a6a175f4d07235b780af50e19e5cf\` passed post-merge backend/web CI: [run #43412747653](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/43412747653). The run completed locked installs, backend/web typechecks, tests, production builds, and dependency audits.
+- PR #115's mobile drawer focus-containment regression tests passed on exact head in [backend/web run #43411917978](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/43411917978) and [verify run #43411918040](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/43411918040).
+- PR #117's production CORS configuration validation passed on exact head in [backend/web run #43412555644](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/43412555644) and [verify run #43412555498](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/43412555498).
+- Main currently registers ten GET API operations and POST /api/v1/problem-reports. The report endpoint has validation, global rate limiting, consent-gated diagnostics, and tests that it does not mutate religious-content tables. It does not provide an authenticated staff inbox.
+- Neon main branch is Ready but unprotected; IP allowlist is empty and public connections are not blocked. Production has one source/approval metadata row, zero Quran/Hadith corpus rows, and lacks quran_ayah_reviews and problem_reports. Current main's readiness schema check therefore cannot pass on this database until the additive migrations are applied.
+- No Render service, environment, deploy, event, log, health/readiness, live CORS, or database-connectivity evidence was available because a workspace was not confirmed. No production migration/deployment was performed.
+- No authentication/session/private-data authorization is implemented. Official Quran artifact acquisition and matching digest, source-specific rights, qualified independent human review, Hadith sources, and production content remain unverified.
+- Automated mobile focus and PWA service-worker tests passed in CI. Manual Arabic RTL, keyboard, screen-reader, responsive, contrast/zoom, installation/offline-recovery, browser, Android, and iOS QA was not executed.
+
+Release remains blocked. Do not publish Quran/Hadith/translation/audio content or deploy until provenance, rights, independent human approval, hosted PostgreSQL migrations/readiness, Render configuration, authentication requirements, and manual QA are evidenced.
