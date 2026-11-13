@@ -14,7 +14,9 @@ describe("QuranBetaReader publication gate", () => {
     expect(screen.getByRole("status")).toHaveTextContent(
       "কুরআনের আরবি পাঠ, বাংলা অনুবাদ ও অডিও এখনো প্রকাশের জন্য অনুমোদিত নয়।"
     );
-    expect(screen.getByText(/SHA-256/)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "আল-কুরআন — যাচাইকৃত পাঠ" })).toHaveAttribute("lang", "bn");
+    expect(screen.getByRole("status")).toHaveAttribute("lang", "bn");
+    expect(screen.getByText(/SHA-256/)).toHaveAttribute("lang", "bn");
     expect(fetcher).not.toHaveBeenCalled();
     expect(document.querySelector("audio")).toBeNull();
     expect(screen.queryByRole("link")).not.toBeInTheDocument();
