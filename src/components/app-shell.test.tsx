@@ -68,10 +68,7 @@ describe("DEENVERSE app shell", () => {
 
   it("hides the closed mobile sidebar from keyboard and assistive navigation", () => {
     const css = readFileSync(resolve(process.cwd(), "src/app/globals.css"), "utf8");
-    const mobileBlocks = css.split("@media(max-width:680px){");
-    const mobileRules = mobileBlocks[mobileBlocks.length - 1]?.split("@media(prefers-reduced-motion:reduce)")[0] ?? "";
-    expect(mobileRules).toMatch(/\.sidebar\{[^}]*visibility:hidden/);
-    expect(mobileRules).toMatch(/\.sidebar\.sidebar-open\{[^}]*visibility:visible/);
+    expect(css).toMatch(/@media\(max-width:680px\)\{\.app-frame\{display:block\}\.sidebar\{[^}]*visibility:hidden[^}]*\}\.sidebar\.sidebar-open\{[^}]*visibility:visible/);
   });
 
   it("closes the mobile navigation with Escape and restores focus", () => {
