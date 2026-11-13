@@ -1,6 +1,7 @@
 import { buildApp } from './app.js';
 import { createDatabaseConnection, resolveDatabaseConfig } from './db/connection.js';
 import { seedTanzilUthmaniFromOfficialSource } from './db/seed-tanzil.js';
+import { resolveCorsOrigins } from './cors-config.js';
 
 function readPositiveInteger(name: string, fallback: number): number {
   const raw = process.env[name];
@@ -17,10 +18,6 @@ if (PORT > 65_535) throw new Error('PORT must not exceed 65535.');
 const RATE_LIMIT_MAX = readPositiveInteger('RATE_LIMIT_MAX', 100);
 const RATE_LIMIT_WINDOW_MS = readPositiveInteger('RATE_LIMIT_WINDOW_MS', 60_000);
 const HOST = process.env.HOST || '0.0.0.0';
-const CORS_ORIGIN = (process.env.CORS_ALLOWED_ORIGINS || process.env.CORS_ORIGIN || 'http://localhost:3000')
-  .split(',')
-  .map((origin) => origin.trim())
-  .filter(Boolean);
 
 async function main(): Promise<void> {
   const databaseConfig = resolveDatabaseConfig();
@@ -28,6 +25,7 @@ async function main(): Promise<void> {
     throw new Error('Production requires PostgreSQL. Set DATABASE_URL to a PostgreSQL connection string; SQLite is development/test only.');
   }
 
+  const corsOrigins = resolveCorsOrigins();
   const db = createDatabaseConnection(databaseConfig);
   if (process.env.DEENVERSE_SEED_TANZIL_UTHMANI === 'true') {
     try {
@@ -39,7 +37,7 @@ async function main(): Promise<void> {
   }
   const app = buildApp({
     db,
-    allowedOrigins: CORS_ORIGIN,
+    allowedOrigins: corsOrigins,
     rateLimitMax: RATE_LIMIT_MAX,
     rateLimitWindowMs: RATE_LIMIT_WINDOW_MS
   });
