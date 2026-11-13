@@ -4,6 +4,7 @@ import { buildApp } from '../src/app.js';
 import { createDatabaseConnection } from '../src/db/connection.js';
 import * as initialSchema from '../src/db/migrations/20261102_000001_initial_schema.js';
 import * as sourceApprovalGate from '../src/db/migrations/20261103_000002_source_approval_gate.js';
+import { EXPECTED_AYAH_COUNTS } from '../src/services/quran-surah-counts.js';
 
 test('catalogue publication requires the approval digest to match the registered source digest', async (t) => {
   const db = createDatabaseConnection({ client: 'sqlite3', connection: ':memory:' });
@@ -42,16 +43,17 @@ test('catalogue publication requires the approval digest to match the registered
     artifact_sha256: differentDigest,
     review_notes: 'Synthetic mismatch fixture; never approve or publish.'
   });
-  await db('quran_surahs').insert({
-    surah_number: 1,
+  // Synthetic catalogue metadata only; no Quran text is used in this fixture.
+  await db('quran_surahs').insert(EXPECTED_AYAH_COUNTS.map((versesCount, index) => ({
+    surah_number: index + 1,
     name_arabic: 'Synthetic metadata',
-    name_simple: 'Synthetic metadata',
+    name_simple: index === 0 ? 'Synthetic metadata' : `Synthetic metadata ${index + 1}`,
     name_english: 'Synthetic metadata',
-    revelation_place: 'makkah',
-    revelation_order: 1,
-    verses_count: 1,
+    revelation_place: index % 2 === 0 ? 'makkah' : 'madinah',
+    revelation_order: index + 1,
+    verses_count: versesCount,
     source_id: 'synthetic-source-fixture'
-  });
+  })));
 
   await t.test('a mismatched approval digest blocks both catalogue and detail reads', async () => {
     const list = await app.inject({ method: 'GET', url: '/api/v1/quran/surahs' });
