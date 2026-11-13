@@ -210,7 +210,7 @@ test('Quran Catalogue API Integration', async (t) => {
 
     const res = await app.inject({
       method: 'GET',
-      url: '/api/v1/quran/surahs?limit=113'
+      url: '/api/v1/quran/surahs?limit=50'
     });
 
     assert.equal(res.statusCode, 200);
@@ -221,7 +221,7 @@ test('Quran Catalogue API Integration', async (t) => {
     assert.ok(body.meta.requestId.startsWith('req_'));
     assert.ok(body.meta.nextCursor); // Cursor for page 2
     assert.equal(Array.isArray(body.data), true);
-    assert.equal(body.data.length, 113);
+    assert.equal(body.data.length, 50);
 
     const first = body.data[0];
     assert.equal(first.id, 'quran:surah:1');
@@ -244,14 +244,25 @@ test('Quran Catalogue API Integration', async (t) => {
     // Fetch page 2 using cursor
     const resPage2 = await app.inject({
       method: 'GET',
-      url: `/api/v1/quran/surahs?limit=113&cursor=${body.meta.nextCursor}`
+      url: `/api/v1/quran/surahs?limit=50&cursor=${body.meta.nextCursor}`
     });
 
     assert.equal(resPage2.statusCode, 200);
     const bodyPage2 = JSON.parse(resPage2.body);
-    assert.equal(bodyPage2.data.length, 1);
-    assert.equal(bodyPage2.data[0].id, 'quran:surah:114');
-    assert.equal(bodyPage2.meta.nextCursor, null); // Reached end of the complete catalogue
+    assert.equal(bodyPage2.data.length, 50);
+    assert.equal(bodyPage2.data[0].id, 'quran:surah:51');
+    assert.ok(bodyPage2.meta.nextCursor);
+
+    const resPage3 = await app.inject({
+      method: 'GET',
+      url: `/api/v1/quran/surahs?limit=50&cursor=${bodyPage2.meta.nextCursor}`
+    });
+    assert.equal(resPage3.statusCode, 200);
+    const bodyPage3 = JSON.parse(resPage3.body);
+    assert.equal(bodyPage3.data.length, 14);
+    assert.equal(bodyPage3.data[0].id, 'quran:surah:101');
+    assert.equal(bodyPage3.data.at(-1).id, 'quran:surah:114');
+    assert.equal(bodyPage3.meta.nextCursor, null); // Reached end of the complete catalogue
   });
 
   await t.test('GET /api/v1/quran/surahs/1 returns specific surah', async () => {
