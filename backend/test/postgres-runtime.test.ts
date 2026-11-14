@@ -195,8 +195,9 @@ test('PostgreSQL migrations and production runtime are verified against a real P
         appVersion: 'postgres-runtime-test'
       })
     });
-    assert.equal(reportResponse.status, 201, await reportResponse.text());
-    const reportBody = await reportResponse.json() as { data?: { id?: string; status?: string } };
+    const reportResponseText = await reportResponse.text();
+    assert.equal(reportResponse.status, 201, reportResponseText);
+    const reportBody = JSON.parse(reportResponseText) as { data?: { id?: string; status?: string } };
     assert.equal(reportBody.data?.status, 'received');
     const storedReport = await db('problem_reports').where({ id: reportBody.data?.id }).first();
     assert.equal(storedReport?.category, 'bug');
