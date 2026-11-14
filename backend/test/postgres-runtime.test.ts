@@ -8,6 +8,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createDatabaseConnection } from '../src/db/connection.js';
 import { runMigrations } from '../src/db/migrate.js';
+import { hasRequiredSchema } from '../src/db/schema-readiness.js';
 
 const testDatabaseUrl = process.env.TEST_DATABASE_URL;
 
@@ -102,6 +103,21 @@ test('PostgreSQL migrations and production runtime are verified against a real P
       api_can_insert_report: true,
       api_can_insert_content: false
     });
+
+    await db.raw('GRANT SELECT ON ALL TABLES IN SCHEMA public TO deenverse_runtime_ro');
+    await db.raw('REVOKE INSERT ON TABLE public.problem_reports FROM deenverse_runtime_ro');
+    const runtimeNotReady = await db.transaction(async (transaction) => {
+      await transaction.raw('SET LOCAL ROLE deenverse_runtime_ro');
+      return hasRequiredSchema(transaction);
+    });
+    assert.equal(runtimeNotReady, false, 'readiness must fail when the runtime role cannot submit reports');
+
+    await db.raw('GRANT INSERT ON TABLE public.problem_reports TO deenverse_runtime_ro');
+    const runtimeReady = await db.transaction(async (transaction) => {
+      await transaction.raw('SET LOCAL ROLE deenverse_runtime_ro');
+      return hasRequiredSchema(transaction);
+    });
+    assert.equal(runtimeReady, true, 'readiness must pass after the report-only INSERT grant is restored');
 
     await assert.doesNotReject(() => runMigrations(db), 'PostgreSQL migrations must be safe to rerun.');
 
