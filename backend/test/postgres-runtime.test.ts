@@ -166,7 +166,7 @@ test('PostgreSQL migrations and production runtime are verified against a real P
     while (Date.now() < deadline) {
       if (child.exitCode !== null) break;
       try {
-        readiness = await fetch(`http://127.0.0.1:${port}/api/v1/ready`);
+        readiness = await fetch(`http://127.0.0.1:${port}/api/v1/ready`, { signal: AbortSignal.timeout(2_000) });
         if (readiness.status === 200) break;
       } catch {
         // The child may still be opening its PostgreSQL pool and HTTP listener.
@@ -193,7 +193,8 @@ test('PostgreSQL migrations and production runtime are verified against a real P
         description: 'The PostgreSQL runtime role can submit this support report.',
         currentSection: 'Settings',
         appVersion: 'postgres-runtime-test'
-      })
+      }),
+      signal: AbortSignal.timeout(5_000)
     });
     const reportResponseText = await reportResponse.text();
     assert.equal(reportResponse.status, 201, reportResponseText);
