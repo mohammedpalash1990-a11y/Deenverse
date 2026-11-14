@@ -1,6 +1,6 @@
 # DEENVERSE Verified Content Source Register
 
-**Snapshot:** 2026-11-13 10:30 UTC — current main `c93db8cc13a6016a3f67eccdcfc952a81824ba20`  
+**Snapshot:** 2026-11-14 10:02 UTC — current main `7142e66b83cef3ec05e0803c9470e051642f356e`  
 A provider being listed or reachable through an API does not approve its content for import, redistribution, caching, offline use, or publication. Each content type and edition requires its own evidence.
 
 | Content type | Candidate/provider | Edition/version | Current implementation | Rights/authenticity status | Import/publication status |
@@ -516,3 +516,38 @@ No Hadith source files were found in the Library by filename or semantic search,
 
 
 Additional candidate recorded: The Hadith Project (7,580 Bukhari narrations, CC BY 4.0 dataset claim, upstream ODbL/DbCL and Unlicense sources). Its collection chains remain machine-parsed; the inspected board lists only the founding editor and no independent reviewer; no Bangla or 49k+ corpus is evidenced. It remains a research lead, not an approved source. See docs/HADITH-SOURCE-OPTIONS.md.
+
+## 2026-11-14 current main, production database, and release-gate verification
+
+### Repository and exact-head CI
+
+- Current `main`: `7142e66b83cef3ec05e0803c9470e051642f356e`. [Main commit](https://github.com/mohammedpalash1990-a11y/Deenverse/commit/7142e66b83cef3ec05e0803c9470e051642f356e).
+- Post-merge main CI [#43583222536](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/43583222536) passed on that exact SHA: backend typecheck, 122 tests, build and dependency audit; web typecheck, 186 tests, production build and dependency audit. Both dependency audits reported zero vulnerabilities.
+- [PR #124](https://github.com/mohammedpalash1990-a11y/Deenverse/pull/124) adds a regression test proving that `GET /api/v1/ready` returns 503 when the required `problem_reports` table is missing. Exact-head CI [#43583113846](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/43583113846) passed; PR merged as `7142e66b83cef3ec05e0803c9470e051642f356e`.
+- [PR #91](https://github.com/mohammedpalash1990-a11y/Deenverse/pull/91) is merged. It incorporated the reviewed reviewer-identity, Hadith cursor-scope, and PWA cache-persistence changes represented by the overlapping draft PRs #85, #86, and #87; those older PRs remain closed unmerged. PR #89 is also closed unmerged. PR #90 is merged.
+- Mainline code updates after the November 10 integration include [PR #113](https://github.com/mohammedpalash1990-a11y/Deenverse/pull/113) and [PR #115](https://github.com/mohammedpalash1990-a11y/Deenverse/pull/115) for mobile navigation keyboard/focus accessibility, and [PR #117](https://github.com/mohammedpalash1990-a11y/Deenverse/pull/117) for strict production CORS-origin validation. Their corresponding main push CI runs passed; PR #124 post-merge CI also passed.
+- Documentation PRs #118–#123 are merged. The in-app problem-report route and additive migration are present on main; earlier PR #47 was closed unmerged and was superseded by the later implementation path including PR #93.
+- Only open PRs returned by the current repository query are #79 and #11. Both target the historical `integration/platform-foundation` branch, not `main`, and GitHub reports them non-mergeable/dirty. Do not merge either without a fresh rebase, scope review, and exact-head CI.
+- GitHub reports `main.protected=false`. The detailed branch-protection endpoint returned 403 (integration lacks that administration permission), so required-review/check enforcement settings could not be inspected. The repository release list returned no releases. The GitHub deployments endpoint was not available through the connected fetch action; no production deploy SHA is claimed.
+
+### Neon production branch — read-only evidence
+
+- Project `deenverse-db` (`cool-mud-31679014`), PostgreSQL 17, region `aws-ap-southeast-1`; default branch `main` (`br-spring-night-a14ey96s`) was Ready during inspection.
+- Neon reports branch `protected=false`; project `protected_branches_only=false`; allowed IP list is empty; `block_public_connections=false`. These settings leave the database without branch protection or IP-level connection restriction. No settings were changed.
+- Read-only row counts: `content_sources=1`, `content_source_approvals=1`; `quran_surahs=0`, `quran_ayahs=0`; `hadith_books=0`, `hadith_chapters=0`, `hadith_records=0`, `hadith_translations=0`, `hadith_grade_assessments=0`, `hadith_record_reviews=0`.
+- Catalog inspection confirms `quran_ayah_reviews` and `problem_reports` tables are absent. The `hadith_record_reviews` table exists but contains zero rows. The current readiness implementation checks every required table/column, so the production readiness probe must return 503 until the missing additive migrations are applied.
+- The only source row is the inactive Tanzil Uthmani candidate. Its metadata says redistribution is allowed and its approval row says `approved`, but both source reviewer and approval reviewer are `project-owner-chat-authorization`; this is not independent human approval. Stored source/approval digest is `ac0724796cbbda0f4801470fbbd11d0f3c5802067bae0493466d0128b0c667af`, which differs from the independently recomputed Library candidate digest `6933e133dd56db778c801bf738848454e43648105a151e8d84d86a7cae39ec5f`. The official acquisition and metadata bytes are not proven; do not alter the source row or approval to force a match.
+- The QuranEnc Abu Bakr Zakaria Library DB/JSON candidates remain structurally consistent with each other but lack an official acquisition receipt, confirmed simple-variant/version mapping, transcript metadata, and footnotes. They remain outside GitHub and production and must not be imported or published.
+- No Hadith corpus or source artifact is in production. The source options in `docs/HADITH-SOURCE-OPTIONS.md`, including The Hadith Project, remain research candidates only; source-specific upstream rights, frozen artifacts/digests, and qualified independent scholarly review are incomplete.
+
+### Runtime, authentication, PWA, and manual QA
+
+- Render workspace selection has not been confirmed for this audit. No Render service configuration, environment values, deploy history, events, logs, API health/readiness response, deployed CORS allowlist, or Render-to-Neon connectivity was accessed. Do not infer service health or deployment state.
+- Production CORS code now fails startup if neither `CORS_ALLOWED_ORIGINS` nor `CORS_ORIGIN` supplies valid exact origins, but deployed values and live browser-origin behavior remain unverified.
+- No login/session/OTP authentication, authorization middleware, protected user-data routes, or authenticated staff report inbox is present.
+- The service worker caches only the app shell, immutable same-origin build assets, manifest, and icon; it excludes API responses and religious/user data. No offline Quran/Hadith content is available.
+- Automated mobile navigation tests exist, but manual Arabic RTL, Bengali/English localization, keyboard, screen-reader, contrast/zoom, responsive-browser, and physical Android/iOS QA remain outstanding.
+
+### Release decision
+
+Keep Quran Arabic, Bengali translation, Hadith, tafsir, dua, and recitation audio publication fail-closed. Do not import or activate candidate content. Do not apply the missing production migrations or change Neon network/branch settings until the correct Render service/workspace, deployment credentials, backup/rollback plan, and actual Render egress path are verified. Authentication and manual client QA remain independent release blockers. No production database, infrastructure, permission, or deployment changes were made during this audit.
