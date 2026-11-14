@@ -75,7 +75,9 @@ test('PostgreSQL migrations and production runtime are verified against a real P
       DO $deenverse$
       BEGIN
         IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'deenverse_runtime_ro') THEN
-          CREATE ROLE deenverse_runtime_ro NOLOGIN;
+          CREATE ROLE deenverse_runtime_ro LOGIN PASSWORD 'deenverse-test-password';
+        ELSE
+          ALTER ROLE deenverse_runtime_ro LOGIN PASSWORD 'deenverse-test-password';
         END IF;
         IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'deenverse_api') THEN
           CREATE ROLE deenverse_api NOLOGIN;
@@ -83,6 +85,11 @@ test('PostgreSQL migrations and production runtime are verified against a real P
       END
       $deenverse$;
     `);
+    const runtimeDatabaseUrl = new URL(testDatabaseUrl);
+    runtimeDatabaseUrl.username = 'deenverse_runtime_ro';
+    runtimeDatabaseUrl.password = 'deenverse-test-password';
+    await db.raw('GRANT USAGE ON SCHEMA public TO deenverse_runtime_ro');
+    await db.raw('GRANT USAGE ON SCHEMA public TO deenverse_api');
 
     // Simulate Neon default privileges: new tables receive SELECT for the
     // runtime roles. The report migration must revoke that broad default and
@@ -142,7 +149,7 @@ test('PostgreSQL migrations and production runtime are verified against a real P
         ...process.env,
         NODE_ENV: 'production',
         DB_CLIENT: 'pg',
-        DATABASE_URL: testDatabaseUrl,
+        DATABASE_URL: runtimeDatabaseUrl.toString(),
         HOST: '127.0.0.1',
         PORT: String(port),
         CORS_ALLOWED_ORIGINS: 'http://127.0.0.1'
@@ -177,6 +184,23 @@ test('PostgreSQL migrations and production runtime are verified against a real P
     assert.equal(body.database, 'connected');
     assert.equal(body.migrations, 'applied');
     assert.match(childStdout, /DEENVERSE backend listening/);
+
+    const reportResponse = await fetch(`http://127.0.0.1:${port}/api/v1/problem-reports`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        category: 'bug',
+        description: 'The PostgreSQL runtime role can submit this support report.',
+        currentSection: 'Settings',
+        appVersion: 'postgres-runtime-test'
+      })
+    });
+    assert.equal(reportResponse.status, 201, await reportResponse.text());
+    const reportBody = await reportResponse.json() as { data?: { id?: string; status?: string } };
+    assert.equal(reportBody.data?.status, 'received');
+    const storedReport = await db('problem_reports').where({ id: reportBody.data?.id }).first();
+    assert.equal(storedReport?.category, 'bug');
+    assert.equal(storedReport?.status, 'new');
   } finally {
     if (child && child.exitCode === null && child.signalCode === null) {
       child.kill('SIGTERM');
