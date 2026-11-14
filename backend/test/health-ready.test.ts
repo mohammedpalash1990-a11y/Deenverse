@@ -72,6 +72,15 @@ test('Liveness and Readiness Probes', async (t) => {
     await quranAyahReviews.up(db);
   });
 
+  await t.test('GET /api/v1/ready rejects a missing problem-report table', async () => {
+    await db.schema.dropTable('problem_reports');
+    const res = await app.inject({ method: 'GET', url: '/api/v1/ready' });
+    assert.equal(res.statusCode, 503);
+    assert.equal(res.json().error.code, 'UNAVAILABLE');
+    assert.equal(res.json().error.message, 'Database schema is not fully migrated.');
+    await problemReports.up(db);
+  });
+
   await t.test('GET /api/v1/ready rejects a table whose required columns are missing', async () => {
     await db.schema.dropTable('quran_ayah_reviews');
     await db.schema.dropTable('quran_ayahs');
