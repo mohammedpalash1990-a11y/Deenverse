@@ -71,6 +71,11 @@ test('PostgreSQL migrations and production runtime are verified against a real P
 
     // Create the runtime roles after the report table exists, then rerun the
     // idempotent migration runner to prove it applies the narrow grants later.
+    // Simulate Neon default privileges: new tables receive SELECT for the
+    // runtime roles. The report migration must revoke that broad default and
+    // leave only INSERT on the support-report table.
+    await db.raw('GRANT SELECT ON ALL TABLES IN SCHEMA public TO deenverse_runtime_ro');
+    await db.raw('GRANT SELECT ON ALL TABLES IN SCHEMA public TO deenverse_api');
     await db.raw(`
       DO $deenverse$
       BEGIN
@@ -93,22 +98,25 @@ test('PostgreSQL migrations and production runtime are verified against a real P
     const reportRolePrivileges = await db.raw(`
       SELECT
         has_table_privilege('deenverse_runtime_ro', 'public.problem_reports', 'INSERT') AS runtime_can_insert_report,
+        has_table_privilege('deenverse_runtime_ro', 'public.problem_reports', 'SELECT') AS runtime_can_select_report,
         has_table_privilege('deenverse_runtime_ro', 'public.problem_reports', 'UPDATE') AS runtime_can_update_report,
         has_table_privilege('deenverse_runtime_ro', 'public.problem_reports', 'DELETE') AS runtime_can_delete_report,
         has_table_privilege('deenverse_runtime_ro', 'public.content_sources', 'INSERT') AS runtime_can_insert_content,
         has_table_privilege('deenverse_api', 'public.problem_reports', 'INSERT') AS api_can_insert_report,
+        has_table_privilege('deenverse_api', 'public.problem_reports', 'SELECT') AS api_can_select_report,
         has_table_privilege('deenverse_api', 'public.content_sources', 'INSERT') AS api_can_insert_content
     `);
     assert.deepEqual(reportRolePrivileges.rows[0], {
       runtime_can_insert_report: true,
+      runtime_can_select_report: false,
       runtime_can_update_report: false,
       runtime_can_delete_report: false,
       runtime_can_insert_content: false,
       api_can_insert_report: true,
+      api_can_select_report: false,
       api_can_insert_content: false
     });
 
-    await db.raw('GRANT SELECT ON ALL TABLES IN SCHEMA public TO deenverse_runtime_ro');
     await db.raw('REVOKE INSERT ON TABLE public.problem_reports FROM deenverse_runtime_ro');
     const runtimeNotReady = await db.transaction(async (transaction) => {
       await transaction.raw('SET LOCAL ROLE deenverse_runtime_ro');
