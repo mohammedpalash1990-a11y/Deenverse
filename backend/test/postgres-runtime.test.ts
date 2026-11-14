@@ -232,6 +232,8 @@ test('PostgreSQL migrations and production runtime are verified against a real P
     await db.schema.dropTableIfExists('content_source_approvals');
     await db.schema.dropTableIfExists('quran_surahs');
     await db.schema.dropTableIfExists('content_sources');
+    await db.raw('REVOKE ALL PRIVILEGES ON SCHEMA public FROM deenverse_runtime_ro');
+    await db.raw('REVOKE ALL PRIVILEGES ON SCHEMA public FROM deenverse_api');
     await db.raw('DROP ROLE IF EXISTS deenverse_runtime_ro');
     await db.raw('DROP ROLE IF EXISTS deenverse_api');
     await db.destroy();
