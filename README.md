@@ -31,7 +31,7 @@ DEENVERSE is a premium, multilingual Islamic knowledge and worship platform for 
 - Accessibility, RTL correctness, localization, and offline behavior
 - Feature branches and pull requests; do not commit directly to `main` for feature work
 
-## Current verified status — 2026-11-14
+## Verified status snapshot — 2026-11-14 10:15 UTC
 
 Current main `fffb3c22df79b4ebf8fb0c9fb65d964dc6053739` passed [main CI #43584307414](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/43584307414): backend typecheck, 122 tests, PostgreSQL migration/runtime test, build and dependency audit; web typecheck, 186 tests, production build and dependency audit (0 vulnerabilities in both projects). The mainline includes mobile-navigation accessibility fixes in [PR #113](https://github.com/mohammedpalash1990-a11y/Deenverse/pull/113) and [PR #115](https://github.com/mohammedpalash1990-a11y/Deenverse/pull/115), production CORS validation in [PR #117](https://github.com/mohammedpalash1990-a11y/Deenverse/pull/117), readiness regression coverage in [PR #124](https://github.com/mohammedpalash1990-a11y/Deenverse/pull/124), and the least-privilege problem-report write path in [PR #126](https://github.com/mohammedpalash1990-a11y/Deenverse/pull/126). PR #126 exact-head CI [#43584153647](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/43584153647) and post-merge main CI both passed.
 
