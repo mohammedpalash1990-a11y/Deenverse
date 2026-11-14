@@ -31,9 +31,11 @@ export async function up(knex: Knex): Promise<void> {
       DO $deenverse$
       BEGIN
         IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'deenverse_runtime_ro') THEN
+          REVOKE ALL PRIVILEGES ON TABLE public.problem_reports FROM deenverse_runtime_ro;
           GRANT INSERT ON TABLE public.problem_reports TO deenverse_runtime_ro;
         END IF;
         IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'deenverse_api') THEN
+          REVOKE ALL PRIVILEGES ON TABLE public.problem_reports FROM deenverse_api;
           GRANT INSERT ON TABLE public.problem_reports TO deenverse_api;
         END IF;
       END
