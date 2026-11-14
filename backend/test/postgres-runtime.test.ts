@@ -44,18 +44,6 @@ test('PostgreSQL migrations and production runtime are verified against a real P
   try {
     await db.raw('SELECT 1');
     await db.schema.dropTableIfExists('problem_reports');
-    await db.raw(`
-      DO $deenverse$
-      BEGIN
-        IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'deenverse_runtime_ro') THEN
-          CREATE ROLE deenverse_runtime_ro NOLOGIN;
-        END IF;
-        IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'deenverse_api') THEN
-          CREATE ROLE deenverse_api NOLOGIN;
-        END IF;
-      END
-      $deenverse$;
-    `);
     await db.schema.dropTableIfExists('hadith_record_reviews');
     await db.schema.dropTableIfExists('hadith_grade_assessments');
     await db.schema.dropTableIfExists('hadith_translations');
@@ -80,6 +68,22 @@ test('PostgreSQL migrations and production runtime are verified against a real P
 
     // Concurrent release jobs serialize on the transaction-scoped PG lock.
     await Promise.all([runMigrations(db), runMigrations(db)]);
+
+    // Create the runtime roles after the report table exists, then rerun the
+    // idempotent migration runner to prove it applies the narrow grants later.
+    await db.raw(`
+      DO $deenverse$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'deenverse_runtime_ro') THEN
+          CREATE ROLE deenverse_runtime_ro NOLOGIN;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'deenverse_api') THEN
+          CREATE ROLE deenverse_api NOLOGIN;
+        END IF;
+      END
+      $deenverse$;
+    `);
+    await runMigrations(db);
     assert.equal(await db.schema.hasTable('content_sources'), true);
     assert.equal(await db.schema.hasTable('quran_surahs'), true);
     assert.equal(await db.schema.hasTable('quran_ayahs'), true);
