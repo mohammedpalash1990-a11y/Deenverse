@@ -71,11 +71,6 @@ test('PostgreSQL migrations and production runtime are verified against a real P
 
     // Create the runtime roles after the report table exists, then rerun the
     // idempotent migration runner to prove it applies the narrow grants later.
-    // Simulate Neon default privileges: new tables receive SELECT for the
-    // runtime roles. The report migration must revoke that broad default and
-    // leave only INSERT on the support-report table.
-    await db.raw('GRANT SELECT ON ALL TABLES IN SCHEMA public TO deenverse_runtime_ro');
-    await db.raw('GRANT SELECT ON ALL TABLES IN SCHEMA public TO deenverse_api');
     await db.raw(`
       DO $deenverse$
       BEGIN
@@ -88,6 +83,12 @@ test('PostgreSQL migrations and production runtime are verified against a real P
       END
       $deenverse$;
     `);
+
+    // Simulate Neon default privileges: new tables receive SELECT for the
+    // runtime roles. The report migration must revoke that broad default and
+    // leave only INSERT on the support-report table.
+    await db.raw('GRANT SELECT ON ALL TABLES IN SCHEMA public TO deenverse_runtime_ro');
+    await db.raw('GRANT SELECT ON ALL TABLES IN SCHEMA public TO deenverse_api');
     await runMigrations(db);
     assert.equal(await db.schema.hasTable('content_sources'), true);
     assert.equal(await db.schema.hasTable('quran_surahs'), true);
