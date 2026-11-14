@@ -8,6 +8,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createDatabaseConnection } from '../src/db/connection.js';
 import { runMigrations } from '../src/db/migrate.js';
+import { hasRequiredSchema } from '../src/db/schema-readiness.js';
 
 const testDatabaseUrl = process.env.TEST_DATABASE_URL;
 
@@ -42,6 +43,7 @@ test('PostgreSQL migrations and production runtime are verified against a real P
 
   try {
     await db.raw('SELECT 1');
+    await db.schema.dropTableIfExists('problem_reports');
     await db.schema.dropTableIfExists('hadith_record_reviews');
     await db.schema.dropTableIfExists('hadith_grade_assessments');
     await db.schema.dropTableIfExists('hadith_translations');
@@ -66,11 +68,69 @@ test('PostgreSQL migrations and production runtime are verified against a real P
 
     // Concurrent release jobs serialize on the transaction-scoped PG lock.
     await Promise.all([runMigrations(db), runMigrations(db)]);
+
+    // Create the runtime roles after the report table exists, then rerun the
+    // idempotent migration runner to prove it applies the narrow grants later.
+    await db.raw(`
+      DO $deenverse$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'deenverse_runtime_ro') THEN
+          CREATE ROLE deenverse_runtime_ro NOLOGIN;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'deenverse_api') THEN
+          CREATE ROLE deenverse_api NOLOGIN;
+        END IF;
+      END
+      $deenverse$;
+    `);
+
+    // Simulate Neon default privileges: new tables receive SELECT for the
+    // runtime roles. The report migration must revoke that broad default and
+    // leave only INSERT on the support-report table.
+    await db.raw('GRANT SELECT ON ALL TABLES IN SCHEMA public TO deenverse_runtime_ro');
+    await db.raw('GRANT SELECT ON ALL TABLES IN SCHEMA public TO deenverse_api');
+    await runMigrations(db);
     assert.equal(await db.schema.hasTable('content_sources'), true);
     assert.equal(await db.schema.hasTable('quran_surahs'), true);
     assert.equal(await db.schema.hasTable('quran_ayahs'), true);
     assert.equal(await db.schema.hasTable('quran_ayah_reviews'), true);
     assert.equal(await db.schema.hasTable('content_source_approvals'), true);
+    assert.equal(await db.schema.hasTable('problem_reports'), true);
+    const reportRolePrivileges = await db.raw(`
+      SELECT
+        has_table_privilege('deenverse_runtime_ro', 'public.problem_reports', 'INSERT') AS runtime_can_insert_report,
+        has_table_privilege('deenverse_runtime_ro', 'public.problem_reports', 'SELECT') AS runtime_can_select_report,
+        has_table_privilege('deenverse_runtime_ro', 'public.problem_reports', 'UPDATE') AS runtime_can_update_report,
+        has_table_privilege('deenverse_runtime_ro', 'public.problem_reports', 'DELETE') AS runtime_can_delete_report,
+        has_table_privilege('deenverse_runtime_ro', 'public.content_sources', 'INSERT') AS runtime_can_insert_content,
+        has_table_privilege('deenverse_api', 'public.problem_reports', 'INSERT') AS api_can_insert_report,
+        has_table_privilege('deenverse_api', 'public.problem_reports', 'SELECT') AS api_can_select_report,
+        has_table_privilege('deenverse_api', 'public.content_sources', 'INSERT') AS api_can_insert_content
+    `);
+    assert.deepEqual(reportRolePrivileges.rows[0], {
+      runtime_can_insert_report: true,
+      runtime_can_select_report: false,
+      runtime_can_update_report: false,
+      runtime_can_delete_report: false,
+      runtime_can_insert_content: false,
+      api_can_insert_report: true,
+      api_can_select_report: false,
+      api_can_insert_content: false
+    });
+
+    await db.raw('REVOKE INSERT ON TABLE public.problem_reports FROM deenverse_runtime_ro');
+    const runtimeNotReady = await db.transaction(async (transaction) => {
+      await transaction.raw('SET LOCAL ROLE deenverse_runtime_ro');
+      return hasRequiredSchema(transaction);
+    });
+    assert.equal(runtimeNotReady, false, 'readiness must fail when the runtime role cannot submit reports');
+
+    await db.raw('GRANT INSERT ON TABLE public.problem_reports TO deenverse_runtime_ro');
+    const runtimeReady = await db.transaction(async (transaction) => {
+      await transaction.raw('SET LOCAL ROLE deenverse_runtime_ro');
+      return hasRequiredSchema(transaction);
+    });
+    assert.equal(runtimeReady, true, 'readiness must pass after the report-only INSERT grant is restored');
 
     await assert.doesNotReject(() => runMigrations(db), 'PostgreSQL migrations must be safe to rerun.');
 
@@ -126,6 +186,7 @@ test('PostgreSQL migrations and production runtime are verified against a real P
         await once(child, 'exit');
       }
     }
+    await db.schema.dropTableIfExists('problem_reports');
     await db.schema.dropTableIfExists('hadith_record_reviews');
     await db.schema.dropTableIfExists('hadith_grade_assessments');
     await db.schema.dropTableIfExists('hadith_translations');
@@ -137,6 +198,8 @@ test('PostgreSQL migrations and production runtime are verified against a real P
     await db.schema.dropTableIfExists('content_source_approvals');
     await db.schema.dropTableIfExists('quran_surahs');
     await db.schema.dropTableIfExists('content_sources');
+    await db.raw('DROP ROLE IF EXISTS deenverse_runtime_ro');
+    await db.raw('DROP ROLE IF EXISTS deenverse_api');
     await db.destroy();
   }
 });

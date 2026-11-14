@@ -23,5 +23,16 @@ export async function hasRequiredSchema(db: Knex): Promise<boolean> {
     const columns = await db(table).columnInfo();
     if (!requiredColumns.every((column) => Object.hasOwn(columns, column))) return false;
   }
+
+  // The public report endpoint writes through the HTTP runtime connection.
+  // Keep readiness closed if that role cannot insert reports, while content
+  // tables remain read-only for the same role.
+  if (db.client.config.client === 'pg') {
+    const privilege = await db.raw(
+      "SELECT has_table_privilege(current_user, 'public.problem_reports', 'INSERT') AS can_insert_problem_reports"
+    );
+    if (privilege.rows?.[0]?.can_insert_problem_reports !== true) return false;
+  }
+
   return true;
 }
