@@ -1,6 +1,6 @@
 # DEENVERSE Verified Content Source Register
 
-**Snapshot:** 2026-11-14 10:02 UTC — current main `7142e66b83cef3ec05e0803c9470e051642f356e`  
+**Snapshot:** 2026-11-14 10:15 UTC — current main `fffb3c22df79b4ebf8fb0c9fb65d964dc6053739`  
 A provider being listed or reachable through an API does not approve its content for import, redistribution, caching, offline use, or publication. Each content type and edition requires its own evidence.
 
 | Content type | Candidate/provider | Edition/version | Current implementation | Rights/authenticity status | Import/publication status |
@@ -551,3 +551,35 @@ Additional candidate recorded: The Hadith Project (7,580 Bukhari narrations, CC 
 ### Release decision
 
 Keep Quran Arabic, Bengali translation, Hadith, tafsir, dua, and recitation audio publication fail-closed. Do not import or activate candidate content. Do not apply the missing production migrations or change Neon network/branch settings until the correct Render service/workspace, deployment credentials, backup/rollback plan, and actual Render egress path are verified. Authentication and manual client QA remain independent release blockers. No production database, infrastructure, permission, or deployment changes were made during this audit.
+## 2026-11-14 post-PR #126 verification — runtime write privilege and readiness
+
+### Mainline and checks
+
+- Current main: `fffb3c22df79b4ebf8fb0c9fb65d964dc6053739`. [Commit](https://github.com/mohammedpalash1990-a11y/Deenverse/commit/fffb3c22df79b4ebf8fb0c9fb65d964dc6053739).
+- [PR #126](https://github.com/mohammedpalash1990-a11y/Deenverse/pull/126) merged 2026-11-14. It adds a PostgreSQL-only, idempotent grant path for support reports, revokes all other privileges on that table from the HTTP runtime roles, and makes PostgreSQL readiness fail closed unless the current role can INSERT a report.
+- PR #126 exact-head checks [#43584153647](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/43584153647) passed: backend typecheck, 122/122 tests including the real PostgreSQL migration/runtime test, build, and dependency audit; web typecheck, 186/186 tests, production build, and dependency audit. The separate web foundation check [#43584153683](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/43584153683) passed.
+- Post-merge main CI [#43584307414](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/43584307414) passed on the exact current main SHA: backend 122/122 tests, web 186/186 tests, typechecks/builds, and both dependency audits with zero vulnerabilities.
+- PR #124's readiness-table regression test and PR #125's evidence refresh are also merged. PR #91 remains merged; its overlapping draft PRs #85–#87 are closed unmerged. Open PRs #11 and #79 remain stale, dirty, and target `integration/platform-foundation`, not `main`.
+
+### Neon role permissions and production impact
+
+- The production Neon `main` branch was reachable and its read-write compute was active in `aws-ap-southeast-1` at 0.25 CU. Pooler is disabled. No connection credentials or secrets were read or exposed.
+- `deenverse_runtime_ro` and `deenverse_api` have SELECT on existing content tables, but no INSERT/UPDATE/DELETE on `content_sources`; neither role is a member of another role. `deenverse_migrator` owns the application tables and has DML rights but is not superuser and has no CREATEROLE, CREATEDB, REPLICATION, or BYPASSRLS attributes. `deenverse_owner` is not superuser but does have CREATEROLE, CREATEDB, REPLICATION, and BYPASSRLS; it must not be used as the HTTP runtime role.
+- Neon default privileges for tables created by `deenverse_migrator` grant SELECT on new tables to `deenverse_runtime_ro` and `deenverse_api`. PR #126's migration therefore explicitly revokes all privileges on `problem_reports` from those roles, then grants only INSERT. It reapplies this rule on every migration pass, including when a role is created after the table.
+- PostgreSQL readiness now checks `has_table_privilege(current_user, 'public.problem_reports', 'INSERT')`. The real-PostgreSQL CI test verifies the migration can be rerun after roles are created, the runtime roles can INSERT reports but cannot SELECT/UPDATE/DELETE reports or INSERT content, and readiness fails when the report INSERT privilege is revoked.
+- **Production remains unchanged:** `problem_reports` is still absent and `quran_ayah_reviews` is still absent in Neon. The PR #126 migration has not been run against production. The live runtime roles still have no content-table write privileges; no database grants, tables, rows, branches, IP rules, or production data were changed during this run. Until the additive migrations are applied with the intended migration role, readiness remains 503.
+
+### Source and publication recheck
+
+- Tanzil's official [Text License](https://tanzil.net/docs/Text_License) states CC BY 3.0 and permits verbatim copying/distribution only: do not change the text; clearly attribute and link to Tanzil; preserve the copyright notice. The production source row remains inactive and its stored digest still differs from the Library candidate digest; no official frozen artifact or independently verified approval was acquired.
+- QuranEnc's official [Abu Bakar Zakaria Bengali page/API terms](https://quranenc.com/id/browse/bengali_zakaria) allow re-publication only without modification, with publisher/source attribution, version number, transcript information, source notification for notes, updates to the latest version, and no inappropriate advertising. The candidate archive lacks complete transcript/version provenance and is not in production.
+- The Hadith Project's current [Bukhari source page](https://thehadithproject.com/collection/bukhari/) lists 7,580 narrations in 97 books, 187 unmatched records, and machine-parsed chains awaiting human review. Its Bukhari README identifies Open-Hadith-Data under ODbL 1.0 + DbCL 1.0 and a fawazahmed0 mirror under Unlicense; its repository-level dataset licence says CC BY 4.0. The upstream rights/attribution interaction needs legal review. Its [About page](https://thehadithproject.com/about/) says the editorial board is being formed; the public `data/board.json` currently lists only founding editor Muhammad Mukthar, who approves everything until two reviewers agree to serve. No independent qualified reviewer is currently evidenced. This is one Bukhari collection, not a 49,000+ corpus.
+- No Quran or Hadith rows are present in production. No source artifacts were imported, no digest was fabricated, and no religious content was published or activated.
+
+### Remaining runtime and release blockers
+
+- GitHub `main.protected=false`; Neon `main.protected=false`, project `protected_branches_only=false`, IP allowlist empty, and public connections not blocked. No security setting was changed.
+- Render workspace selection remains unconfirmed; no Render service configuration, environment, deploy, events, logs, API readiness, deployed CORS allowlist, or Render-to-Neon connection was inspected. GitHub releases list is empty; deployment evidence is unavailable through the connected GitHub fetch action.
+- Authentication/authorization and an authenticated staff report inbox remain unimplemented. PWA caching remains app-shell/static-asset only, with no offline religious content. Manual Arabic RTL, Bengali/English localization, screen-reader, keyboard, responsive, and physical Android/iOS QA remain outstanding.
+
+Keep Quran, translation, Hadith, tafsir, dua, and audio publication fail-closed. Do not run the new migration against production or alter Neon network/branch settings until the Render workspace/service, deployment role, backup/rollback plan, and actual egress path are verified. No production database, infrastructure, permission, or deployment change was made.
