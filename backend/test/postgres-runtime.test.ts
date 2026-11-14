@@ -75,7 +75,9 @@ test('PostgreSQL migrations and production runtime are verified against a real P
       DO $deenverse$
       BEGIN
         IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'deenverse_runtime_ro') THEN
-          CREATE ROLE deenverse_runtime_ro NOLOGIN;
+          CREATE ROLE deenverse_runtime_ro LOGIN PASSWORD 'deenverse-test-password';
+        ELSE
+          ALTER ROLE deenverse_runtime_ro LOGIN PASSWORD 'deenverse-test-password';
         END IF;
         IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'deenverse_api') THEN
           CREATE ROLE deenverse_api NOLOGIN;
@@ -83,6 +85,11 @@ test('PostgreSQL migrations and production runtime are verified against a real P
       END
       $deenverse$;
     `);
+    const runtimeDatabaseUrl = new URL(testDatabaseUrl);
+    runtimeDatabaseUrl.username = 'deenverse_runtime_ro';
+    runtimeDatabaseUrl.password = 'deenverse-test-password';
+    await db.raw('GRANT USAGE ON SCHEMA public TO deenverse_runtime_ro');
+    await db.raw('GRANT USAGE ON SCHEMA public TO deenverse_api');
 
     // Simulate Neon default privileges: new tables receive SELECT for the
     // runtime roles. The report migration must revoke that broad default and
@@ -142,7 +149,7 @@ test('PostgreSQL migrations and production runtime are verified against a real P
         ...process.env,
         NODE_ENV: 'production',
         DB_CLIENT: 'pg',
-        DATABASE_URL: testDatabaseUrl,
+        DATABASE_URL: runtimeDatabaseUrl.toString(),
         HOST: '127.0.0.1',
         PORT: String(port),
         CORS_ALLOWED_ORIGINS: 'http://127.0.0.1'
@@ -159,7 +166,7 @@ test('PostgreSQL migrations and production runtime are verified against a real P
     while (Date.now() < deadline) {
       if (child.exitCode !== null) break;
       try {
-        readiness = await fetch(`http://127.0.0.1:${port}/api/v1/ready`);
+        readiness = await fetch(`http://127.0.0.1:${port}/api/v1/ready`, { signal: AbortSignal.timeout(2_000) });
         if (readiness.status === 200) break;
       } catch {
         // The child may still be opening its PostgreSQL pool and HTTP listener.
@@ -177,13 +184,40 @@ test('PostgreSQL migrations and production runtime are verified against a real P
     assert.equal(body.database, 'connected');
     assert.equal(body.migrations, 'applied');
     assert.match(childStdout, /DEENVERSE backend listening/);
+
+    const reportResponse = await fetch(`http://127.0.0.1:${port}/api/v1/problem-reports`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        category: 'bug',
+        description: 'The PostgreSQL runtime role can submit this support report.',
+        currentSection: 'Settings',
+        appVersion: 'postgres-runtime-test'
+      }),
+      signal: AbortSignal.timeout(5_000)
+    });
+    const reportResponseText = await reportResponse.text();
+    assert.equal(reportResponse.status, 201, reportResponseText);
+    const reportBody = JSON.parse(reportResponseText) as { data?: { id?: string; status?: string } };
+    assert.equal(reportBody.data?.status, 'received');
+    const storedReport = await db('problem_reports').where({ id: reportBody.data?.id }).first();
+    assert.equal(storedReport?.category, 'bug');
+    assert.equal(storedReport?.status, 'new');
   } finally {
     if (child && child.exitCode === null && child.signalCode === null) {
+      const childExit = once(child, 'exit');
       child.kill('SIGTERM');
-      await Promise.race([once(child, 'exit'), delay(5_000)]);
-      if (child.exitCode === null && child.signalCode === null) {
+      const exitedGracefully = await Promise.race([
+        childExit.then(() => true),
+        delay(5_000).then(() => false)
+      ]);
+      if (!exitedGracefully && child.exitCode === null && child.signalCode === null) {
         child.kill('SIGKILL');
-        await once(child, 'exit');
+        const exitedAfterKill = await Promise.race([
+          childExit.then(() => true),
+          delay(5_000).then(() => false)
+        ]);
+        assert.equal(exitedAfterKill, true, 'PostgreSQL runtime child did not exit after SIGKILL.');
       }
     }
     await db.schema.dropTableIfExists('problem_reports');
@@ -198,6 +232,8 @@ test('PostgreSQL migrations and production runtime are verified against a real P
     await db.schema.dropTableIfExists('content_source_approvals');
     await db.schema.dropTableIfExists('quran_surahs');
     await db.schema.dropTableIfExists('content_sources');
+    await db.raw('REVOKE ALL PRIVILEGES ON SCHEMA public FROM deenverse_runtime_ro');
+    await db.raw('REVOKE ALL PRIVILEGES ON SCHEMA public FROM deenverse_api');
     await db.raw('DROP ROLE IF EXISTS deenverse_runtime_ro');
     await db.raw('DROP ROLE IF EXISTS deenverse_api');
     await db.destroy();
