@@ -28,14 +28,14 @@ Both values must be positive safe integers. The same settings are available thro
 
 ## Database credentials
 
-- `DATABASE_URL`: PostgreSQL connection string for the HTTP runtime. In production it must use a dedicated read-only PostgreSQL role (SELECT on the application schema only).
+- `DATABASE_URL`: PostgreSQL connection string for the HTTP runtime. In production it must use a dedicated least-privilege role with SELECT on application tables and INSERT only on `problem_reports`; it must not write Quran/Hadith/content tables or read/update/delete support reports.
 - `MIGRATION_DATABASE_URL`: separate PostgreSQL connection string for schema migrations. In production this must be configured; it must use the database owner/migration credential and must never be exposed to the HTTP runtime.
 - `DB_CLIENT=pg`: optional explicit PostgreSQL driver selection. A supported PostgreSQL `DATABASE_URL` selects PostgreSQL even when `DB_CLIENT` is omitted.
 - `DB_CLIENT=sqlite3`: development/test only. Production startup rejects SQLite.
 
 The release command runs `npm run db:migrate` with `MIGRATION_DATABASE_URL`; the HTTP process then starts with `DATABASE_URL`, which must be read-only. Do not use the migration credential as the runtime credential. Keep both secrets in the hosting provider's secret environment store, never in source control or build logs.
 
-Use a pooled Neon URL for the long-lived HTTP runtime if the hosting architecture needs connection pooling. Use a direct (non-pooled) URL for migrations. The migration CLI applies additive migrations in one database transaction, takes a PostgreSQL advisory lock, and validates required tables/columns. A successful build or SQLite test alone is not evidence that a hosted PostgreSQL instance is reachable; verify the deployment database with `/api/v1/ready`.
+Use a pooled Neon URL for the long-lived HTTP runtime if the hosting architecture needs connection pooling. Use a direct (non-pooled) URL for migrations. The migration CLI applies additive migrations in one database transaction, takes a PostgreSQL advisory lock, and validates required tables/columns. The problem-report migration grants only `INSERT` on `problem_reports` to existing `deenverse_runtime_ro` and `deenverse_api` roles; it does not grant writes on religious-content tables or report reads/updates/deletes. PostgreSQL readiness also verifies that the current runtime role has this report-only INSERT privilege. A successful build or SQLite test alone is not evidence that a hosted PostgreSQL instance is reachable; verify the deployment database with `/api/v1/ready`.
 
 ## Deployment lifecycle and probes
 
