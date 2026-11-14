@@ -204,11 +204,19 @@ test('PostgreSQL migrations and production runtime are verified against a real P
     assert.equal(storedReport?.status, 'new');
   } finally {
     if (child && child.exitCode === null && child.signalCode === null) {
+      const childExit = once(child, 'exit');
       child.kill('SIGTERM');
-      await Promise.race([once(child, 'exit'), delay(5_000)]);
-      if (child.exitCode === null && child.signalCode === null) {
+      const exitedGracefully = await Promise.race([
+        childExit.then(() => true),
+        delay(5_000).then(() => false)
+      ]);
+      if (!exitedGracefully && child.exitCode === null && child.signalCode === null) {
         child.kill('SIGKILL');
-        await once(child, 'exit');
+        const exitedAfterKill = await Promise.race([
+          childExit.then(() => true),
+          delay(5_000).then(() => false)
+        ]);
+        assert.equal(exitedAfterKill, true, 'PostgreSQL runtime child did not exit after SIGKILL.');
       }
     }
     await db.schema.dropTableIfExists('problem_reports');
