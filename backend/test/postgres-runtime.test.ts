@@ -43,6 +43,18 @@ test('PostgreSQL migrations and production runtime are verified against a real P
   try {
     await db.raw('SELECT 1');
     await db.schema.dropTableIfExists('problem_reports');
+    await db.raw(`
+      DO $deenverse$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'deenverse_runtime_ro') THEN
+          CREATE ROLE deenverse_runtime_ro NOLOGIN;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'deenverse_api') THEN
+          CREATE ROLE deenverse_api NOLOGIN;
+        END IF;
+      END
+      $deenverse$;
+    `);
     await db.schema.dropTableIfExists('hadith_record_reviews');
     await db.schema.dropTableIfExists('hadith_grade_assessments');
     await db.schema.dropTableIfExists('hadith_translations');
@@ -73,6 +85,23 @@ test('PostgreSQL migrations and production runtime are verified against a real P
     assert.equal(await db.schema.hasTable('quran_ayah_reviews'), true);
     assert.equal(await db.schema.hasTable('content_source_approvals'), true);
     assert.equal(await db.schema.hasTable('problem_reports'), true);
+    const reportRolePrivileges = await db.raw(`
+      SELECT
+        has_table_privilege('deenverse_runtime_ro', 'public.problem_reports', 'INSERT') AS runtime_can_insert_report,
+        has_table_privilege('deenverse_runtime_ro', 'public.problem_reports', 'UPDATE') AS runtime_can_update_report,
+        has_table_privilege('deenverse_runtime_ro', 'public.problem_reports', 'DELETE') AS runtime_can_delete_report,
+        has_table_privilege('deenverse_runtime_ro', 'public.content_sources', 'INSERT') AS runtime_can_insert_content,
+        has_table_privilege('deenverse_api', 'public.problem_reports', 'INSERT') AS api_can_insert_report,
+        has_table_privilege('deenverse_api', 'public.content_sources', 'INSERT') AS api_can_insert_content
+    `);
+    assert.deepEqual(reportRolePrivileges.rows[0], {
+      runtime_can_insert_report: true,
+      runtime_can_update_report: false,
+      runtime_can_delete_report: false,
+      runtime_can_insert_content: false,
+      api_can_insert_report: true,
+      api_can_insert_content: false
+    });
 
     await assert.doesNotReject(() => runMigrations(db), 'PostgreSQL migrations must be safe to rerun.');
 
@@ -140,6 +169,8 @@ test('PostgreSQL migrations and production runtime are verified against a real P
     await db.schema.dropTableIfExists('content_source_approvals');
     await db.schema.dropTableIfExists('quran_surahs');
     await db.schema.dropTableIfExists('content_sources');
+    await db.raw('DROP ROLE IF EXISTS deenverse_runtime_ro');
+    await db.raw('DROP ROLE IF EXISTS deenverse_api');
     await db.destroy();
   }
 });
