@@ -243,6 +243,7 @@ test('Hadith API publishes only source-approved, independently reviewed, intact 
   const corrupt = await app.inject({ method: 'GET', url: '/api/v1/hadith/records/fixture-hadith-1' });
   assert.equal(corrupt.statusCode, 502);
   assert.equal(JSON.parse(corrupt.body).error.code, 'INTEGRITY_REJECTED');
+  await db('hadith_records').where({ id: 'fixture-hadith-1' }).update({ text_sha256: digest(verifiedText) });
 
   await db('content_source_approvals').where({ id: 'hadith-source-approval' }).update({ artifact_sha256: '0'.repeat(64) });
   const mismatchedSource = await app.inject({ method: 'GET', url: '/api/v1/hadith/books' });
