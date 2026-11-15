@@ -268,6 +268,25 @@ test('Hadith API publishes only source-approved, independently reviewed, intact 
 
   await db('hadith_record_reviews').where({ id: 'review-independent-1' }).update({ reviewer_id: 'reviewer-independent' });
 
+  const sourceAndApprovalReviewerReuseCases = [
+    { reviewId: 'review-primary-1', reviewerId: 'TEST-REVIEWER', label: 'primary reviewer cannot reuse the source reviewer' },
+    { reviewId: 'review-primary-1', reviewerId: 'TEST-SOURCE-AUTHORITY', label: 'primary reviewer cannot reuse the source approval reviewer' },
+    { reviewId: 'review-independent-1', reviewerId: 'TEST-REVIEWER', label: 'independent reviewer cannot reuse the source reviewer' },
+    { reviewId: 'review-independent-1', reviewerId: 'TEST-SOURCE-AUTHORITY', label: 'independent reviewer cannot reuse the source approval reviewer' }
+  ];
+  for (const scenario of sourceAndApprovalReviewerReuseCases) {
+    await db('hadith_record_reviews')
+      .where({ id: scenario.reviewId })
+      .update({ reviewer_id: scenario.reviewerId });
+    const reusedSourceAuthority = await app.inject({
+      method: 'GET',
+      url: '/api/v1/hadith/records/fixture-hadith-1'
+    });
+    assert.equal(reusedSourceAuthority.statusCode, 404, scenario.label);
+  }
+  await db('hadith_record_reviews').where({ id: 'review-primary-1' }).update({ reviewer_id: 'reviewer-primary' });
+  await db('hadith_record_reviews').where({ id: 'review-independent-1' }).update({ reviewer_id: 'reviewer-independent' });
+
   await db('hadith_record_reviews').where({ id: 'review-independent-1' }).update({ source_id: 'unrelated-source' });
   const mismatchedIndependentReviewSource = await app.inject({ method: 'GET', url: '/api/v1/hadith/records/fixture-hadith-1' });
   assert.equal(mismatchedIndependentReviewSource.statusCode, 404, 'independent review must be bound to the exact Hadith source');
