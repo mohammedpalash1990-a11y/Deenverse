@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { Knex } from 'knex';
 import { ContentProvenanceSchema } from './validation.js';
+import { RESERVED_REVIEWER_IDENTITY, reviewerIdentitySql } from './reviewer-identity.js';
 
 type DbRow = Record<string, any>;
 type ServiceStatus = 'unavailable' | 'not_found' | 'integrity_rejected';
@@ -68,6 +69,8 @@ export class HadithLibraryService {
   constructor(private readonly db: Knex) {}
 
   private async approvedHadithSources(): Promise<Map<string, ReturnType<typeof provenanceFromRow>>> {
+    const sourceReviewer = reviewerIdentitySql(this.db, 'cs.reviewer');
+    const approvalReviewer = reviewerIdentitySql(this.db, 'csa.reviewer_id');
     const rows = await this.db('content_sources as cs')
       .join('content_source_approvals as csa', 'csa.source_id', 'cs.id')
       .where({
@@ -76,9 +79,11 @@ export class HadithLibraryService {
         'cs.redistribution_allowed': true,
         'csa.decision': 'approved'
       })
-      .whereRaw('LOWER(TRIM(cs.reviewer)) <> LOWER(TRIM(csa.reviewer_id))')
-      .whereRaw("LOWER(TRIM(cs.reviewer)) <> 'project-owner-chat-authorization'")
-      .whereRaw("LOWER(TRIM(csa.reviewer_id)) <> 'project-owner-chat-authorization'")
+      .whereRaw(`${sourceReviewer.sql} <> ''`, sourceReviewer.bindings)
+      .whereRaw(`${approvalReviewer.sql} <> ''`, approvalReviewer.bindings)
+      .whereRaw(`${sourceReviewer.sql} <> ${approvalReviewer.sql}`, [...sourceReviewer.bindings, ...approvalReviewer.bindings])
+      .whereRaw(`${sourceReviewer.sql} <> ?`, [...sourceReviewer.bindings, RESERVED_REVIEWER_IDENTITY])
+      .whereRaw(`${approvalReviewer.sql} <> ?`, [...approvalReviewer.bindings, RESERVED_REVIEWER_IDENTITY])
       .whereRaw('csa.artifact_sha256 = cs.checksum')
       .select(
         'cs.id as source_id',
@@ -106,6 +111,10 @@ export class HadithLibraryService {
   }
 
   private verifiedRecordsQuery() {
+    const sourceReviewer = reviewerIdentitySql(this.db, 'cs.reviewer');
+    const approvalReviewer = reviewerIdentitySql(this.db, 'csa.reviewer_id');
+    const primaryReviewer = reviewerIdentitySql(this.db, 'pr.reviewer_id');
+    const independentReviewer = reviewerIdentitySql(this.db, 'ir.reviewer_id');
     return this.db('hadith_records as hr')
       .join('hadith_books as hb', 'hb.id', 'hr.book_id')
       .join('content_sources as cs', 'cs.id', 'hr.source_id')
@@ -131,18 +140,20 @@ export class HadithLibraryService {
       .whereRaw('ir.source_id = hr.source_id')
       .whereRaw('pr.artifact_sha256 = cs.checksum')
       .whereRaw('ir.artifact_sha256 = cs.checksum')
-      .whereRaw("LENGTH(TRIM(pr.reviewer_id)) > 0")
-      .whereRaw("LENGTH(TRIM(ir.reviewer_id)) > 0")
-      .whereRaw('LOWER(TRIM(pr.reviewer_id)) <> LOWER(TRIM(ir.reviewer_id))')
-      .whereRaw('LOWER(TRIM(pr.reviewer_id)) <> LOWER(TRIM(cs.reviewer))')
-      .whereRaw('LOWER(TRIM(pr.reviewer_id)) <> LOWER(TRIM(csa.reviewer_id))')
-      .whereRaw('LOWER(TRIM(ir.reviewer_id)) <> LOWER(TRIM(cs.reviewer))')
-      .whereRaw('LOWER(TRIM(ir.reviewer_id)) <> LOWER(TRIM(csa.reviewer_id))')
-      .whereRaw("LOWER(TRIM(pr.reviewer_id)) <> 'project-owner-chat-authorization'")
-      .whereRaw("LOWER(TRIM(ir.reviewer_id)) <> 'project-owner-chat-authorization'")
-      .whereRaw('LOWER(TRIM(cs.reviewer)) <> LOWER(TRIM(csa.reviewer_id))')
-      .whereRaw("LOWER(TRIM(cs.reviewer)) <> 'project-owner-chat-authorization'")
-      .whereRaw("LOWER(TRIM(csa.reviewer_id)) <> 'project-owner-chat-authorization'")
+      .whereRaw(`${primaryReviewer.sql} <> ''`, primaryReviewer.bindings)
+      .whereRaw(`${independentReviewer.sql} <> ''`, independentReviewer.bindings)
+      .whereRaw(`${sourceReviewer.sql} <> ''`, sourceReviewer.bindings)
+      .whereRaw(`${approvalReviewer.sql} <> ''`, approvalReviewer.bindings)
+      .whereRaw(`${primaryReviewer.sql} <> ${independentReviewer.sql}`, [...primaryReviewer.bindings, ...independentReviewer.bindings])
+      .whereRaw(`${primaryReviewer.sql} <> ${sourceReviewer.sql}`, [...primaryReviewer.bindings, ...sourceReviewer.bindings])
+      .whereRaw(`${primaryReviewer.sql} <> ${approvalReviewer.sql}`, [...primaryReviewer.bindings, ...approvalReviewer.bindings])
+      .whereRaw(`${independentReviewer.sql} <> ${sourceReviewer.sql}`, [...independentReviewer.bindings, ...sourceReviewer.bindings])
+      .whereRaw(`${independentReviewer.sql} <> ${approvalReviewer.sql}`, [...independentReviewer.bindings, ...approvalReviewer.bindings])
+      .whereRaw(`${primaryReviewer.sql} <> ?`, [...primaryReviewer.bindings, RESERVED_REVIEWER_IDENTITY])
+      .whereRaw(`${independentReviewer.sql} <> ?`, [...independentReviewer.bindings, RESERVED_REVIEWER_IDENTITY])
+      .whereRaw(`${sourceReviewer.sql} <> ${approvalReviewer.sql}`, [...sourceReviewer.bindings, ...approvalReviewer.bindings])
+      .whereRaw(`${sourceReviewer.sql} <> ?`, [...sourceReviewer.bindings, RESERVED_REVIEWER_IDENTITY])
+      .whereRaw(`${approvalReviewer.sql} <> ?`, [...approvalReviewer.bindings, RESERVED_REVIEWER_IDENTITY])
       .select(
         'hr.id as id',
         'hr.book_id as book_id',
@@ -184,6 +195,8 @@ export class HadithLibraryService {
   ): Promise<HadithServiceResult<DbRow[]>> {
     if (records.length === 0) return { status: 'ok', value: records };
     const ids = records.map((record) => String(record.id));
+    const sourceReviewer = reviewerIdentitySql(this.db, 'ts.reviewer');
+    const approvalReviewer = reviewerIdentitySql(this.db, 'tsa.reviewer_id');
     let query = this.db('hadith_translations as ht')
       .join('content_sources as ts', 'ts.id', 'ht.source_id')
       .join('content_source_approvals as tsa', 'tsa.source_id', 'ts.id')
@@ -194,9 +207,11 @@ export class HadithLibraryService {
         'ts.redistribution_allowed': true,
         'tsa.decision': 'approved'
       })
-      .whereRaw('LOWER(TRIM(ts.reviewer)) <> LOWER(TRIM(tsa.reviewer_id))')
-      .whereRaw("LOWER(TRIM(ts.reviewer)) <> 'project-owner-chat-authorization'")
-      .whereRaw("LOWER(TRIM(tsa.reviewer_id)) <> 'project-owner-chat-authorization'")
+      .whereRaw(`${sourceReviewer.sql} <> ''`, sourceReviewer.bindings)
+      .whereRaw(`${approvalReviewer.sql} <> ''`, approvalReviewer.bindings)
+      .whereRaw(`${sourceReviewer.sql} <> ${approvalReviewer.sql}`, [...sourceReviewer.bindings, ...approvalReviewer.bindings])
+      .whereRaw(`${sourceReviewer.sql} <> ?`, [...sourceReviewer.bindings, RESERVED_REVIEWER_IDENTITY])
+      .whereRaw(`${approvalReviewer.sql} <> ?`, [...approvalReviewer.bindings, RESERVED_REVIEWER_IDENTITY])
       .whereRaw('tsa.artifact_sha256 = ts.checksum')
       .whereRaw('ht.license_id = ts.license_id');
     if (locale) query = query.where('ht.locale', locale);
@@ -385,6 +400,8 @@ export class HadithLibraryService {
     const pattern = `%${clean.toLowerCase()}%`;
     const normalizedArabicTerm = ARABIC_DIACRITICS.reduce((value, mark) => value.split(mark).join(''), clean.normalize('NFKC')).toLowerCase();
     const arabicPattern = `%${normalizedArabicTerm}%`;
+    const translationSourceReviewer = reviewerIdentitySql(this.db, 'ts.reviewer');
+    const translationApprovalReviewer = reviewerIdentitySql(this.db, 'tsa.reviewer_id');
     const base = this.verifiedRecordsQuery().where(function () {
       const searchArabic = !locale || locale === 'ar';
       const searchTranslation = !locale || locale === 'bn' || locale === 'en';
@@ -408,8 +425,11 @@ export class HadithLibraryService {
               'ts.redistribution_allowed': true,
               'tsa.decision': 'approved'
             })
-            .whereRaw('LOWER(TRIM(ts.reviewer)) <> LOWER(TRIM(tsa.reviewer_id))')
-            .whereRaw("LOWER(TRIM(tsa.reviewer_id)) <> 'project-owner-chat-authorization'")
+            .whereRaw(`${translationSourceReviewer.sql} <> ''`, translationSourceReviewer.bindings)
+            .whereRaw(`${translationApprovalReviewer.sql} <> ''`, translationApprovalReviewer.bindings)
+            .whereRaw(`${translationSourceReviewer.sql} <> ${translationApprovalReviewer.sql}`, [...translationSourceReviewer.bindings, ...translationApprovalReviewer.bindings])
+            .whereRaw(`${translationSourceReviewer.sql} <> ?`, [...translationSourceReviewer.bindings, RESERVED_REVIEWER_IDENTITY])
+            .whereRaw(`${translationApprovalReviewer.sql} <> ?`, [...translationApprovalReviewer.bindings, RESERVED_REVIEWER_IDENTITY])
             .whereRaw('tsa.artifact_sha256 = ts.checksum')
             .whereRaw('ht.license_id = ts.license_id')
             .whereRaw('LOWER(??) LIKE ?', ['ht.translation_text', pattern]);
