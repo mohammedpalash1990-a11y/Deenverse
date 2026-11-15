@@ -298,14 +298,14 @@ test('Hadith API publishes only source-approved, independently reviewed, intact 
 
   await db('hadith_record_reviews').where({ id: 'review-independent-1' }).update({ reviewer_id: 'reviewer-independent' });
 
-  const whitespaceOnlyIdentity = '\\t\\n\\u00a0\\u2003';
+  const whitespaceOnlyIdentity = '\t\n\u00a0\u2003';
   await db('hadith_record_reviews').where({ id: 'review-primary-1' }).update({ reviewer_id: whitespaceOnlyIdentity });
   const whitespaceOnlyPrimaryReviewer = await app.inject({ method: 'GET', url: '/api/v1/hadith/records/fixture-hadith-1' });
   assert.equal(whitespaceOnlyPrimaryReviewer.statusCode, 404, 'Unicode and control whitespace cannot count as a reviewer identity');
   await db('hadith_record_reviews').where({ id: 'review-primary-1' }).update({ reviewer_id: 'reviewer-primary' });
 
-  await db('hadith_record_reviews').where({ id: 'review-primary-1' }).update({ reviewer_id: 'reviewer-primary\\u00a0' });
-  await db('hadith_record_reviews').where({ id: 'review-independent-1' }).update({ reviewer_id: '\\tREVIEWER-PRIMARY\\n' });
+  await db('hadith_record_reviews').where({ id: 'review-primary-1' }).update({ reviewer_id: 'reviewer-primary\u00a0' });
+  await db('hadith_record_reviews').where({ id: 'review-independent-1' }).update({ reviewer_id: '\tREVIEWER-PRIMARY\n' });
   const whitespaceAliasReviewers = await app.inject({ method: 'GET', url: '/api/v1/hadith/records/fixture-hadith-1' });
   assert.equal(whitespaceAliasReviewers.statusCode, 404, 'surrounding Unicode/control whitespace cannot create a second reviewer identity');
   await db('hadith_record_reviews').where({ id: 'review-primary-1' }).update({ reviewer_id: 'reviewer-primary' });
@@ -321,7 +321,7 @@ test('Hadith API publishes only source-approved, independently reviewed, intact 
   assert.equal(whitespaceOnlyApprovalReviewer.statusCode, 503, 'a whitespace-only source approver must fail closed');
   await db('content_source_approvals').where({ id: 'hadith-source-approval' }).update({ reviewer_id: 'test-source-authority' });
 
-  await db('content_sources').where({ id: 'hadith-source-fixture' }).update({ reviewer: '\\tPROJECT-OWNER-CHAT-AUTHORIZATION\\u00a0' });
+  await db('content_sources').where({ id: 'hadith-source-fixture' }).update({ reviewer: '\tPROJECT-OWNER-CHAT-AUTHORIZATION\u00a0' });
   const whitespaceReservedSourceReviewer = await app.inject({ method: 'GET', url: '/api/v1/hadith/books' });
   assert.equal(whitespaceReservedSourceReviewer.statusCode, 503, 'whitespace cannot disguise the reserved source reviewer identity');
   await db('content_sources').where({ id: 'hadith-source-fixture' }).update({ reviewer: 'test-reviewer' });
