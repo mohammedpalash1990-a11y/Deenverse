@@ -5,6 +5,7 @@ import { buildApp } from '../src/app.js';
 import { createDatabaseConnection } from '../src/db/connection.js';
 import { runMigrations } from '../src/db/migrate.js';
 import { encodeCursor } from '../src/services/validation.js';
+import { reviewerIdentitySql } from '../src/services/reviewer-identity.js';
 
 const digest = (value: string) => createHash('sha256').update(value, 'utf8').digest('hex');
 
@@ -327,8 +328,14 @@ test('Hadith API publishes only source-approved, independently reviewed, intact 
   await db('content_sources').where({ id: 'hadith-source-fixture' }).update({ reviewer: 'test-reviewer' });
 
   await db('content_sources').where({ id: 'hadith-translation-fixture' }).update({ reviewer: whitespaceOnlyIdentity });
+  const translationReviewerExpression = reviewerIdentitySql(db, 'ts.reviewer');
+  const normalizedTranslationReviewer = await db('content_sources as ts')
+    .where({ 'ts.id': 'hadith-translation-fixture' })
+    .select(db.raw(`${translationReviewerExpression.sql} AS normalized_reviewer`, translationReviewerExpression.bindings))
+    .first();
+  assert.equal(normalizedTranslationReviewer?.normalized_reviewer, '', 'SQLite reviewer normalization must trim the translation source value');
   const whitespaceOnlyTranslationReviewer = await app.inject({ method: 'GET', url: '/api/v1/hadith/records/fixture-hadith-1?locale=bn' });
-  assert.equal(whitespaceOnlyTranslationReviewer.statusCode, 200);
+  assert.equal(whitespaceOnlyTranslationReviewer.statusCode, 200, whitespaceOnlyTranslationReviewer.body);
   assert.equal(JSON.parse(whitespaceOnlyTranslationReviewer.body).data.translations.length, 0, 'a whitespace-only translation source reviewer must fail closed');
   await db('content_sources').where({ id: 'hadith-translation-fixture' }).update({ reviewer: 'test-reviewer' });
 
