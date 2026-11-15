@@ -9,6 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { createDatabaseConnection } from '../src/db/connection.js';
 import { runMigrations } from '../src/db/migrate.js';
 import { hasRequiredSchema } from '../src/db/schema-readiness.js';
+import { reviewerIdentitySql } from '../src/services/reviewer-identity.js';
 
 const testDatabaseUrl = process.env.TEST_DATABASE_URL;
 
@@ -68,6 +69,26 @@ test('PostgreSQL migrations and production runtime are verified against a real P
 
     // Concurrent release jobs serialize on the transaction-scoped PG lock.
     await Promise.all([runMigrations(db), runMigrations(db)]);
+
+    const blankReviewerExpression = reviewerIdentitySql(db, 'reviewer_value');
+    const blankReviewerResult = await db.raw(
+      `SELECT ${blankReviewerExpression.sql} AS normalized_reviewer FROM (SELECT ?::text AS reviewer_value) AS reviewer_fixture`,
+      [...blankReviewerExpression.bindings, '\\t\\n\\u00a0\\u2003']
+    );
+    assert.equal(blankReviewerResult.rows[0].normalized_reviewer, '', 'PostgreSQL must trim control and Unicode whitespace');
+
+    const primaryReviewerExpression = reviewerIdentitySql(db, 'primary_reviewer');
+    const independentReviewerExpression = reviewerIdentitySql(db, 'independent_reviewer');
+    const duplicateReviewerResult = await db.raw(
+      `SELECT ${primaryReviewerExpression.sql} = ${independentReviewerExpression.sql} AS same_reviewer FROM (SELECT ?::text AS primary_reviewer, ?::text AS independent_reviewer) AS reviewer_fixture`,
+      [
+        ...primaryReviewerExpression.bindings,
+        ...independentReviewerExpression.bindings,
+        'Reviewer-1\\t',
+        '\\u00a0reviewer-1'
+      ]
+    );
+    assert.equal(duplicateReviewerResult.rows[0].same_reviewer, true, 'PostgreSQL must normalize surrounding whitespace before identity comparison');
 
     // Create the runtime roles after the report table exists, then rerun the
     // idempotent migration runner to prove it applies the narrow grants later.
