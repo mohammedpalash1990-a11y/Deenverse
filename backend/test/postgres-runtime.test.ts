@@ -73,7 +73,7 @@ test('PostgreSQL migrations and production runtime are verified against a real P
     const blankReviewerExpression = reviewerIdentitySql(db, 'reviewer_value');
     const blankReviewerResult = await db.raw(
       `SELECT ${blankReviewerExpression.sql} AS normalized_reviewer FROM (SELECT ?::text AS reviewer_value) AS reviewer_fixture`,
-      [...blankReviewerExpression.bindings, '\\t\\n\\u00a0\\u2003']
+      [...blankReviewerExpression.bindings, '\t\n\u00a0\u2003']
     );
     assert.equal(blankReviewerResult.rows[0].normalized_reviewer, '', 'PostgreSQL must trim control and Unicode whitespace');
 
@@ -84,8 +84,8 @@ test('PostgreSQL migrations and production runtime are verified against a real P
       [
         ...primaryReviewerExpression.bindings,
         ...independentReviewerExpression.bindings,
-        'Reviewer-1\\t',
-        '\\u00a0reviewer-1'
+        'Reviewer-1\t',
+        '\u00a0reviewer-1'
       ]
     );
     assert.equal(duplicateReviewerResult.rows[0].same_reviewer, true, 'PostgreSQL must normalize surrounding whitespace before identity comparison');
