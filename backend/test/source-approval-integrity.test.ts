@@ -76,4 +76,26 @@ test('catalogue publication requires the approval digest to match the registered
     assert.equal(body.data[0].provenance.checksum, sourceDigest);
     assert.equal(body.data[0].payload.nameSimple, 'Synthetic metadata');
   });
+
+  await t.test('reviewer identity checks reject control and Unicode whitespace aliases', async () => {
+    const whitespaceOnly = '\\t\\n\\u00a0\\u2003';
+    await db('content_sources').where({ id: 'synthetic-source-fixture' }).update({ reviewer: whitespaceOnly });
+    const blankSourceReviewer = await app.inject({ method: 'GET', url: '/api/v1/quran/surahs' });
+    assert.equal(blankSourceReviewer.statusCode, 503, 'whitespace-only source reviewer must fail closed');
+
+    await db('content_sources').where({ id: 'synthetic-source-fixture' }).update({ reviewer: 'synthetic-test-reviewer' });
+    await db('content_source_approvals').where({ id: 'synthetic-approval-fixture' }).update({ reviewer_id: whitespaceOnly });
+    const blankApprovalReviewer = await app.inject({ method: 'GET', url: '/api/v1/quran/surahs' });
+    assert.equal(blankApprovalReviewer.statusCode, 503, 'whitespace-only artifact reviewer must fail closed');
+
+    await db('content_source_approvals').where({ id: 'synthetic-approval-fixture' }).update({ reviewer_id: ' synthetic-test-reviewer\\u00a0' });
+    const whitespaceAlias = await app.inject({ method: 'GET', url: '/api/v1/quran/surahs' });
+    assert.equal(whitespaceAlias.statusCode, 503, 'surrounding Unicode whitespace cannot create a second reviewer identity');
+
+    await db('content_source_approvals').where({ id: 'synthetic-approval-fixture' }).update({ reviewer_id: '\\tPROJECT-OWNER-CHAT-AUTHORIZATION\\u00a0' });
+    const disguisedReservedReviewer = await app.inject({ method: 'GET', url: '/api/v1/quran/surahs' });
+    assert.equal(disguisedReservedReviewer.statusCode, 503, 'whitespace cannot disguise the reserved project-owner identity');
+
+    await db('content_source_approvals').where({ id: 'synthetic-approval-fixture' }).update({ reviewer_id: 'synthetic-independent-artifact-reviewer' });
+  });
 });
