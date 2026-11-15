@@ -1,5 +1,4 @@
 import fastify, { FastifyInstance, FastifyError } from 'fastify';
-import { isIP } from 'node:net';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import rateLimit from '@fastify/rate-limit';
@@ -30,7 +29,10 @@ export function buildApp(opts: BuildAppOptions): FastifyInstance {
 
   const app = fastify({
     genReqId: () => `req_${randomUUID().replace(/-/g, '')}`,
-    logger: false
+    logger: false,
+    // Forwarded headers are untrusted until a specific reverse-proxy trust
+    // boundary is configured and verified for this public service.
+    trustProxy: false
   });
 
   app.register(helmet, {
@@ -105,13 +107,9 @@ export function buildApp(opts: BuildAppOptions): FastifyInstance {
         max: rateLimitMax,
         timeWindow: rateLimitWindowMs,
         global: true,
-        // Render terminates inbound traffic through Cloudflare and its load balancers.
-        // Fastify's socket IP is therefore the proxy address; use the validated
-        // Cloudflare-origin client IP for per-client quotas, falling back locally.
-        keyGenerator: (request) => {
-          const clientIp = request.headers['cf-connecting-ip'];
-          return typeof clientIp === 'string' && isIP(clientIp.trim()) ? clientIp.trim() : request.ip;
-        },
+        // Do not trust client-supplied forwarding headers for public quotas.
+        // Use the socket-derived IP until a verified proxy trust boundary exists.
+        keyGenerator: (request) => request.ip,
         errorResponseBuilder: (request, context) => ({
           statusCode: 429,
           error: {
