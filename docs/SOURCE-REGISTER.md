@@ -1,6 +1,6 @@
 # DEENVERSE Verified Content Source Register
 
-**Snapshot:** 2026-11-15 — current main `d4272680f02303f2220d218fb98cee09d07f587d`  
+**Snapshot:** 2026-11-15 — current main `d5f0b32476555c26804b87e8b9de81355f414a6b`  
 A provider being listed or reachable through an API does not approve its content for import, redistribution, caching, offline use, or publication. Each content type and edition requires its own evidence.
 
 | Content type | Candidate/provider | Edition/version | Current implementation | Rights/authenticity status | Import/publication status |
@@ -637,3 +637,38 @@ This snapshot supersedes earlier repository, CI, Neon, and release-gate statemen
 ### Release decision and next priority
 
 Keep Quran Arabic, Bengali translation, Hadith, tafsir, dua, and recitation audio fail-closed. Do not seed synthetic religious content, create approval records to satisfy readiness, or activate the inactive source. The highest-priority operational blocker is a confirmed Render workspace/service inspection, followed by a backup-backed reversible plan for the two missing additive migrations and a controlled deployment. Do not run production migrations or deploy until the exact service, migration target/role, CORS configuration, backup, rollback path, and Render egress are verified. Authentication, source provenance/rights, qualified independent review, and manual client QA remain separate release blockers.
+
+
+## 2026-11-15 post-PR-132 verification
+
+This section supersedes earlier main-SHA and PR-state snapshots above where they differ. All database queries below were read-only; no production content, schema, permissions, network settings, or deployment was changed.
+
+### GitHub mainline and CI
+
+- Current main at this checkpoint: `d5f0b32476555c26804b87e8b9de81355f414a6b`. PR #132 (`fix(hadith): reject blank narration reviewer identities`) is merged; its exact-head DEENVERSE CI #43705685342 passed backend typecheck/tests/build, web typecheck/tests/production build, and verify. Main push CI #43706433570 passed on the resulting merge commit.
+- PR #131 (Hadith reviewer/source-approver separation) and PR #130 (ignore caller-forged forwarded IP headers for rate limiting) are also merged. PR #91 and #92 remain merged.
+- The only open PRs at inspection are #79 and #11. Both target the historical `integration/platform-foundation` branch and are dirty/non-mergeable against their old base. PR #79 has a broad 29-file integration diff rather than the Share Cards-only scope in its body; do not merge it as-is. PR #11 is a historical documentation stack, not a current-main patch. PR #47 is closed unmerged; the support-report API/UI work was subsequently integrated through #93 and #126/#128.
+- GitHub reports `main.protected=false`; the repository rulesets list is empty. The branch-protection detail endpoint returned 403 for this connection. The releases list is empty; the connected GitHub fetch action did not expose the deployments inventory, so no production deploy SHA is claimed.
+
+### Recomputed Library candidate artifacts
+
+- Recomputed the Library Tanzil candidate `quran-uthmani.txt`: 1,396,087 bytes; SHA-256 `6933e133dd56db778c801bf738848454e43648105a151e8d84d86a7cae39ec5f`. UTF-8 decoding succeeded; the file contains 6,236 unique coordinates across all 114 Surahs and includes a Tanzil copyright/license block. This proves the Library bytes and internal structure only. The production source/approval digest is still `ac0724796cbbda0f4801470fbbd11d0f3c5802067bae0493466d0128b0c667af`, which does not match. The candidate footer says 2007–2026 while Tanzil's current Text License page displays 2007–2021; resolve that discrepancy against an exact official download. The official download page identifies Version 1.1 as published February 2021 and permits verbatim copies only with attribution and a Tanzil link. No official acquisition receipt/options/timestamp or matching official metadata artifact was found.
+- Recomputed both QuranEnc candidate archives and extracted members; all four SHA-256 values match the prior dossier: SQLite ZIP `ddd05bf3c6780e8231b39f4fc5e63fbee5d0affd46879678bc9f7fdfd63026e0`, extracted DB `bfdc89c228fc2d8edc78ab3cd3db74b5c55f02c346e815c220c3727275190358`, JSON ZIP `a4939eff1291b0527fad109895fb8e556b12d7fa8866989242ce4ed32aac1b82`, extracted JSON `e053a63f7e59d65b197041878b009e39ca4f53e1f72351c8e465fd1f4815bb59`. The SQLite integrity check passed; both formats contain 6,236 unique coordinates across 114 Surahs, all per-Surah counts match the repository's canonical counts, and every coordinate/text pair matches between formats. Neither archive contains source URL, version/transcript metadata, or footnotes. These are candidate bytes, not authenticated QuranEnc release artifacts. QuranEnc's current published conditions require unchanged text, publisher/source and version attribution, transcript information retained in the document, notifying the source about notes, updating to the latest version, and no inappropriate advertising. Keep the translation disabled.
+- The Hadith Project's current About page says its editorial board is being formed and that the first two reviewers will be named once they agree; its Bukhari foundation chains are machine-parsed and awaiting review. Its public source notes identify upstream ODbL/DbCL and Unlicense inputs. No immutable Deenverse Hadith artifact, per-edition redistribution dossier, or qualified independent review is present. No Hadith source is approved.
+
+### Neon production snapshot
+
+- Neon project `deenverse-db` (`cool-mud-31679014`), PostgreSQL 17, region `aws-ap-southeast-1`; default branch `main` (`br-spring-night-a14ey96s`) was Ready but unprotected.
+- Project allowed IP list is empty, `protected_branches_only=false`, and `block_public_connections=false`. No settings were changed.
+- Current table inventory has ten tables. Read-only counts: `content_sources=1`, `content_source_approvals=1`; `quran_surahs=0`, `quran_ayahs=0`; all six Hadith tables (`hadith_books`, `hadith_chapters`, `hadith_records`, `hadith_translations`, `hadith_grade_assessments`, `hadith_record_reviews`) are zero. `quran_ayah_reviews` and `problem_reports` are absent.
+- The only source is inactive Tanzil Uthmani. Its source reviewer and approval reviewer are both `project-owner-chat-authorization`; the metadata approval is not independent human approval. No production migration or SQL write was run. Readiness must remain closed until the controlled additive migrations are applied and the runtime role grants are verified.
+
+### Render, authentication, and client QA
+
+- Render workspace selection remains unconfirmed. No Render services, environment values, deploys, events, logs, API health/readiness, live CORS values, or Render-to-Neon connectivity were accessed; no production deploy SHA is claimed.
+- Repository search still finds no login/session/OTP route, JWT verification, or authentication middleware. The report endpoint is public and rate-limited; there is no authenticated staff inbox/list/assignment/notification workflow.
+- Automated checks do not replace manual Arabic RTL, Bengali/English localization, keyboard, screen-reader, contrast/zoom, responsive browser, offline install/recovery, or physical Android/iOS QA.
+
+### Release decision
+
+Keep Quran Arabic, Bengali translation, Hadith, tafsir, dua, and recitation audio fail-closed. Do not import the Library candidates, create approval rows, activate the inactive source, apply production migrations, change Neon network settings, or deploy until the exact source/rights/reviewer evidence and controlled production-operation plan are complete.
