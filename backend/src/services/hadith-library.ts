@@ -131,6 +131,8 @@ export class HadithLibraryService {
       .whereRaw('ir.source_id = hr.source_id')
       .whereRaw('pr.artifact_sha256 = cs.checksum')
       .whereRaw('ir.artifact_sha256 = cs.checksum')
+      .whereRaw("LENGTH(TRIM(pr.reviewer_id)) > 0")
+      .whereRaw("LENGTH(TRIM(ir.reviewer_id)) > 0")
       .whereRaw('LOWER(TRIM(pr.reviewer_id)) <> LOWER(TRIM(ir.reviewer_id))')
       .whereRaw('LOWER(TRIM(pr.reviewer_id)) <> LOWER(TRIM(cs.reviewer))')
       .whereRaw('LOWER(TRIM(pr.reviewer_id)) <> LOWER(TRIM(csa.reviewer_id))')
