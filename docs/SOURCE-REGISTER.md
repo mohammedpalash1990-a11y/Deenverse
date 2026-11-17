@@ -1,6 +1,6 @@
 # DEENVERSE Verified Content Source Register
 
-**Snapshot:** 2026-11-17 — current main `0b25fe0ef8baebca50b17990d570dfda61e0f70d`  
+**Snapshot:** 2026-11-17 — application-code baseline `0b25fe0ef8baebca50b17990d570dfda61e0f70d`; documentation-only PR #135 subsequently merged as `2e68fbac6e09fbbac1578a5712b36829bebd0744`  
 A provider being listed or reachable through an API does not approve its content for import, redistribution, caching, offline use, or publication. Each content type and edition requires its own evidence.
 
 | Content type | Candidate/provider | Edition/version | Current implementation | Rights/authenticity status | Import/publication status |
@@ -680,7 +680,7 @@ This section supersedes earlier main-SHA, PR-state, and production-state snapsho
 
 ### GitHub mainline and exact-head CI
 
-- Current `main`: `0b25fe0ef8baebca50b17990d570dfda61e0f70d`; latest main commit is [PR #134](https://github.com/mohammedpalash1990-a11y/Deenverse/pull/134), which normalizes reviewer identity whitespace across PostgreSQL and SQLite.
+- Application-code baseline audited before the documentation-only PR #135 merge: `0b25fe0ef8baebca50b17990d570dfda61e0f70d`; PR #135 subsequently merged as `2e68fbac6e09fbbac1578a5712b36829bebd0744`. The latest application-code change is [PR #134](https://github.com/mohammedpalash1990-a11y/Deenverse/pull/134), which normalizes reviewer identity whitespace across PostgreSQL and SQLite.
 - Exact-main [CI run #43708255723](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/43708255723) completed successfully on this SHA. Backend job [#132793993412](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/43708255723/job/132793993412): typecheck, 123/123 tests, PostgreSQL 16 runtime/migration test, build, and dependency audit with zero vulnerabilities. Web job [#132793993558](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/43708255723/job/132793993558): typecheck, 186/186 tests across 21 files, production build, and dependency audit with zero vulnerabilities.
 - PR #134 exact-head [DEENVERSE CI #43708100333](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/43708100333) and [Web foundation #43708100304](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/43708100304) passed. PR #134 merged as `0b25fe0ef8baebca50b17990d570dfda61e0f70d`.
 - PR #91 and #92 remain merged. PRs #85, #86, #87 and #89 are closed unmerged; their accepted reviewer-identity, Hadith cursor and PWA persistence changes are represented in later merged mainline work. PR #90, #93, #105, #126, #128 and #130–#134 are merged. The only open PRs are #79 and #11; both target the historical `integration/platform-foundation` branch and are dirty/non-mergeable. PR #79's actual diff is broader than its stated Share Cards scope. Neither is safe to merge as-is.
