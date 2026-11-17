@@ -35,7 +35,7 @@ This checklist is evidence-based. A checked item means the corresponding code or
 
 - [x] Tanzil importer validates official-source artifacts, exact structure, and hashes; explicit seed requires independent source approval bound to text + metadata digests.
 - [ ] Tanzil acquisition evidence completed: a public copy remains committed and is still displayed by current `main`, but the exact official download options, retrieval timestamp, independently verified artifact digest, and independent source review are not recorded. The integration branch now routes the mounted reader through the backend approval gate; reconcile `SOURCE_INFO.md` and `docs/TANZIL-SOURCE-DOSSIER.md` before approval.
-- [ ] Per-Ayah human review gate merged and enforced before Quran text publication.
+- [x] Per-Ayah record-review gate merged and enforced in main through PR #105; reviewer qualification/identity authentication and actual production review evidence remain unverified.
 - [ ] QuranEnc Bengali translation rights for web/mobile/caching/offline/export documented and approved.
 - [ ] Hadith source/edition/redistribution rights approved and content reviewed.
 - [ ] Tafsir and dua sources independently approved.
@@ -278,3 +278,11 @@ No production data, schema, permissions, environment variables, Render configura
 - [ ] No candidate has yet passed primary-source provenance, exact edition/version, redistribution-rights, immutable SHA-256, and qualified independent human-review gates.
 - [ ] Do not import Sunnah.com-derived English translations or community Bangla data until the actual translator/publisher grants and per-item provenance are verified.
 
+
+
+## Current verification correction — 2026-11-17
+
+- Main is `0b25fe0ef8baebca50b17990d570dfda61e0f70d`; exact-main [CI #43708255723](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/43708255723) passed backend 123/123 and web 186/186 tests, typechecks, builds, PostgreSQL 16 integration, and dependency audits (zero vulnerabilities).
+- The Quran source selector now fails closed unless exactly one eligible active source exists. The per-Ayah record-review gate is merged through PR #105; this does not prove reviewer qualifications or authenticated identities.
+- Neon remains Ready but unprotected, with an empty IP allowlist and public connections enabled. Production has zero Quran/Hadith corpus rows and lacks `quran_ayah_reviews` and `problem_reports`; no migration was run.
+- Render workspace/service inspection remains unavailable until a workspace is confirmed. Authentication/session/authorization and manual Arabic RTL, accessibility, offline recovery, and physical-device QA remain outstanding.

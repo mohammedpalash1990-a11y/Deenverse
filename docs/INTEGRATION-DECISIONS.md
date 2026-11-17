@@ -152,3 +152,13 @@ Main exact-head CI run #41812199822 passed both backend and web jobs on `a7ff413
 ## OpenAPI validator hardening — 2026-11-04
 
 The first route-parity workflow passed on the exact sync head. The validator is now being hardened to reject duplicate YAML mapping keys and unresolved local component references before comparing all documented path/method pairs with the backend route registrations. The duplicate `SurahPage` schema key was removed. The hardened version requires a fresh exact-head Actions run; no pass is claimed for it yet.
+
+
+## Current implementation correction — 2026-11-17
+
+This section supersedes the 2026-11-04 release-blocker statements above about Quran source selection and the absence of a per-Ayah review gate. Earlier sections remain historical records of the state at their stated dates.
+
+- **Quran source selection:** current main uses `backend/src/services/approved-quran-source.ts`. It returns a source only when exactly one active, redistribution-permitted, approved source has a digest-bound decision and distinct non-reserved source/approval reviewers. It limits the query to two rows and returns unavailable for zero or multiple eligible sources. The catalogue and Ayah services both use this helper; `backend/test/quran-ayah.test.ts` covers multiple active approved sources. The old statement that current main uses an unordered `.first()` is obsolete.
+- **Per-Ayah review:** the gate is implemented in main through merged [PR #105](https://github.com/mohammedpalash1990-a11y/Deenverse/pull/105). The runtime requires a passed record review bound to the source artifact digest and distinct non-reserved reviewer identities. This is a technical identity-separation gate only; it does not authenticate the reviewers or establish their qualifications. PRs #43 and #45 are closed unmerged.
+- **Current main and CI:** `0b25fe0ef8baebca50b17990d570dfda61e0f70d`; [exact-main CI #43708255723](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/43708255723) passed backend 123/123 tests and web 186/186 tests, typechecks, builds, PostgreSQL 16 integration and dependency audits (zero vulnerabilities).
+- **Current release blockers:** no authenticated login/session/authorization; no qualified independent human reviewer evidence; no authenticated staff report inbox; no official immutable Quran artifact whose independently recomputed digest matches the inactive production source metadata; no approved Hadith corpus; Neon is unprotected with no IP allowlist and public connections enabled; production lacks `quran_ayah_reviews` and `problem_reports`; Render production state is not accessible without a confirmed workspace; manual RTL/accessibility/offline/device QA remains outstanding.
