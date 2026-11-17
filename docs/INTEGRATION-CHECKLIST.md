@@ -282,7 +282,7 @@ No production data, schema, permissions, environment variables, Render configura
 
 ## Current verification correction — 2026-11-17
 
-- Main is `0b25fe0ef8baebca50b17990d570dfda61e0f70d`; exact-main [CI #43708255723](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/43708255723) passed backend 123/123 and web 186/186 tests, typechecks, builds, PostgreSQL 16 integration, and dependency audits (zero vulnerabilities).
+- Application-code baseline audited before documentation-only PR #135 is `0b25fe0ef8baebca50b17990d570dfda61e0f70d`; PR #135 subsequently merged as `2e68fbac6e09fbbac1578a5712b36829bebd0744`; exact-baseline [CI #43708255723](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/43708255723) passed backend 123/123 and web 186/186 tests, typechecks, builds, PostgreSQL 16 integration, and dependency audits (zero vulnerabilities).
 - The Quran source selector now fails closed unless exactly one eligible active source exists. The per-Ayah record-review gate is merged through PR #105; this does not prove reviewer qualifications or authenticated identities.
 - Neon remains Ready but unprotected, with an empty IP allowlist and public connections enabled. Production has zero Quran/Hadith corpus rows and lacks `quran_ayah_reviews` and `problem_reports`; no migration was run.
 - Render workspace/service inspection remains unavailable until a workspace is confirmed. Authentication/session/authorization and manual Arabic RTL, accessibility, offline recovery, and physical-device QA remain outstanding.
