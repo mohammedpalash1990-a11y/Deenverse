@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   backend:
-    name: Probe sqlite3 downgrade
+    name: Probe sqlite3 downgrade with patched transitive dependencies
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -35,6 +35,11 @@ jobs:
           node-version: 22
       - name: Install sqlite3 audit candidate
         run: npm install sqlite3@5.1.7 --save --no-audit --no-fund
+        working-directory: backend
+      - name: Pin transitive packages to patched releases
+        run: |
+          npm pkg set 'overrides.@tootallnate/once=2.0.1' 'overrides.tar=7.5.21'
+          npm install --no-audit --no-fund
         working-directory: backend
       - name: Verify locked install
         run: npm ci --no-audit --no-fund
