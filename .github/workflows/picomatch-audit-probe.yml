@@ -1,0 +1,92 @@
+name: Temporary picomatch dependency remediation probe
+
+on:
+  push:
+    branches:
+      - audit/probe-picomatch-fix-2026-11-18
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: Probe sqlite3 downgrade
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: deenverse_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d deenverse_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/deenverse_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install sqlite3 audit candidate
+        run: npm install sqlite3@5.1.7 --save --no-audit --no-fund
+        working-directory: backend
+      - name: Verify locked install
+        run: npm ci --no-audit --no-fund
+        working-directory: backend
+      - name: Backend typecheck
+        run: npm run typecheck
+        working-directory: backend
+      - name: Backend tests
+        run: npm test
+        working-directory: backend
+      - name: Backend build
+        run: npm run build
+        working-directory: backend
+      - name: Backend audit
+        run: npm audit --audit-level=high
+        working-directory: backend
+      - name: Upload backend dependency manifests
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: picomatch-probe-backend
+          path: |
+            backend/package.json
+            backend/package-lock.json
+          if-no-files-found: error
+
+  web:
+    name: Probe Vitest downgrade
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Vitest audit candidate
+        run: npm install vitest@3.1.4 --save-dev --no-audit --no-fund
+      - name: Verify locked install
+        run: npm ci --no-audit --no-fund
+      - name: Web typecheck
+        run: npm run typecheck
+      - name: Web tests
+        run: npm test
+      - name: Web build
+        run: npm run build
+      - name: Web audit
+        run: npm audit --audit-level=high
+      - name: Upload web dependency manifests
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: picomatch-probe-web
+          path: |
+            package.json
+            package-lock.json
+          if-no-files-found: error
