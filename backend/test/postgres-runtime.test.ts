@@ -204,7 +204,7 @@ test('PostgreSQL migrations and production runtime are verified against a real P
     assert.equal(body.status, 'ready');
     assert.equal(body.database, 'connected');
     assert.equal(body.migrations, 'applied');
-    assert.match(childStdout, /DEENVERSE backend listening/);
+    assert.match(childStdout, /DEENVERSE backend listening at http:\/\/0\.0\.0\.0:/, 'production must bind all interfaces even when HOST is configured as localhost');
 
     const reportResponse = await fetch(`http://127.0.0.1:${port}/api/v1/problem-reports`, {
       method: 'POST',
