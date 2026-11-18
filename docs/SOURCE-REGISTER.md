@@ -765,3 +765,56 @@ This clarification supersedes only the copyright-year and QuranEnc catalogue wor
 - The Library Tanzil candidate footer says Copyright 2007–2026. The official [Text License page](https://tanzil.net/docs/Text_License) still displays Copyright 2007–2021, while the official [Tanzil homepage](https://tanzil.net/) currently displays ©2007–2026. The official [Text Updates page](https://tanzil.net/updates/) and [download page](https://tanzil.net/pub/download/index.php) still identify Version 1.1 as released on 2021-02-12. Therefore the copyright-year difference alone does not establish that the Library candidate was altered; Tanzil's pages are internally inconsistent. The independently recomputed candidate SHA-256 remains `6933e133dd56db778c801bf738848454e43648105a151e8d84d86a7cae39ec5f`, which still does not match the Neon source/approval digest. No exact official download with matching options and acquisition record was obtained. Keep the candidate unapproved.
 - The current official [QuranEnc browse page](https://quranenc.com/en/browse/bengali_zakaria/) identifies the Bengali translation as Abu Bakr Zakaria and lists all 114 Surahs. The official [Terms and Policies page](https://quranenc.com/nqo/home/about/terms) explicitly permits downloading and republishing translations only if content is unchanged, publisher/source attribution is clear, the version number is stated, transcript information remains inside the document, notes are reported to QuranEnc, the latest issued version is used, and inappropriate advertisements are excluded.
 - The Library SQLite/JSON candidates still contain only translation text and coordinates; they do not include the publisher URL, version, last-update date, transcript information, or footnotes. A live request to the documented API list endpoint filtered to `bn` returned an empty translation list; the unfiltered list localized to Bengali returned 76 entries but none with `language_iso_code=bn`. This API catalogue result does not negate the live browse page, but it means the candidate archives were not matched to a current official API download record in this run. The terms permit republishing in principle, but the exact archive/version/transcript requirements are not yet evidenced. Do not import the candidates.
+
+
+## 2026-11-18 follow-up audit (13:43 Asia/Riyadh)
+
+This section supersedes earlier snapshots for main, the active runtime-hardening PR, and the production state. Checks below were repeated against GitHub, Neon, the Library candidate bytes, and current upstream source pages. No production database write, migration, permission/network change, Render operation, or deployment was performed.
+
+### Main, CI, and pull requests
+
+- Current `main`: `611189ee79801658c940c8d32d752ac2f680ea4a` ([commit](https://github.com/mohammedpalash1990-a11y/Deenverse/commit/611189ee79801658c940c8d32d752ac2f680ea4a)). The latest commits are documentation updates #142 and #141; the application code baseline still includes commit `3850b632be77db6ee4aa15442a0d45fcfd61452f`.
+- Main CI for that application-code commit, [run #44237088379](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/44237088379), failed: the in-memory mock replaced the real SQLite driver, and the web/backend dependency audits report GHSA-fc5q-39xc-vjpf.
+- [PR #143](https://github.com/mohammedpalash1990-a11y/Deenverse/pull/143) is the current consolidated runtime-safety fix, based on current main. Current head: `5a256c70ad9713c6457684e922042bc166e1ea6f`. It restores real SQLite, production all-interface binding, anti-framing headers, fail-closed mock readiness, non-persistent report handling, and fail-closed Quran/Hadith fallback routes. Its regression test now proves reachability through a non-loopback IPv4 interface instead of asserting the Fastify display URL.
+- At this exact head, backend typecheck/build passed and **124/124 backend tests passed**; web typecheck/build passed and **197/197 web tests passed**. [Web foundation verification #44289033741](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/44289033741) passed. [Backend/web CI #44289033572](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/44289033572) still fails only at the backend and web dependency-audit steps.
+- Both audits identify the locked `picomatch@4.0.7` through GHSA-fc5q-39xc-vjpf. The current [GitHub advisory](https://github.com/advisories/GHSA-fc5q-39xc-vjpf) marks versions through 4.0.7 affected and has no patched version. The audit's suggested forced changes would downgrade Vitest to 3.1.4 in the web project and sqlite3 to 5.1.7 in the backend, both reported as breaking changes. Do not suppress the audit or apply an unverified downgrade. Keep #143 open until a verifiable safe remediation exists and all exact-head checks pass.
+- [PR #137](https://github.com/mohammedpalash1990-a11y/Deenverse/pull/137) is an older duplicate of the runtime fix, still based on stale main `3850b632be77db6ee4aa15442a0d45fcfd61452f`; do not merge it. PR #91 remains merged as `888157747892681ed50360c1140d482967354ceb`. PR #92 remains merged as `5613041b5df7919c84267976595b1aaf4c0efd9b`. Legacy #79 and #11 remain open against `integration/platform-foundation` and are dirty/non-mergeable; do not merge as-is.
+- GitHub reports `main.protected=false`; the repository rulesets collection is empty. The branch-protection detail endpoint is forbidden to this connection. The releases collection is empty; deployment inventory is not available through this GitHub connection. No production deploy SHA is claimed.
+
+### Immutable source candidates and licensing
+
+**Tanzil Uthmani candidate**
+
+- Library file `quran-uthmani.txt`: 1,396,087 bytes; independently recomputed SHA-256 `6933e133dd56db778c801bf738848454e43648105a151e8d84d86a7cae39ec5f`. UTF-8 decoding succeeds; 6,236 unique coordinates across 114 Surahs; no duplicate coordinates. This is only a byte/structure check of the Library candidate, not proof of publisher acquisition or scholarly correctness.
+- Neon still stores `ac0724796cbbda0f4801470fbbd11d0f3c5802067bae0493466d0128b0c667af`, which does not match the candidate hash. The source is inactive and its stored approval is not independent.
+- Tanzil's [Text License](https://tanzil.net/docs/Text_License) permits verbatim copying only, requires attribution/link to Tanzil and preservation of the copyright/license notice. The [updates page](https://tanzil.net/updates/) identifies Version 1.1 dated 2021-02-12. The candidate has no verified exact-download acquisition record. Keep it unapproved; do not import.
+
+**QuranEnc Abu Bakr Zakaria candidate**
+
+- SQLite ZIP SHA-256: `ddd05bf3c6780e8231b39f4fc5e63fbee5d0affd46879678bc9f7fdfd63026e0`; extracted SQLite SHA-256: `bfdc89c228fc2d8edc78ab3cd3db74b5c55f02c346e815c220c3727275190358`.
+- JSON ZIP SHA-256: `a4939eff1291b0527fad109895fb8e556b12d7fa8866989242ce4ed32aac1b82`; extracted JSON SHA-256: `e053a63f7e59d65b197041878b009e39ca4f53e1f72351c8e465fd1f4815bb59`.
+- SQLite integrity check passes. Both formats contain 6,236 unique Ayah coordinates across 114 Surahs; all JSON `t` values exactly match SQLite `text` values. The files do not contain publisher URL, translation version/update date, transcript metadata, or footnotes.
+- QuranEnc's [terms](https://quranenc.com/nqo/home/about/terms) permit republishing only without content changes and require publisher/source attribution, version number, transcript information, notifying QuranEnc of notes, using the latest issued version, and excluding inappropriate advertisements. The current candidate archives have not been matched to a source-issued version/transcript record. Do not import them.
+
+**Hadith candidate**
+
+- The Hadith Project repository is at [`ibnmukthar/thehadithproject`](https://github.com/ibnmukthar/thehadithproject), current main commit `1715528937855f22b83693752e8881fdbe5c5088`. Its [data licence](https://github.com/ibnmukthar/thehadithproject/blob/1715528937855f22b83693752e8881fdbe5c5088/LICENSE-DATA.md) states CC BY 4.0 for project data. Its Bukhari source dossier identifies Open-Hadith-Data as ODbL 1.0 + DbCL 1.0 and the fawazahmed0 mirror as Unlicense/repository plus public-domain Arabic text; source-specific terms still need to be retained.
+- The repository's [editorial board file](https://github.com/ibnmukthar/thehadithproject/blob/1715528937855f22b83693752e8881fdbe5c5088/data/board.json) lists one founding maintainer, who approves everything until two further reviewers agree to serve. The Bukhari [source README](https://github.com/ibnmukthar/thehadithproject/blob/1715528937855f22b83693752e8881fdbe5c5088/data/collections/bukhari/README.md) labels chain/isnad-matn processing as machine proposals pending human review. This is not qualified independent approval for Deenverse.
+- No full immutable Hadith corpus artifact was acquired or independently SHA-256 hashed in this run. No Hadith content was imported or activated.
+
+### Neon production (read-only)
+
+- Project `deenverse-db` (`cool-mud-31679014`), PostgreSQL 17, region `aws-ap-southeast-1`; default branch `main` (`br-spring-night-a14ey96s`) is Ready and `protected=false`.
+- Project IP allowlist is empty; `protected_branches_only=false`; `block_public_connections=false`.
+- Ten public tables exist. `quran_ayah_reviews` and `problem_reports` are absent. Row counts: `content_sources=1`, `content_source_approvals=1`, `quran_surahs=0`, `quran_ayahs=0`; all six Hadith tables have zero rows.
+- The single Tanzil source is inactive. Source reviewer and approval reviewer are the same `project-owner-chat-authorization`; decision metadata says approved but is not independent human approval. Stored digest does not match the Library candidate. The runtime/API roles can SELECT Quran rows but cannot INSERT or UPDATE them. No production SQL write or migration was run.
+
+### Render, authentication, PWA, and manual QA
+
+- Render workspace/service access remains unconfirmed. No service settings, environment values, deploys, events, logs, API health/readiness, live CORS, or Render-to-Neon connectivity were accessed. No live deployment status is claimed.
+- Repository search finds no JWT verification, login/session/OTP implementation, authorization middleware, or authenticated staff report workflow. `JWT_SECRET` remains a blank example placeholder.
+- Automated PWA coverage concerns the app shell and immutable same-origin assets; API responses and religious/user data are excluded from cache. Manual Arabic RTL, Bengali/English localization, keyboard, screen-reader, contrast/zoom, responsive, offline recovery, and physical Android/iOS QA remain unverified.
+
+### Release decision and next priority
+
+Keep Quran Arabic, Bengali translation, Hadith, tafsir, dua, and recitation audio fail-closed. First resolve GHSA-fc5q-39xc-vjpf without suppressing the audit, rerun exact-head checks, and merge #143 only after every required check passes. Then complete the read-only Render audit after workspace authorization, prepare backup/rollback plans for the two additive Neon migrations, and implement authentication/authorization plus authenticated staff report triage. Source provenance, use-specific redistribution evidence, qualified independent review, and manual client QA remain separate release blockers.
