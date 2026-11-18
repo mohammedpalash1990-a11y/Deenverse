@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { spawn } from 'node:child_process';
 import { createServer } from 'node:net';
+import { networkInterfaces } from 'node:os';
 import { once } from 'node:events';
 import { setTimeout as delay } from 'node:timers/promises';
 import { dirname, resolve } from 'node:path';
@@ -204,7 +205,16 @@ test('PostgreSQL migrations and production runtime are verified against a real P
     assert.equal(body.status, 'ready');
     assert.equal(body.database, 'connected');
     assert.equal(body.migrations, 'applied');
-    assert.match(childStdout, /DEENVERSE backend listening at http:\/\/0\.0\.0\.0:/, 'production must bind all interfaces even when HOST is configured as localhost');
+    assert.match(childStdout, /DEENVERSE backend listening at http:\/\//, 'production server must report its listening address');
+
+    const nonLoopbackIpv4 = Object.values(networkInterfaces())
+      .flat()
+      .find((address) => address && (address.family === 'IPv4' || address.family === 4) && !address.internal)?.address;
+    assert.ok(nonLoopbackIpv4, 'The PostgreSQL CI environment must expose a non-loopback IPv4 interface.');
+    const interfaceReadiness = await fetch(`http://${nonLoopbackIpv4}:${port}/api/v1/ready`, {
+      signal: AbortSignal.timeout(5_000)
+    });
+    assert.equal(interfaceReadiness.status, 200, 'Production must accept requests through a non-loopback interface even when HOST is configured as localhost.');
 
     const reportResponse = await fetch(`http://127.0.0.1:${port}/api/v1/problem-reports`, {
       method: 'POST',
