@@ -209,7 +209,7 @@ test('PostgreSQL migrations and production runtime are verified against a real P
 
     const nonLoopbackIpv4 = Object.values(networkInterfaces())
       .flat()
-      .find((address) => address && (address.family === 'IPv4' || address.family === 4) && !address.internal)?.address;
+      .find((address) => address && String(address.family) === 'IPv4' && !address.internal)?.address;
     assert.ok(nonLoopbackIpv4, 'The PostgreSQL CI environment must expose a non-loopback IPv4 interface.');
     const interfaceReadiness = await fetch(`http://${nonLoopbackIpv4}:${port}/api/v1/ready`, {
       signal: AbortSignal.timeout(5_000)
