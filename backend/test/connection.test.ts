@@ -25,3 +25,17 @@ test('SQLite connections use a real transactional database driver', async () => 
     await db.destroy();
   }
 });
+
+test('PostgreSQL connection failures reject instead of silently falling back', async () => {
+  const db = createDatabaseConnection({
+    client: 'pg',
+    connection: 'postgresql://postgres:postgres@127.0.0.1:1/deenverse_test?connect_timeout=1'
+  });
+
+  try {
+    assert.equal(db.client.config.client, 'pg');
+    await assert.rejects(db.raw('select 1'));
+  } finally {
+    await db.destroy();
+  }
+});
