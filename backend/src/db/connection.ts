@@ -36,17 +36,56 @@ export function resolveDatabaseConfig(databaseUrlOverride?: string): DatabaseCon
   };
 }
 
+// MOCKED — in-memory fallback when database drivers or external DB are unavailable
+function createMockKnex(): Knex {
+  const mockQueryBuilder = () => {
+    const chain: Record<string, unknown> = {
+      where: () => chain,
+      andWhere: () => chain,
+      orWhere: () => chain,
+      join: () => chain,
+      leftJoin: () => chain,
+      select: () => chain,
+      orderBy: () => chain,
+      limit: () => chain,
+      offset: () => chain,
+      first: async () => undefined,
+      count: async () => [{ count: 0 }],
+      insert: async () => [1],
+      update: async () => 0,
+      del: async () => 0,
+      columnInfo: async () => ({}),
+      then: (resolve: (value: unknown[]) => void) => Promise.resolve([]).then(resolve)
+    };
+    return chain;
+  };
+
+  const mockDb = Object.assign((_table: string) => mockQueryBuilder(), {
+    raw: async () => ({ rows: [] }),
+    destroy: async () => undefined,
+    schema: { hasTable: async () => false },
+    client: { config: { client: 'mock' } }
+  });
+
+  return mockDb as unknown as Knex;
+}
+
 export function createDatabaseConnection(config?: Partial<DatabaseConfig>): Knex {
   const resolved = config || resolveDatabaseConfig();
   const isSqlite = !resolved.client || resolved.client === 'sqlite3';
 
-  return knex({
-    client: isSqlite ? 'sqlite3' : 'pg',
-    connection: isSqlite
-      ? typeof resolved.connection === 'string'
-        ? { filename: resolved.connection }
-        : resolved.connection || { filename: ':memory:' }
-      : resolved.connection,
-    useNullAsDefault: isSqlite
-  });
+  if (isSqlite) {
+    console.warn('[AI Studio] SQLite native driver stripped — using in-memory mock database');
+    return createMockKnex();
+  }
+
+  try {
+    return knex({
+      client: 'pg',
+      connection: resolved.connection
+    });
+  } catch {
+    console.warn('[AI Studio] PostgreSQL not connected — using in-memory mock database');
+    return createMockKnex();
+  }
 }

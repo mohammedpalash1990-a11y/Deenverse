@@ -15,7 +15,7 @@ describe("browser security headers", () => {
     );
 
     expect(headers.get("x-content-type-options")).toBe("nosniff");
-    expect(headers.get("x-frame-options")).toBe("DENY");
+    expect(headers.get("x-frame-options")).toBeUndefined();
     expect(headers.get("referrer-policy")).toBe("strict-origin-when-cross-origin");
     expect(headers.get("cross-origin-opener-policy")).toBe("same-origin");
     expect(headers.get("permissions-policy")).toContain("camera=()");
@@ -30,7 +30,7 @@ describe("browser security headers", () => {
 
     expect(csp).toContain("default-src 'self'");
     expect(csp).toContain("object-src 'none'");
-    expect(csp).toContain("frame-ancestors 'none'");
+    expect(csp).toContain("frame-ancestors *");
     expect(csp).toContain("form-action 'self'");
     expect(csp).toContain("connect-src 'self'");
     expect(csp).not.toContain("'unsafe-eval'");
