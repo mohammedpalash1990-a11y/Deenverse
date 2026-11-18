@@ -818,3 +818,11 @@ This section supersedes earlier snapshots for main, the active runtime-hardening
 ### Release decision and next priority
 
 Keep Quran Arabic, Bengali translation, Hadith, tafsir, dua, and recitation audio fail-closed. First resolve GHSA-fc5q-39xc-vjpf without suppressing the audit, rerun exact-head checks, and merge #143 only after every required check passes. Then complete the read-only Render audit after workspace authorization, prepare backup/rollback plans for the two additive Neon migrations, and implement authentication/authorization plus authenticated staff report triage. Source provenance, use-specific redistribution evidence, qualified independent review, and manual client QA remain separate release blockers.
+
+
+## 2026-11-18 rebased runtime PR status (14:02 Asia/Riyadh)
+
+- Current `main` is `83dda48d25e33d5dc541ab21d86ed8215643c077` after documentation-only PR #144.
+- The active runtime fix is now [PR #145](https://github.com/mohammedpalash1990-a11y/Deenverse/pull/145), head `b7142a08533ce890b7743a57fd50278284faca14`, directly based on that main SHA. Its diff is 12 application/test files; the runtime changes and non-loopback bind regression test are preserved.
+- Exact-head [web foundation #44290686445](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/44290686445) passed. [Backend/web CI #44290686311](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/44290686311): backend typecheck, 124/124 tests, build passed; web typecheck, 197/197 tests, build passed; both audit steps failed on GHSA-fc5q-39xc-vjpf through picomatch 4.0.7. Do not suppress the audit or merge #145 until a verifiable safe remediation exists and all checks pass.
+- Older duplicate PRs #137 and #143 were closed unmerged as superseded by #145; their code changes are preserved in #145. No production database, permission, network, or deployment change was made.
