@@ -17,7 +17,7 @@ const PORT = readPositiveInteger('PORT', 4000);
 if (PORT > 65_535) throw new Error('PORT must not exceed 65535.');
 const RATE_LIMIT_MAX = readPositiveInteger('RATE_LIMIT_MAX', 100);
 const RATE_LIMIT_WINDOW_MS = readPositiveInteger('RATE_LIMIT_WINDOW_MS', 60_000);
-const HOST = process.env.HOST || '0.0.0.0';
+const HOST = process.env.NODE_ENV === 'production' ? '0.0.0.0' : (process.env.HOST || '0.0.0.0');
 
 async function main(): Promise<void> {
   const databaseConfig = resolveDatabaseConfig();

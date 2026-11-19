@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { apiError, createRequestId, saveProblemReport } from "@/lib/api-mock-store";
+import { apiError, createRequestId } from "@/lib/api-mock-store";
 
 const ALLOWED_CATEGORIES = new Set(["bug", "audio", "quran", "hadith_dua", "feature", "suggestion"]);
 const ALLOWED_FIELDS = new Set([
@@ -107,26 +107,10 @@ export async function POST(request: Request) {
     });
   }
 
-  const saved = saveProblemReport({
-    category: category as "bug" | "audio" | "quran" | "hadith_dua" | "feature" | "suggestion",
-    description,
-    stepsToReproduce: stepsToReproduce || null,
-    currentSection,
-    appVersion,
-    surahNumber,
-    ayahNumber,
-    diagnostics
-  });
-
-  return NextResponse.json(
-    {
-      meta: { requestId },
-      data: {
-        id: saved.id,
-        status: "received",
-        message: "Your report has been received."
-      }
-    },
-    { status: 201 }
+  return apiError(
+    503,
+    "PERSISTENCE_UNAVAILABLE",
+    "Persistent problem-report storage is not configured for this deployment.",
+    { requestId, retryable: true }
   );
 }
