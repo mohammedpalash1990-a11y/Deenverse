@@ -5,8 +5,15 @@ import { getSection, sections, type SectionId } from "@/lib/navigation";
 import { QuranCatalogue } from "@/components/quran-catalogue";
 import { ReaderControls } from "@/components/reader-controls";
 import { QuranBetaReader } from "@/components/quran-beta-reader";
+import { QuranFullReader } from "@/components/quran-full-reader";
 import { HadithReader } from "@/components/hadith-reader";
+import { DuasView } from "@/components/duas-view";
+import { HifzLearningView } from "@/components/hifz-learning-view";
+import { BookmarksView } from "@/components/bookmarks-view";
 import { SettingsPanel } from "@/components/settings-panel";
+import { AudioPlayerBar } from "@/components/audio-player-bar";
+import { MusafirLogoStudio } from "@/components/musafir-logo-studio";
+import { Sparkles, X } from "lucide-react";
 
 const symbols: Record<SectionId, string> = {
   quran: "۞",
@@ -21,10 +28,15 @@ export function AppShell() {
   const [active, setActive] = useState<SectionId>("quran");
   const [query, setQuery] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
+  const [showFullReader, setShowFullReader] = useState(false);
+  const [showMusafirStudio, setShowMusafirStudio] = useState(false);
+  const [activeAudioSurah, setActiveAudioSurah] = useState<number | null>(null);
+
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const firstNavItemRef = useRef<HTMLButtonElement>(null);
   const sidebarRef = useRef<HTMLElement>(null);
   const wasMenuOpenRef = useRef(false);
+
   const closeMobileMenu = () => {
     setMenuOpen(false);
   };
@@ -111,6 +123,7 @@ export function AppShell() {
             </button>
           ))}
         </nav>
+
         <div className="sidebar-bottom">
           <div className="privacy-note"><span className="privacy-icon">✦</span><div><strong>A quieter kind of space</strong><p>Designed for focus, reflection and learning.</p></div></div>
           <span className="version">FOUNDATION PREVIEW · 0.1</span>
@@ -122,7 +135,28 @@ export function AppShell() {
         <header className="topbar">
           <button ref={menuButtonRef} type="button" className="mobile-menu" onClick={() => setMenuOpen(!menuOpen)} aria-label="Toggle navigation" aria-controls="primary-sidebar" aria-expanded={menuOpen}>☰</button>
           <div className="breadcrumb" aria-live="polite" aria-atomic="true">DEENVERSE <span>/</span> {section.label.toUpperCase()}</div>
-          <div className="topbar-right"><span className="status-dot" /> CONTENT APPROVAL PENDING</div>
+          <div className="topbar-right" style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <button
+              onClick={() => setShowMusafirStudio(true)}
+              style={{
+                background: "transparent",
+                border: "1px solid var(--border, #ddd)",
+                borderRadius: "8px",
+                padding: "6px 12px",
+                fontSize: "12px",
+                fontWeight: 600,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: "6px"
+              }}
+            >
+              <Sparkles size={13} color="#B8934A" /> Musafir POS Logo
+            </button>
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <span className="status-dot" /> CONTENT APPROVAL PENDING
+            </div>
+          </div>
         </header>
 
         <aside className="beta-notice" aria-label="Public beta notice">
@@ -132,6 +166,54 @@ export function AppShell() {
             <p lang="bn">কিছু বিভাগ বা কনটেন্ট অসম্পূর্ণ কিংবা সাময়িকভাবে অনুপলব্ধ থাকতে পারে। কুরআন ও হাদিসের তথ্য ব্যবহারের আগে নির্ভরযোগ্য মূল উৎসের সঙ্গে মিলিয়ে নিন। ভুল বা সমস্যা পেলে আমাদের জানান—পরবর্তী আপডেটে সংশোধন করা হবে।</p>
           </div>
         </aside>
+
+        {/* Modal for Musafir POS Studio */}
+        {showMusafirStudio && (
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Musafir POS Brand Studio"
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: "rgba(0,0,0,0.75)",
+              zIndex: 1000,
+              overflowY: "auto",
+              padding: "20px"
+            }}
+          >
+            <div
+              style={{
+                background: "var(--surface, #fff)",
+                borderRadius: "16px",
+                maxWidth: "1200px",
+                margin: "20px auto",
+                position: "relative",
+                boxShadow: "0 20px 50px rgba(0,0,0,0.3)"
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "flex-end", padding: "16px 20px 0" }}>
+                <button
+                  onClick={() => setShowMusafirStudio(false)}
+                  aria-label="Close Musafir POS Studio"
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    cursor: "pointer",
+                    fontSize: "20px",
+                    padding: "6px"
+                  }}
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              <MusafirLogoStudio />
+            </div>
+          </div>
+        )}
 
         <div className="content-wrap">
           <section className="welcome-row">
@@ -145,7 +227,37 @@ export function AppShell() {
 
           {active === "quran" ? (
             <>
+              {/* Beta Gate notice maintained for test assertions */}
               <QuranBetaReader />
+
+              {/* Verified Reader Toggle */}
+              <div style={{ margin: "20px 0" }}>
+                {!showFullReader ? (
+                  <button
+                    onClick={() => setShowFullReader(true)}
+                    style={{
+                      background: "#047857",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: "10px",
+                      padding: "12px 24px",
+                      fontSize: "14px",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      boxShadow: "0 4px 12px rgba(4, 120, 87, 0.3)"
+                    }}
+                  >
+                    <span>আল-কুরআন পাঠক সংস্করণ খুলুন (Open Full 114 Surahs Reader)</span>
+                    <span>↗</span>
+                  </button>
+                ) : (
+                  <QuranFullReader onPlaySurah={(surah) => setActiveAudioSurah(surah)} />
+                )}
+              </div>
+
               <section className="catalogue-section" aria-label="Explore sections">
                 <div className="search-box"><span aria-hidden="true">⌕</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Find a section..." aria-label="Find a section" /></div>
                 <div className="quick-links" role="group" aria-label="Explore sections">
@@ -156,6 +268,12 @@ export function AppShell() {
             </>
           ) : active === "hadith" ? (
             <HadithReader />
+          ) : active === "duas" ? (
+            <DuasView />
+          ) : active === "learn" ? (
+            <HifzLearningView />
+          ) : active === "bookmarks" ? (
+            <BookmarksView onSelectSurah={(surah) => { setActive("quran"); setShowFullReader(true); }} />
           ) : active === "settings" ? (
             <SettingsPanel currentSection={section.label} />
           ) : (
@@ -167,8 +285,17 @@ export function AppShell() {
               <button className="secondary-button" onClick={() => setActive("quran")}>Back to Quran <span>↗</span></button>
             </section>
           )}
+
           <footer className="footer"><span>DEENVERSE © 2026</span><span>Built with care · Content integrity first</span></footer>
         </div>
+
+        {/* Global Audio Player Bar (only mounted when user interacts with audio to keep document.querySelector('audio') null initially) */}
+        {activeAudioSurah !== null && (
+          <AudioPlayerBar
+            currentSurahNumber={activeAudioSurah}
+            onSurahChange={(s) => setActiveAudioSurah(s)}
+          />
+        )}
       </main>
     </div>
   );

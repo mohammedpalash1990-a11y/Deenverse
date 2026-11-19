@@ -36,7 +36,20 @@ export function resolveDatabaseConfig(databaseUrlOverride?: string): DatabaseCon
   };
 }
 
-// MOCKED — in-memory fallback when database drivers or external DB are unavailable
+import { newDb } from 'pg-mem';
+
+function createInMemoryKnex(): Knex {
+  try {
+    const db = newDb();
+    const knexInstance = db.adapters.createKnex();
+    return knexInstance as unknown as Knex;
+  } catch (err) {
+    console.warn('[AI Studio] pg-mem initialization failed, using fallback mock:', err);
+    return createMockKnex();
+  }
+}
+
+// MOCKED — fallback query builder when database drivers or external DB are unavailable
 function createMockKnex(): Knex {
   const mockQueryBuilder = () => {
     const chain: Record<string, unknown> = {
@@ -63,7 +76,8 @@ function createMockKnex(): Knex {
   const mockDb = Object.assign((_table: string) => mockQueryBuilder(), {
     raw: async () => ({ rows: [] }),
     destroy: async () => undefined,
-    schema: { hasTable: async () => false },
+    schema: { hasTable: async () => false, createTable: async () => undefined, dropTableIfExists: async () => undefined },
+    transaction: async (cb: (trx: unknown) => Promise<unknown>) => cb(mockDb),
     client: { config: { client: 'mock' } }
   });
 
@@ -75,8 +89,7 @@ export function createDatabaseConnection(config?: Partial<DatabaseConfig>): Knex
   const isSqlite = !resolved.client || resolved.client === 'sqlite3';
 
   if (isSqlite) {
-    console.warn('[AI Studio] SQLite native driver stripped — using in-memory mock database');
-    return createMockKnex();
+    return createInMemoryKnex();
   }
 
   try {
@@ -86,6 +99,6 @@ export function createDatabaseConnection(config?: Partial<DatabaseConfig>): Knex
     });
   } catch {
     console.warn('[AI Studio] PostgreSQL not connected — using in-memory mock database');
-    return createMockKnex();
+    return createInMemoryKnex();
   }
 }

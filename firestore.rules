@@ -1,0 +1,165 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. Global Safety Net: Default-deny all unspecified routes
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // User Profile Validation
+    function isValidUserProfile(data, userId) {
+      return data.uid == userId &&
+        data.email is string && data.email.size() <= 256 &&
+        (!('displayName' in data) || (data.displayName is string && data.displayName.size() <= 128)) &&
+        (!('photoURL' in data) || (data.photoURL is string && data.photoURL.size() <= 512)) &&
+        (!('arabicFontSize' in data) || (data.arabicFontSize is number && data.arabicFontSize >= 14 && data.arabicFontSize <= 64)) &&
+        (!('showTranslation' in data) || data.showTranslation is bool) &&
+        (!('preferredQari' in data) || (data.preferredQari is string && data.preferredQari.size() <= 64)) &&
+        (!('theme' in data) || data.theme in ['light', 'dark', 'system']);
+    }
+
+    // Bookmark Validation
+    function isValidBookmark(data, userId) {
+      return data.userId == userId &&
+        data.id is string && isValidId(data.id) &&
+        data.itemType in ['ayah', 'hadith', 'dua'] &&
+        data.title is string && data.title.size() <= 256 &&
+        (!('surahNumber' in data) || (data.surahNumber is number && data.surahNumber >= 1 && data.surahNumber <= 114)) &&
+        (!('ayahNumber' in data) || (data.ayahNumber is number && data.ayahNumber >= 1 && data.ayahNumber <= 286)) &&
+        (!('bookSlug' in data) || (data.bookSlug is string && data.bookSlug.size() <= 64)) &&
+        (!('hadithNumber' in data) || (data.hadithNumber is string && data.hadithNumber.size() <= 32)) &&
+        (!('note' in data) || (data.note is string && data.note.size() <= 1000));
+    }
+
+    // Reading State Validation
+    function isValidReadingState(data, userId) {
+      return data.userId == userId &&
+        data.surahNumber is number && data.surahNumber >= 1 && data.surahNumber <= 114 &&
+        data.ayahNumber is number && data.ayahNumber >= 1 && data.ayahNumber <= 286 &&
+        (!('surahNameArabic' in data) || (data.surahNameArabic is string && data.surahNameArabic.size() <= 128)) &&
+        (!('surahNameEnglish' in data) || (data.surahNameEnglish is string && data.surahNameEnglish.size() <= 128));
+    }
+
+    // Audio State Validation
+    function isValidAudioState(data, userId) {
+      return data.userId == userId &&
+        data.qariId is string && data.qariId.size() <= 64 &&
+        data.surahNumber is number && data.surahNumber >= 1 && data.surahNumber <= 114 &&
+        (!('qariName' in data) || (data.qariName is string && data.qariName.size() <= 128)) &&
+        (!('positionSeconds' in data) || (data.positionSeconds is number && data.positionSeconds >= 0));
+    }
+
+    // Hifz Progress Validation
+    function isValidHifzProgress(data, userId) {
+      return data.userId == userId &&
+        data.id is string && isValidId(data.id) &&
+        data.surahNumber is number && data.surahNumber >= 1 && data.surahNumber <= 114 &&
+        data.status in ['learning', 'memorized', 'revising'] &&
+        (!('startAyah' in data) || (data.startAyah is number && data.startAyah >= 1)) &&
+        (!('endAyah' in data) || (data.endAyah is number && data.endAyah >= 1)) &&
+        (!('revisionCount' in data) || (data.revisionCount is number && data.revisionCount >= 0)) &&
+        (!('masteryLevel' in data) || (data.masteryLevel is number && data.masteryLevel >= 1 && data.masteryLevel <= 5)) &&
+        (!('notes' in data) || (data.notes is string && data.notes.size() <= 1000));
+    }
+
+    // Problem Report Validation
+    function isValidProblemReport(data) {
+      return data.category in ['bug', 'audio', 'quran', 'hadith_dua', 'feature', 'suggestion'] &&
+        data.description is string && data.description.size() >= 10 && data.description.size() <= 4000 &&
+        data.currentSection is string && data.currentSection.size() <= 100 &&
+        data.appVersion is string && data.appVersion.size() <= 30 &&
+        data.status in ['new', 'investigating', 'resolved'] &&
+        (!('stepsToReproduce' in data) || (data.stepsToReproduce is string && data.stepsToReproduce.size() <= 2000)) &&
+        (!('surahNumber' in data) || (data.surahNumber is number && data.surahNumber >= 1 && data.surahNumber <= 114)) &&
+        (!('ayahNumber' in data) || (data.ayahNumber is number && data.ayahNumber >= 1 && data.ayahNumber <= 286)) &&
+        (!('diagnostics' in data) || (data.diagnostics is string && data.diagnostics.size() <= 1500));
+    }
+
+    // Users Collection and Subcollections
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow create: if isOwner(userId) &&
+        isValidId(userId) &&
+        isValidUserProfile(incoming(), userId);
+      allow update: if isOwner(userId) &&
+        isValidId(userId) &&
+        isValidUserProfile(incoming(), userId) &&
+        incoming().uid == existing().uid;
+      allow delete: if isOwner(userId);
+
+      // Bookmarks Subcollection
+      match /bookmarks/{bookmarkId} {
+        allow get, list: if isOwner(userId);
+        allow create: if isOwner(userId) &&
+          isValidId(bookmarkId) &&
+          isValidBookmark(incoming(), userId);
+        allow update: if isOwner(userId) &&
+          isValidId(bookmarkId) &&
+          isValidBookmark(incoming(), userId) &&
+          incoming().userId == existing().userId;
+        allow delete: if isOwner(userId) && isValidId(bookmarkId);
+      }
+
+      // Reading State Subcollection
+      match /reading_state/{stateId} {
+        allow get, list: if isOwner(userId);
+        allow create, update: if isOwner(userId) &&
+          isValidReadingState(incoming(), userId);
+        allow delete: if isOwner(userId);
+      }
+
+      // Audio State Subcollection
+      match /audio_state/{stateId} {
+        allow get, list: if isOwner(userId);
+        allow create, update: if isOwner(userId) &&
+          isValidAudioState(incoming(), userId);
+        allow delete: if isOwner(userId);
+      }
+
+      // Hifz Progress Subcollection
+      match /hifz_progress/{hifzId} {
+        allow get, list: if isOwner(userId);
+        allow create: if isOwner(userId) &&
+          isValidId(hifzId) &&
+          isValidHifzProgress(incoming(), userId);
+        allow update: if isOwner(userId) &&
+          isValidId(hifzId) &&
+          isValidHifzProgress(incoming(), userId) &&
+          incoming().userId == existing().userId;
+        allow delete: if isOwner(userId) && isValidId(hifzId);
+      }
+    }
+
+    // Problem Reports Collection (Public write, restricted read)
+    match /problem_reports/{reportId} {
+      allow create: if isValidId(reportId) &&
+        isValidProblemReport(incoming()) &&
+        incoming().status == 'new';
+      allow get: if isSignedIn() && resource.data.reporterUid == request.auth.uid;
+      allow list: if false; // Only admin or internal tools list all reports
+      allow update, delete: if false; // Non-destructive community reports
+    }
+  }
+}

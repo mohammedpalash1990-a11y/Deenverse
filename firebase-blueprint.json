@@ -1,0 +1,133 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile information and preferences",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128 },
+        "email": { "type": "string", "maxLength": 256 },
+        "displayName": { "type": "string", "maxLength": 128 },
+        "photoURL": { "type": "string", "maxLength": 512 },
+        "arabicFontSize": { "type": "number" },
+        "showTranslation": { "type": "boolean" },
+        "preferredQari": { "type": "string", "maxLength": 64 },
+        "theme": { "type": "string", "enum": ["light", "dark", "system"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "createdAt", "updatedAt"]
+    },
+    "Bookmark": {
+      "title": "Bookmark",
+      "description": "User saved bookmarks for Quran Ayahs, Hadith, or Duas",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "itemType": { "type": "string", "enum": ["ayah", "hadith", "dua"] },
+        "surahNumber": { "type": "number" },
+        "ayahNumber": { "type": "number" },
+        "bookSlug": { "type": "string", "maxLength": 64 },
+        "hadithNumber": { "type": "string", "maxLength": 32 },
+        "title": { "type": "string", "maxLength": 256 },
+        "note": { "type": "string", "maxLength": 1000 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "itemType", "title", "createdAt"]
+    },
+    "ReadingState": {
+      "title": "ReadingState",
+      "description": "User last read position and reading progress",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "maxLength": 128 },
+        "surahNumber": { "type": "number" },
+        "ayahNumber": { "type": "number" },
+        "surahNameArabic": { "type": "string", "maxLength": 128 },
+        "surahNameEnglish": { "type": "string", "maxLength": 128 },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "surahNumber", "ayahNumber", "updatedAt"]
+    },
+    "AudioState": {
+      "title": "AudioState",
+      "description": "User last audio listening position and current playing surah",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "maxLength": 128 },
+        "qariId": { "type": "string", "maxLength": 64 },
+        "qariName": { "type": "string", "maxLength": 128 },
+        "surahNumber": { "type": "number" },
+        "positionSeconds": { "type": "number" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "qariId", "surahNumber", "updatedAt"]
+    },
+    "HifzProgress": {
+      "title": "HifzProgress",
+      "description": "Memorization and revision tracking record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "surahNumber": { "type": "number" },
+        "startAyah": { "type": "number" },
+        "endAyah": { "type": "number" },
+        "status": { "type": "string", "enum": ["learning", "memorized", "revising"] },
+        "revisionCount": { "type": "number" },
+        "lastRevisionDate": { "type": "string", "format": "date-time" },
+        "masteryLevel": { "type": "number" },
+        "notes": { "type": "string", "maxLength": 1000 },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "surahNumber", "status", "updatedAt"]
+    },
+    "ProblemReport": {
+      "title": "ProblemReport",
+      "description": "Community problem and bug report",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "category": { "type": "string", "enum": ["bug", "audio", "quran", "hadith_dua", "feature", "suggestion"] },
+        "description": { "type": "string", "maxLength": 4000 },
+        "stepsToReproduce": { "type": "string", "maxLength": 2000 },
+        "currentSection": { "type": "string", "maxLength": 100 },
+        "appVersion": { "type": "string", "maxLength": 30 },
+        "surahNumber": { "type": "number" },
+        "ayahNumber": { "type": "number" },
+        "diagnostics": { "type": "string", "maxLength": 1500 },
+        "status": { "type": "string", "enum": ["new", "investigating", "resolved"] },
+        "reporterUid": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "category", "description", "currentSection", "appVersion", "status", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "User profile document owned by the authenticated user"
+    },
+    "/users/{userId}/bookmarks/{bookmarkId}": {
+      "schema": { "$ref": "#/entities/Bookmark" },
+      "description": "Personal bookmarks saved by the user"
+    },
+    "/users/{userId}/reading_state/current": {
+      "schema": { "$ref": "#/entities/ReadingState" },
+      "description": "Latest Quran reading progress and position"
+    },
+    "/users/{userId}/audio_state/current": {
+      "schema": { "$ref": "#/entities/AudioState" },
+      "description": "Latest audio recitation listening state"
+    },
+    "/users/{userId}/hifz_progress/{hifzId}": {
+      "schema": { "$ref": "#/entities/HifzProgress" },
+      "description": "Hifz memorization tracking records"
+    },
+    "/problem_reports/{reportId}": {
+      "schema": { "$ref": "#/entities/ProblemReport" },
+      "description": "Community submitted problem reports and feedback"
+    }
+  }
+}
