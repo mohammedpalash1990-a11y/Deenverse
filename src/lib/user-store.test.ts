@@ -41,8 +41,10 @@ describe("Firestore error diagnostics", () => {
     };
     const warning = vi.spyOn(console, "warn").mockImplementation(() => {});
 
+    const error = new Error("permission denied for person@example.com at private-user-id");
+    error.name = "person@example.com";
     handleFirestoreError(
-      new Error("permission denied for person@example.com at private-user-id"),
+      error,
       OperationType.WRITE,
       "users/private-user-id/bookmarks/private-bookmark-id"
     );
