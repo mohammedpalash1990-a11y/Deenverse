@@ -5,13 +5,9 @@ import { getSection, sections, type SectionId } from "@/lib/navigation";
 import { QuranCatalogue } from "@/components/quran-catalogue";
 import { ReaderControls } from "@/components/reader-controls";
 import { QuranBetaReader } from "@/components/quran-beta-reader";
-import { QuranFullReader } from "@/components/quran-full-reader";
 import { HadithReader } from "@/components/hadith-reader";
-import { DuasView } from "@/components/duas-view";
-import { HifzLearningView } from "@/components/hifz-learning-view";
 import { BookmarksView } from "@/components/bookmarks-view";
 import { SettingsPanel } from "@/components/settings-panel";
-import { AudioPlayerBar } from "@/components/audio-player-bar";
 import { MusafirLogoStudio } from "@/components/musafir-logo-studio";
 import { Sparkles, X } from "lucide-react";
 
@@ -28,9 +24,7 @@ export function AppShell() {
   const [active, setActive] = useState<SectionId>("quran");
   const [query, setQuery] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
-  const [showFullReader, setShowFullReader] = useState(false);
   const [showMusafirStudio, setShowMusafirStudio] = useState(false);
-  const [activeAudioSurah, setActiveAudioSurah] = useState<number | null>(null);
 
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const firstNavItemRef = useRef<HTMLButtonElement>(null);
@@ -230,34 +224,6 @@ export function AppShell() {
               {/* Beta Gate notice maintained for test assertions */}
               <QuranBetaReader />
 
-              {/* Verified Reader Toggle */}
-              <div style={{ margin: "20px 0" }}>
-                {!showFullReader ? (
-                  <button
-                    onClick={() => setShowFullReader(true)}
-                    style={{
-                      background: "#047857",
-                      color: "#fff",
-                      border: "none",
-                      borderRadius: "10px",
-                      padding: "12px 24px",
-                      fontSize: "14px",
-                      fontWeight: 600,
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "8px",
-                      boxShadow: "0 4px 12px rgba(4, 120, 87, 0.3)"
-                    }}
-                  >
-                    <span>আল-কুরআন পাঠক সংস্করণ খুলুন (Open Full 114 Surahs Reader)</span>
-                    <span>↗</span>
-                  </button>
-                ) : (
-                  <QuranFullReader onPlaySurah={(surah) => setActiveAudioSurah(surah)} />
-                )}
-              </div>
-
               <section className="catalogue-section" aria-label="Explore sections">
                 <div className="search-box"><span aria-hidden="true">⌕</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Find a section..." aria-label="Find a section" /></div>
                 <div className="quick-links" role="group" aria-label="Explore sections">
@@ -268,12 +234,8 @@ export function AppShell() {
             </>
           ) : active === "hadith" ? (
             <HadithReader />
-          ) : active === "duas" ? (
-            <DuasView />
-          ) : active === "learn" ? (
-            <HifzLearningView />
           ) : active === "bookmarks" ? (
-            <BookmarksView onSelectSurah={(surah) => { setActive("quran"); setShowFullReader(true); }} />
+            <BookmarksView onSelectSurah={() => setActive("quran")} />
           ) : active === "settings" ? (
             <SettingsPanel currentSection={section.label} />
           ) : (
@@ -289,13 +251,6 @@ export function AppShell() {
           <footer className="footer"><span>DEENVERSE © 2026</span><span>Built with care · Content integrity first</span></footer>
         </div>
 
-        {/* Global Audio Player Bar (only mounted when user interacts with audio to keep document.querySelector('audio') null initially) */}
-        {activeAudioSurah !== null && (
-          <AudioPlayerBar
-            currentSurahNumber={activeAudioSurah}
-            onSurahChange={(s) => setActiveAudioSurah(s)}
-          />
-        )}
       </main>
     </div>
   );
