@@ -32,6 +32,26 @@ describe("DEENVERSE app shell", () => {
     expect(fetch).not.toHaveBeenCalled();
   });
 
+  it("does not expose the unapproved full Quran reader or audio player", () => {
+    render(<AppShell />);
+    expect(screen.queryByRole("button", { name: /Open Full 114 Surahs Reader/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("combobox", { name: "সূরা নির্বাচন" })).not.toBeInTheDocument();
+    expect(document.querySelector("audio")).toBeNull();
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("keeps static Dua and Hifz material unavailable pending independent content review", () => {
+    render(<AppShell />);
+    const navigation = screen.getByRole("navigation", { name: "Main navigation" });
+    fireEvent.click(within(navigation).getByRole("button", { name: "Duas & Adhkar" }));
+    expect(screen.getByText("COMING IN A VERIFIED RELEASE")).toBeInTheDocument();
+    expect(screen.queryByText(/আয়াতুল কুরসী/)).not.toBeInTheDocument();
+    fireEvent.click(within(navigation).getByRole("button", { name: "Learn" }));
+    expect(screen.getByText("COMING IN A VERIFIED RELEASE")).toBeInTheDocument();
+    expect(screen.queryByText(/আজকের আয়াত ও তাদাব্বুর/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/স্মৃতি পরীক্ষা/)).not.toBeInTheDocument();
+  });
+
   it("keeps the active section announcement and selected navigation state in sync", () => {
     render(<AppShell />);
     const navigation = screen.getByRole("navigation", { name: "Main navigation" });
