@@ -1,30 +1,3 @@
-jobs:
-  regenerate-web-lock:
-    name: Regenerate web npm lockfile (temporary)
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.head_ref }}
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - name: Regenerate lockfile from package.json
-        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
-      - name: Commit regenerated lockfile to this PR branch
-        env:
-          BRANCH: ${{ github.head_ref }}
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add package-lock.json
-          if ! git diff --cached --quiet; then
-            git commit -m "chore: synchronize web npm lockfile"
-            git push origin "HEAD:${BRANCH}"
-          fi
-
 name: DEENVERSE CI
 
 on:
@@ -59,6 +32,33 @@ permissions:
 concurrency:
   group: deenverse-ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
+
+jobs:
+  regenerate-web-lock:
+    name: Regenerate web npm lockfile (temporary)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Regenerate lockfile from package.json
+        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+      - name: Commit regenerated lockfile to this PR branch
+        env:
+          BRANCH: ${{ github.head_ref }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package-lock.json
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: synchronize web npm lockfile"
+            git push origin "HEAD:${BRANCH}"
+          fi
 
   backend:
     name: Backend typecheck, tests and build
