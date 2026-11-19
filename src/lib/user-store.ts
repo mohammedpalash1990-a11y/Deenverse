@@ -23,34 +23,32 @@ export interface FirestoreErrorInfo {
   operationType: OperationType;
   path: string | null;
   authInfo: {
-    userId?: string | null;
-    email?: string | null;
-    emailVerified?: boolean | null;
-    isAnonymous?: boolean | null;
-    tenantId?: string | null;
-    providerInfo?: {
-      providerId?: string | null;
-      email?: string | null;
-    }[];
+    signedIn: boolean;
+    isAnonymous: boolean | null;
   };
 }
 
+function redactFirestorePath(path: string | null): string | null {
+  if (!path) return null;
+  return path
+    .split("/")
+    .filter(Boolean)
+    .map((segment, index) => index % 2 === 1 ? "{documentId}" : segment)
+    .join("/");
+}
+
 export function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
+  const currentUser = auth.currentUser;
   const errInfo: FirestoreErrorInfo = {
-    error: error instanceof Error ? error.message : String(error),
+    // Error messages may contain document paths or user-provided values. Keep
+    // only the class name so browser diagnostics do not expose those details.
+    error: error instanceof Error ? error.name : "UnknownError",
     authInfo: {
-      userId: auth.currentUser?.uid,
-      email: auth.currentUser?.email,
-      emailVerified: auth.currentUser?.emailVerified,
-      isAnonymous: auth.currentUser?.isAnonymous,
-      tenantId: auth.currentUser?.tenantId,
-      providerInfo: auth.currentUser?.providerData?.map((provider) => ({
-        providerId: provider.providerId,
-        email: provider.email
-      })) || []
+      signedIn: currentUser !== null,
+      isAnonymous: currentUser?.isAnonymous ?? null
     },
     operationType,
-    path
+    path: redactFirestorePath(path)
   };
   console.warn("Firestore Operation Notice:", JSON.stringify(errInfo));
 }
