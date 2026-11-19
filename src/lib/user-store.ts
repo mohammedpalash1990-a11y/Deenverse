@@ -42,7 +42,7 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
   const errInfo: FirestoreErrorInfo = {
     // Error messages may contain document paths or user-provided values. Keep
     // only the class name so browser diagnostics do not expose those details.
-    error: error instanceof Error ? error.name : "UnknownError",
+    error: error instanceof Error ? "Error" : "UnknownError",
     authInfo: {
       signedIn: currentUser !== null,
       isAnonymous: currentUser?.isAnonymous ?? null
