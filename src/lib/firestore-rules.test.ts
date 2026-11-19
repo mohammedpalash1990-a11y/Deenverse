@@ -11,8 +11,9 @@ describe("Firestore problem-report rules", () => {
     expect(start).toBeGreaterThanOrEqual(0);
 
     const block = firestoreRules.slice(start + marker.length).split("\n    }", 1)[0] ?? "";
-    const allowStatements = block.match(/^\s*allow\s+[^;]+;/gm) ?? [];
+    const allowStatements = (block.match(/^\s*allow\s+[^;]+;/gm) ?? [])
+      .map((statement) => statement.trim());
 
-    expect(allowStatements).toEqual(["      allow read, write: if false;"]);
+    expect(allowStatements).toEqual(["allow read, write: if false;"]);
   });
 });
