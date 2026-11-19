@@ -826,3 +826,57 @@ Keep Quran Arabic, Bengali translation, Hadith, tafsir, dua, and recitation audi
 - The active runtime fix is now [PR #145](https://github.com/mohammedpalash1990-a11y/Deenverse/pull/145), head `b7142a08533ce890b7743a57fd50278284faca14`, directly based on that main SHA. Its diff is 12 application/test files; the runtime changes and non-loopback bind regression test are preserved.
 - Exact-head [web foundation #44290686445](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/44290686445) passed. [Backend/web CI #44290686311](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/44290686311): backend typecheck, 124/124 tests, build passed; web typecheck, 197/197 tests, build passed; both audit steps failed on GHSA-fc5q-39xc-vjpf through picomatch 4.0.7. Do not suppress the audit or merge #145 until a verifiable safe remediation exists and all checks pass.
 - Older duplicate PRs #137 and #143 were closed unmerged as superseded by #145; their code changes are preserved in #145. No production database, permission, network, or deployment change was made.
+
+## 2026-11-19 verified run — main runtime and content gates
+
+### GitHub and CI
+
+- Current `main`: `f85880b30fdb4979b2709114e6dbfc26127a5fbc`, merged from [PR #149](https://github.com/mohammedpalash1990-a11y/Deenverse/pull/149). PR #149 exact-head [DEENVERSE CI #44506489441](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/44506489441) and [web foundation #44506489489](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/44506489489) passed. Post-merge [main CI #44507025757](https://github.com/mohammedpalash1990-a11y/Deenverse/actions/runs/44507025757) passed.
+- Exact verification: backend typecheck/build passed; 125/125 backend tests passed; PostgreSQL 16 migration and production-runtime tests passed; native SQLite persistence and transaction tests passed; backend dependency audit found 0 vulnerabilities. Web typecheck/build passed; 199/199 tests passed across 24 files; web dependency audit found 0 vulnerabilities.
+- PR #149 restores native `sqlite3` and removes the pg-mem/mock fallback; enforces production bind on `0.0.0.0`; makes mock readiness return 503 and stops acknowledging reports without persistent storage; restores `X-Frame-Options: DENY` and CSP `frame-ancestors 'none'`; removes the public full-reader bypass to direct QuranEnc translation and third-party audio; and keeps static unreviewed Dua/Hifz screens behind the verified-release placeholder.
+- PR #147 was closed unmerged as superseded by #149. PR #91 and #92 are merged. PR #85–89 are closed; PR #90, #93, #105, #126, #128 and #130–#149 are merged except the superseded #147. The only open PRs are #79 and #11; both target `integration/platform-foundation` and are dirty/non-mergeable. Do not merge them as-is.
+- GitHub reports `main.protected=false`; repository rulesets are empty. GitHub Releases is empty. The repository has no deployment workflow among its four current workflow files (backend lock refresh, DEENVERSE CI, OpenAPI contract, web foundation). The deployment inventory endpoint is unavailable through this connection; no production deployment SHA is claimed.
+
+### Public religious-content UI
+
+- Before PR #149, the public app shell exposed an “Open Full 114 Surahs Reader” control that mounted a direct QuranEnc fetch path and a third-party recitation player, bypassing the existing approval-pending Quran reader. It also mounted static `ADHKAR_LIST` and Hifz sample content without a verified source dossier or independent approval.
+- PR #149 removes those public UI entry points. The Quran section now remains on the approval-pending reader; the Hadith section continues to use the backend API, which remains unavailable without approved production content. Duas/Adhkar and Learn remain on the verified-release placeholder. No Quran, translation, Hadith, tafsir, dua, or audio content was imported or activated.
+- The static source modules remain in the repository but are not mounted by the public app shell. Any future reintroduction requires source/version/attribution and independent content review first.
+
+### Immutable source candidates and current source terms
+
+**Tanzil Uthmani candidate**
+
+- Library file `quran-uthmani.txt`: 1,396,087 bytes; SHA-256 recomputed from the materialized file: `6933e133dd56db778c801bf738848454e43648105a151e8d84d86a7cae39ec5f`. It contains 6,236 unique coordinates across 114 Surahs, no duplicate coordinates, and the exact Tanzil copyright/license footer.
+- The official [Tanzil Text License](https://tanzil.net/docs/Text_License) says CC BY 3.0, verbatim copying only, no content changes, clear source attribution, a link to Tanzil, and preservation of the copyright/license notice. The official [download page](https://tanzil.net/pub/download/index.php) identifies Version 1.1, published February 2021.
+- Neon’s registered digest is `ac0724796cbbda0f4801470fbbd11d0f3c5802067bae0493466d0128b0c667af`, which does not match the Library candidate. The source is inactive. The source reviewer and approval reviewer are both `project-owner-chat-authorization`; this is not independent human approval. The Library file has no independently verified source-issued acquisition record. Do not import or activate.
+
+**QuranEnc Abu Bakr Zakaria candidate**
+
+- SQLite ZIP SHA-256: `ddd05bf3c6780e8231b39f4fc5e63fbee5d0affd46879678bc9f7fdfd63026e0`; extracted SQLite SHA-256: `bfdc89c228fc2d8edc78ab3cd3db74b5c55f02c346e815c220c3727275190358`.
+- JSON ZIP SHA-256: `a4939eff1291b0527fad109895fb8e556b12d7fa8866989242ce4ed32aac1b82`; extracted JSON SHA-256: `e053a63f7e59d65b197041878b009e39ca4f53e1f72351c8e465fd1f4815bb59`.
+- SQLite integrity check passes. Both archives contain 6,236 unique Ayah coordinates across 114 Surahs; every JSON `t` value exactly matches the SQLite `text` value. The archives do not contain publisher/version/update metadata, transcript information, or footnotes.
+- The current official [QuranEnc Bengali page](https://quranenc.com/bn/home) lists Abu Bakr Zakaria as V1.1.1 dated 22 May 2021. The translation page’s [republishing terms](https://quranenc.com/en/browse/bengali_zakaria/) require unmodified content, publisher/source attribution, version number, transcript information, notification of translation notes, latest-version updates, and no inappropriate advertising. The local archives have not been tied to an exact source-issued V1.1.1 artifact/transcript. Do not import or activate.
+
+**Hadith candidate**
+
+- The current [Hadith Project blueprint](https://thehadithproject.com/blueprint/) says project data is CC BY 4.0 and the Arabic text of Sahih al-Bukhari comes from Open-Hadith-Data (ODbL). Its [current About page](https://thehadithproject.com/about/) says the editorial board is being formed and machine-parsed chains remain awaiting human review. The [current site](https://thehadithproject.com/) lists 7,580 Bukhari narrations and labels chains as machine-parsed pending review.
+- This is a candidate source/format, not qualified independent scholarly approval for Deenverse. No full immutable Hadith artifact was acquired or independently SHA-256 hashed in this run. No Hadith content was imported or activated.
+
+### Neon production — read-only verification
+
+- Project `deenverse-db` (`cool-mud-31679014`), PostgreSQL 17, region `aws-ap-southeast-1`; default branch `main` (`br-spring-night-a14ey96s`) is Ready but `protected=false`.
+- IP allowlist is empty; `protected_branches_only=false`; `block_public_connections=false`.
+- Ten public tables exist. `quran_ayah_reviews` and `problem_reports` are absent. Counts: `content_sources=1`, `content_source_approvals=1`, `quran_surahs=0`, `quran_ayahs=0`; all six Hadith tables have zero rows.
+- The one Tanzil source is inactive. Its registered checksum does not match the Library candidate. Source reviewer and approval reviewer are both `project-owner-chat-authorization`; decision metadata says approved but does not establish independent review.
+- `deenverse_api` and `deenverse_runtime_ro` can connect and SELECT Quran tables; neither has INSERT, UPDATE, or DELETE on Quran rows. No production SQL write, migration, role grant, branch-protection change, or network restriction change was performed.
+
+### Render, authentication, PWA, and manual QA
+
+- Render workspace/service access remains unconfirmed. No service settings, environment values, deploys, events, logs, API health/readiness, live CORS, or Render-to-Neon connectivity were accessed. No production deploy SHA is claimed.
+- A Firebase Google sign-in helper and owner-scoped Firestore rules exist, but the helper is not wired to a sign-in UI. No backend token verification, login/session/OTP middleware, authorization guard, or authenticated staff report inbox/triage is implemented. The repository Firestore rules file default-denies unspecified paths, restricts user subcollections to their owner, permits public problem-report creation, and denies list/update/delete for reports; this is not an authenticated staff workflow. No firebase.json or .firebaserc is present, so these repository rules are not evidence of deployed Firebase rules. If deployed, the public-create rule would bypass the rate-limited backend report API and needs a separate security review.
+- PWA automated coverage verifies app-shell and immutable same-origin asset caching; API responses and religious/user data are not cached. Manual Arabic RTL, Bengali/English localization, keyboard, screen-reader, contrast/zoom, responsive, offline recovery, and physical Android/iOS QA remain unverified.
+
+### Release decision and next priorities
+
+Keep Quran Arabic, Bengali translation, Hadith, tafsir, dua, and recitation audio fail-closed. Next priorities: (1) read-only Render audit after workspace authorization; (2) prepare backup/rollback plans for the two additive Neon migrations without running them against production; (3) implement and test authenticated backend sessions/authorization plus staff report triage; (4) obtain exact immutable source-issued artifacts, version/transcript metadata, matching independently recomputed digests, source-specific redistribution evidence, and qualified independent human approval; (5) complete manual RTL/accessibility/offline/device QA. No production migration or deployment is authorized by this run.
