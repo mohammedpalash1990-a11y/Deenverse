@@ -48,7 +48,7 @@ describe("DEENVERSE app shell", () => {
     expect(screen.queryByText(/আয়াতুল কুরসী/)).not.toBeInTheDocument();
     fireEvent.click(within(navigation).getByRole("button", { name: "Learn" }));
     expect(screen.getByText("COMING IN A VERIFIED RELEASE")).toBeInTheDocument();
-    expect(screen.queryByText(/আজকের আয়াত ও তাদাব্বুর/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/হিফজ ও পুনরাবৃত্তি ট্র্যাকার/)).not.toBeInTheDocument();
     expect(screen.queryByText(/স্মৃতি পরীক্ষা/)).not.toBeInTheDocument();
   });
 
