@@ -152,14 +152,10 @@ service cloud.firestore {
       }
     }
 
-    // Problem Reports Collection (Public write, restricted read)
+    // Problem reports must use the rate-limited backend API. Direct client
+    // writes would bypass backend validation and rate limiting.
     match /problem_reports/{reportId} {
-      allow create: if isValidId(reportId) &&
-        isValidProblemReport(incoming()) &&
-        incoming().status == 'new';
-      allow get: if isSignedIn() && resource.data.reporterUid == request.auth.uid;
-      allow list: if false; // Only admin or internal tools list all reports
-      allow update, delete: if false; // Non-destructive community reports
+      allow read, write: if false;
     }
   }
 }
