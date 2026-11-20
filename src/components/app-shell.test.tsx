@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -50,6 +50,21 @@ describe("DEENVERSE app shell", () => {
     expect(screen.getByText("COMING IN A VERIFIED RELEASE")).toBeInTheDocument();
     expect(screen.queryByText(/হিফজ ও পুনরাবৃত্তি ট্র্যাকার/)).not.toBeInTheDocument();
     expect(screen.queryByText(/স্মৃতি পরীক্ষা/)).not.toBeInTheDocument();
+  });
+
+  it("does not ship unapproved legacy religious-content modules or external audio readers", () => {
+    const blockedPaths = [
+      "src/data/hadith-data.ts",
+      "src/data/adhkar-data.ts",
+      "src/data/tajweed-data.ts",
+      "src/data/qari-catalogue.ts",
+      "src/components/quran-full-reader.tsx",
+      "src/components/duas-view.tsx",
+      "src/components/hifz-learning-view.tsx",
+      "src/components/audio-player-bar.tsx"
+    ];
+
+    expect(blockedPaths.filter((path) => existsSync(resolve(process.cwd(), path)))).toEqual([]);
   });
 
   it("keeps the active section announcement and selected navigation state in sync", () => {
